@@ -101,26 +101,33 @@ class Availability(models.Model):
     """ Disponibilités des institutions """
     corporation = models.ForeignKey(Corporation, verbose_name='Institution')
     period = models.ForeignKey(Period, verbose_name='Période')
-    number = models.IntegerField(verbose_name='Nombre de places')
     domain = models.ForeignKey(Domain, verbose_name='Domaine')
+    comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
         verbose_name = "Disponibilité"
 
     def __unicode__(self):
-        return '%d place(s) chez %s (%s)' % (self.number, self.corporation, self.period)
+        return '%s - %s (%s)' % (self.period, self.corporation, self.domain)
+
+    @property
+    def free(self):
+        try:
+            self.training
+        except Training.DoesNotExist:
+            return True
+        return False
 
 
 class Training(models.Model):
     """ Stages """
     student = models.ForeignKey(Student, verbose_name='Étudiant')
-    corporation = models.ForeignKey(Corporation, verbose_name='Institution')
+    availability = models.OneToOneField(Availability, verbose_name='Disponibilité')
     referent = models.ForeignKey(Referent, verbose_name='Référent')
-    period = models.ForeignKey(Period, verbose_name='Période')
-    domain = models.ForeignKey(Domain, verbose_name='Domaine')
+    comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
         verbose_name = "Stage"
 
     def __unicode__(self):
-        return '%s chez %s (%s)' % (self.student, self.corporation, self.period)
+        return '%s chez %s (%s)' % (self.student, self.availability.corporation, self.availability.period)

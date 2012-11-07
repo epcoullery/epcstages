@@ -46,7 +46,10 @@
         </table>
         </div>
     {% endfor %}
-    <p><a href="{% url 'stages_export' %}">Exporter les données de stages</a></p>
+    <ul>
+      <li><a href="{% url 'attribution' %}">Attributions des stages</a></li>
+      <li><a href="{% url 'stages_export' %}">Exporter les données de stages</a></li>
+    </ul>
 {% else %}
     <p>{% trans "You don't have permission to edit anything." %}</p>
 {% endif %}

@@ -24,48 +24,48 @@
     "pk": 1, 
     "model": "stages.student", 
     "fields": {
-      "birth_date": "1994-05-12", 
+      "city": "La Chaux-de-Fonds", 
       "first_name": "Albin", 
-      "last_name": "Dupond",
-      "section": 1,
-      "pcode": "2300",
-      "city": "La Chaux-de-Fonds"
+      "last_name": "Dupond", 
+      "section": 1, 
+      "pcode": "2300", 
+      "birth_date": "1994-05-12"
     }
   }, 
   {
     "pk": 2, 
     "model": "stages.student", 
     "fields": {
-      "birth_date": "1994-07-12", 
+      "city": "Neuch\u00e2tel", 
       "first_name": "Justine", 
-      "last_name": "Varrin",
-      "section": 1,
-      "pcode": "2000",
-      "city": "Neuchâtel"
+      "last_name": "Varrin", 
+      "section": 1, 
+      "pcode": "2000", 
+      "birth_date": "1994-07-12"
     }
   }, 
   {
     "pk": 3, 
     "model": "stages.student", 
     "fields": {
-      "birth_date": "1994-05-20", 
+      "city": "Cernier", 
       "first_name": "Elvire", 
-      "last_name": "Hickx",
-      "section": 1,
-      "pcode": "2053",
-      "city": "Cernier"
+      "last_name": "Hickx", 
+      "section": 1, 
+      "pcode": "2053", 
+      "birth_date": "1994-05-20"
     }
   }, 
   {
     "pk": 4, 
     "model": "stages.student", 
     "fields": {
-      "birth_date": "1994-10-11", 
-      "first_name": "André", 
-      "last_name": "Allemand",
-      "section": 1,
-      "pcode": "2314",
-      "city": "La Sagne"
+      "city": "La Sagne", 
+      "first_name": "Andr\u00e9", 
+      "last_name": "Allemand", 
+      "section": 1, 
+      "pcode": "2314", 
+      "birth_date": "1994-10-11"
     }
   }, 
   {
@@ -85,6 +85,17 @@
       "name": "Centre p\u00e9dagogique XY", 
       "pcode": "2500", 
       "street": "Rue des champs 12", 
+      "email": ""
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "stages.corpcontact", 
+    "fields": {
+      "corporation": 1, 
+      "first_name": "Jean", 
+      "last_name": "Horner", 
+      "tel": "", 
       "email": ""
     }
   }, 
@@ -113,13 +124,32 @@
   }, 
   {
     "pk": 1, 
-    "model": "stages.training", 
+    "model": "stages.availability", 
     "fields": {
       "corporation": 1, 
       "domain": 1, 
       "period": 1, 
+      "comment": ""
+    }
+  }, 
+  {
+    "pk": 2, 
+    "model": "stages.availability", 
+    "fields": {
+      "corporation": 1, 
+      "domain": 2, 
+      "period": 1, 
+      "comment": ""
+    }
+  }, 
+  {
+    "pk": 1, 
+    "model": "stages.training", 
+    "fields": {
+      "availability": 1, 
       "student": 1, 
-      "referent": 1
+      "referent": 1,
+      "comment": ""
     }
   }
 ]

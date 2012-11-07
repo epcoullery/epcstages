@@ -25,14 +25,20 @@ class CorporationAdmin(admin.ModelAdmin):
     inlines = [ContactInline]
 
 
+class AvailabilityInline(admin.TabularInline):
+    model = Availability
+    extra = 1
+
 class PeriodAdmin(admin.ModelAdmin):
     list_display = ('dates', 'section')
     list_filter = ('section',)
+    inlines = [AvailabilityInline]
 
 
 class AvailabilityAdmin(admin.ModelAdmin):
-    list_display = ('corporation', 'period', 'number')
-    fields = (('corporation', 'period'), ('number', 'domain'))
+    list_display = ('corporation', 'period', 'domain')
+    list_filter = ('period',)
+    fields = (('corporation', 'period'), 'domain', 'comment')
 
 
 admin.site.register(Student, StudentAdmin)

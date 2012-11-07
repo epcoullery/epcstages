@@ -1,23 +1,28 @@
 {% extends "admin/base_site.html" %}
-{% load admin_static %}
+{% load i18n admin_static %}
+{% load url from future %}
 
 {% block extrastyle %}
 <style>
-  div#period_choice { margin: 0 auto; text-align: center;}
+  div#period_choice { margin: 0 auto; text-align: center; width: 60%; padding: 0.5em; margin-bottom: 1em; background-color: #EDF3FE;}
   select#section_select { width: 8em; margin-right: 2em; }
   select#period_select { width: 16em; }
 
-  div#student_choice { float: left; }
-  select#student_select { width: 16em; }
+  div#student_choice { float: left; width: 18%; }
+  select#student_select { width: 100%; }
 
-  div#corp_choice { float: right; }
-  select#corp_select { width: 16em; }
+  div#corp_choice { float: right; width: 18%; }
+  select#corp_select { width: 100%; }
 
-  div#student_detail { float:left; width: 30%; margin: 1em; }
-  div#corp_detail { float:left; width: 30%; margin: 1em; }
+  div#student_detail { float:left; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
+  div#corp_detail { float:right; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
+  div.filled { border-color: green !important; }
 
   div#training_form { text-align: center; }
+  div#buttons_div { margin-top: 1em; }
   input#valid_training { display: none; }
+
+  div#trainings { clear: both; padding-top: 1em; }
 </style>
 {% endblock %}
 
@@ -40,30 +45,35 @@ function update_periods(section_id) {
 
 function update_students(period_id) {
   $('#student_select').find('option').remove();
-  $('#student_detail').html('');
+  $('#student_detail').html('').removeClass("filled");
   current_student = null;
   $('input#valid_training').hide()
   if (period_id == '') return;
   $.getJSON('/period/' + period_id + '/students/', function(data) {
     var sel = $('#student_select');
     $.each(data, function() {
-      sel.append($("<option />").val(this.id).text(this.name));
+      if (this.training_id == null) sel.append($("<option />").val(this.id).text(this.name));
     })
   });
 }
 
 function update_corporations(period_id) {
   $('#corp_select').find('option').remove();
-  $('#corp_detail').html('');
-  current_corp = null;
+  $('#corp_detail').html('').removeClass("filled");
+  current_avail = null;
   $('input#valid_training').hide()
   if (period_id == '') return;
   $.getJSON('/period/' + period_id + '/corporations/', function(data) {
     var sel = $('#corp_select');
     $.each(data, function() {
-      sel.append($("<option />").val(this[0]).text(this[1]));
+      if (this.free) sel.append($("<option />").val(this.id).text(this.corp_name));
     })
   });
+}
+
+function update_trainings(period_id) {
+  if (period_id == '') $('ul#training_list').html('');
+  else $('ul#training_list').load('/training/by_period/' + period_id + '/');
 }
 
 $(document).ready(function() {
@@ -77,34 +87,57 @@ $(document).ready(function() {
     // Update student/corporation list when period is modified
     update_students($(this).val());
     update_corporations($(this).val());
+    update_trainings($(this).val());
   });
 
   $('#student_select').change(function(ev) {
-    $('#student_detail').load('/student/' + $(this).val() + '/summary/');
+    $('#student_detail').load('/student/' + $(this).val() + '/summary/').addClass("filled");
     current_student = $(this).val();
-    if (current_corp !== null) $('input#valid_training').show()
+    if (current_avail !== null) $('input#valid_training').show()
   });
 
   $('#corp_select').change(function(ev) {
-    $('#corp_detail').load('/corporation/' + $(this).val() + '/summary/');
-    current_corp = $(this).val();
+    $('#corp_detail').load('/availability/' + $(this).val() + '/summary/').addClass("filled");
+    current_avail = $(this).val();
     if (current_student !== null) $('input#valid_training').show()
   });
 
   $('#valid_training').click(function() {
-    $.post('/training/new/', {period: $('#period_select').val(), student: current_student, corp: current_corp},
+    $.post('/training/new/', {
+            student: current_student, avail: current_avail,
+            referent: $('#referent_select').val()},
         function(data) {
-        // On response: remove student from list, remove corp if no more avails
-        if (data == 'OK') alert("OK");
-    });
+          if (data != 'OK') {
+            alert(data);
+            return;
+          }
+          // Clear selected student/corp
+          $('ul#training_list').append('<li>' + $('option:selected', '#student_select').html() + ' - ' + $('option:selected', '#corp_select').html() + '</li>');
+          $('option:selected', '#student_select').remove();
+          $('#student_detail').html('').removeClass("filled");
+          $('option:selected', '#corp_select').remove();
+          $('#corp_detail').html('').removeClass("filled");
+          current_student = null;
+          current_avail = null;
+          $('input#valid_training').hide();
+          $('#referent_select').val('');
+        }
+    );
   });
 
   update_periods($('#section_select').val());
 });
 
 var current_student = null;
-var current_corp = null;
+var current_avail = null;
 </script>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; Attributions
+</div>
 {% endblock %}
 
 {% block content %}
@@ -130,8 +163,25 @@ var current_corp = null;
 </div>
 
 <div id="training_main">
-  <div id="student_detail"></div>
-  <div id="corp_detail"></div>
-  <div id="training_form"><input id="valid_training" type="button" value="Valider ce stage"></div>
+
+  <div style="overflow: auto;">
+    <div id="student_detail"></div>
+    <div id="corp_detail"></div>
+  </div>
+  <div id="training_form">
+    <form>
+    <div id="referent_choice"><label for="referent_select">Référent:</label>
+      <select id="referent_select"><option value="">-------</option>
+        {% for ref in referents %}<option value="{{ ref.id }}">{{ ref }}</option>{% endfor %}</select>
+    </div>
+    <div id="buttons_div"><input id="valid_training" type="button" value="Valider ce stage"></div>
+    </form>
+  </div>
+</div>
+
+<div id="trainings">
+  <h3>Stages planifiés pour la période choisie</h3>
+  <ul id="training_list">-
+  </ul>
 </div>
 {% endblock %}

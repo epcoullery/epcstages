@@ -6,10 +6,10 @@ import json
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import DetailView, TemplateView
+from django.views.generic import DetailView, TemplateView, ListView
 
 from .forms import PeriodForm
-from .models import Section, Student, Corporation, Period, Training
+from .models import Section, Student, Corporation, Period, Training, Referent, Availability
 
 
 class StudentSummaryView(DetailView):
@@ -17,9 +17,18 @@ class StudentSummaryView(DetailView):
     template_name = 'student_summary.html'
 
 
-class CorporationSummaryView(DetailView):
-    model = Corporation
-    template_name = 'corporation_summary.html'
+class AvailabilitySummaryView(DetailView):
+    model = Availability
+    template_name = 'availability_summary.html'
+
+
+class TrainingsByPeriodView(ListView):
+    template_name = 'trainings_list.html'
+    context_object_name = 'trainings'
+
+    def get_queryset(self):
+        return Training.objects.select_related('student', 'availability__corporation', 'availability__domain'
+            ).filter(availability__period__pk=self.kwargs['pk'])
 
 
 class AttributionView(TemplateView):
@@ -30,6 +39,7 @@ class AttributionView(TemplateView):
         context.update({
             #'period_form': PeriodForm(),
             'sections': Section.objects.all(),
+            'referents': Referent.objects.all(),
         })
         return context
 
@@ -47,14 +57,14 @@ def period_students(request, pk):
     """
     period = get_object_or_404(Period, pk=pk)
     students = period.section.student_set.all().order_by('last_name')
-    trainings = dict((t.student_id, t.id) for t in Training.objects.filter(period=period))
+    trainings = dict((t.student_id, t.id) for t in Training.objects.filter(availability__period=period))
     data = [{'name': unicode(s), 'id': s.id, 'training_id': trainings.get(s.id)} for s in students]
     return HttpResponse(json.dumps(data), content_type="application/json")
 
-def period_corporations(request, pk):
-    """ Return all corporations with availabilities in the specified period """
+def period_availabilities(request, pk):
+    """ Return all availabilities in the specified period """
     period = get_object_or_404(Period, pk=pk)
-    corps = [(av.corporation.id, av.corporation.name)
+    corps = [{'id': av.id, 'corp_name': av.corporation.name, 'domain': av.domain.name, 'free': av.free}
              for av in period.availability_set.select_related('corporation').all()]
     return HttpResponse(json.dumps(corps), content_type="application/json")
 
@@ -62,11 +72,14 @@ def period_corporations(request, pk):
 def new_training(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed()
-    training = Training.objects.create(
-        period=Period.objects.get(pk=request.POST.get('period')),
-        student=Student.objects.get(pk=request.POST.get('student')),
-        corporation=Corporation.objects.get(pk=request.POST.get('corp'))
-    )
+    try:
+        training = Training.objects.create(
+            student=Student.objects.get(pk=request.POST.get('student')),
+            availability=Availability.objects.get(pk=request.POST.get('avail')),
+            referent=Referent.objects.get(pk=request.POST.get('referent')),
+        )
+    except Exception as exc:
+        return HttpResponse(str(exc))
     return HttpResponse('OK')
 
 
@@ -77,10 +90,10 @@ def stages_export(request):
 
     export_fields = [
         ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
-        ('Filière', 'period__section__name'),
-        ('Début', 'period__start_date'), ('Fin', 'period__end_date'),
-        ('Institution', 'corporation__name'),
-        ('Domaine', 'domain__name'),
+        ('Filière', 'student__section__name'),
+        ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
+        ('Institution', 'availability__corporation__name'),
+        ('Domaine', 'availability__domain__name'),
         ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name')
     ]
 
