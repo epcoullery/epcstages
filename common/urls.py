@@ -16,6 +16,7 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 
     url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),
+    url(r'^stages/export/$', 'stages.views.stages_export', name='stages_export'),
 
     # AJAX/JSON urls
     url(r'^section/(?P<pk>\d+)/periods/', 'stages.views.section_periods'),

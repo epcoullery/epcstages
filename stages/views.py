@@ -1,3 +1,6 @@
+# -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
+
 import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
@@ -65,3 +68,35 @@ def new_training(request):
         corporation=Corporation.objects.get(pk=request.POST.get('corp'))
     )
     return HttpResponse('OK')
+
+
+def stages_export(request):
+    from datetime import date
+    from openpyxl import Workbook
+    from openpyxl.writer.excel import save_virtual_workbook
+
+    export_fields = [
+        ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
+        ('Filière', 'period__section__name'),
+        ('Début', 'period__start_date'), ('Fin', 'period__end_date'),
+        ('Institution', 'corporation__name'),
+        ('Domaine', 'domain__name'),
+        ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name')
+    ]
+
+    wb = Workbook()
+    ws = wb.get_active_sheet()
+    ws.title = 'Stages'
+    # Headers
+    for col_idx, header in enumerate([f[0] for f in export_fields]):
+        ws.cell(row=0, column=col_idx).value = header
+        ws.cell(row=0, column=col_idx).style.font.bold = True
+    # Data
+    for row_idx, tr in enumerate(Training.objects.all().values_list(*[f[1] for f in export_fields]), start=1):
+        for col_idx, field in enumerate(tr):
+            ws.cell(row=row_idx, column=col_idx).value = field
+
+    response = HttpResponse(save_virtual_workbook(wb), mimetype='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
+          'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
