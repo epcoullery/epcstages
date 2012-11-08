@@ -56,9 +56,13 @@ def period_students(request, pk):
     if existing (JSON)
     """
     period = get_object_or_404(Period, pk=pk)
-    students = period.section.student_set.all().order_by('last_name')
+    students = Student.objects.filter(klass__section=period.section).order_by('last_name')
     trainings = dict((t.student_id, t.id) for t in Training.objects.filter(availability__period=period))
-    data = [{'name': unicode(s), 'id': s.id, 'training_id': trainings.get(s.id)} for s in students]
+    data = [{
+        'name': unicode(s),
+        'id': s.id,
+        'training_id': trainings.get(s.id),
+        'klass': s.klass.name} for s in students]
     return HttpResponse(json.dumps(data), content_type="application/json")
 
 def period_availabilities(request, pk):
@@ -90,7 +94,7 @@ def stages_export(request):
 
     export_fields = [
         ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
-        ('Filière', 'student__section__name'),
+        ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
         ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
         ('Institution', 'availability__corporation__name'),
         ('Domaine', 'availability__domain__name'),

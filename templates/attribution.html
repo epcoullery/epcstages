@@ -52,7 +52,9 @@ function update_students(period_id) {
   $.getJSON('/period/' + period_id + '/students/', function(data) {
     var sel = $('#student_select');
     $.each(data, function() {
-      if (this.training_id == null) sel.append($("<option />").val(this.id).text(this.name));
+      if (this.training_id == null) {
+        sel.append($("<option />").val(this.id).text(this.name + ' (' + this.klass + ')').data('klass', this.klass));
+      }
     })
   });
 }

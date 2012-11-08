@@ -1,14 +1,14 @@
 from django.contrib import admin
 
-from stages.models import (Student, Section, Referent, Corporation, CorpContact,
+from stages.models import (Student, Section, Klass, Referent, Corporation, CorpContact,
     Domain, Period, Availability, Training)
 
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'pcode', 'city', 'section')
-    list_filter = ('section',)
+    list_display = ('__unicode__', 'pcode', 'city', 'klass')
+    list_filter = ('klass',)
     fields = (('last_name', 'first_name'), ('pcode', 'city'),
-              'birth_date', 'section')
+              'birth_date', 'klass')
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -41,8 +41,9 @@ class AvailabilityAdmin(admin.ModelAdmin):
     fields = (('corporation', 'period'), 'domain', 'comment')
 
 
-admin.site.register(Student, StudentAdmin)
 admin.site.register(Section)
+admin.site.register(Klass)
+admin.site.register(Student, StudentAdmin)
 admin.site.register(Referent)
 admin.site.register(Corporation, CorporationAdmin)
 admin.site.register(CorpContact, CorpContactAdmin)

@@ -15,13 +15,24 @@ class Section(models.Model):
         return self.name
 
 
+class Klass(models.Model):
+    name = models.CharField(max_length=10, verbose_name='Nom')
+    section = models.ForeignKey(Section)
+
+    class Meta:
+        verbose_name = "Classe"
+
+    def __unicode__(self):
+        return self.name
+
+
 class Student(models.Model):
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     birth_date = models.DateField(verbose_name='Date de naissance')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
     city = models.CharField(max_length=40, verbose_name='Localité')
-    section = models.ForeignKey(Section)
+    klass = models.ForeignKey(Klass)
 
     class Meta:
         verbose_name = "Étudiant"
