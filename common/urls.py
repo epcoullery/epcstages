@@ -23,7 +23,7 @@ urlpatterns = patterns('',
     url(r'^period/(?P<pk>\d+)/students/', 'stages.views.period_students'),
     url(r'^period/(?P<pk>\d+)/corporations/', 'stages.views.period_availabilities'),
     # Training params in POST:
-    url(r'^training/new/', 'stages.views.new_training'),
+    url(r'^training/new/', 'stages.views.new_training', name="new_training"),
     url(r'^training/by_period/(?P<pk>\d+)/', views.TrainingsByPeriodView.as_view()),
 
     url(r'^student/(?P<pk>\d+)/summary/', views.StudentSummaryView.as_view()),
