@@ -76,11 +76,13 @@ def period_availabilities(request, pk):
 def new_training(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed()
+    ref_key = request.POST.get('referent')
     try:
+        ref = Referent.objects.get(pk=ref_key) if ref_key else None
         training = Training.objects.create(
             student=Student.objects.get(pk=request.POST.get('student')),
             availability=Availability.objects.get(pk=request.POST.get('avail')),
-            referent=Referent.objects.get(pk=request.POST.get('referent')),
+            referent=ref,
         )
     except Exception as exc:
         return HttpResponse(str(exc))

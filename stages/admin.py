@@ -12,11 +12,14 @@ class StudentAdmin(admin.ModelAdmin):
 
 
 class CorpContactAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'corporation')
-    fields = ('corporation', ('last_name', 'first_name'), ('tel', 'email'))
+    list_display = ('__unicode__', 'corporation', 'role')
+    fields = ('corporation', ('title', 'last_name', 'first_name'),
+              'role', ('tel', 'email'))
 
-class ContactInline(admin.TabularInline):
+class ContactInline(admin.StackedInline):
     model = CorpContact
+    fields = (('title', 'last_name', 'first_name'),
+              ('role', 'tel', 'email'))
     extra = 1
 
 class CorporationAdmin(admin.ModelAdmin):

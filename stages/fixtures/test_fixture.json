@@ -101,8 +101,10 @@
     "model": "stages.corpcontact", 
     "fields": {
       "corporation": 1, 
+      "title": "Monsieur",
       "first_name": "Jean", 
       "last_name": "Horner", 
+      "role": "Responsable formation",
       "tel": "", 
       "email": ""
     }

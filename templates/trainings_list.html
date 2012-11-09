@@ -1,3 +1,5 @@
 {% for obj in trainings %}
-<li>{{ obj.student }} - {{ obj.availability.corporation }} - {{ obj.availability.domain }}</li>
+<li>{{ obj.student }} - {{ obj.availability.corporation }} - {{ obj.availability.domain }}
+    {% if obj.referent %} (réf: {{ obj.referent }}){% else %}- <span class="missing">Pas de référent</span>{% endif %}
+</li>
 {% endfor %}

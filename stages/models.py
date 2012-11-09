@@ -54,7 +54,7 @@ class Referent(models.Model):
 
 class Corporation(models.Model):
     name = models.CharField(max_length=100, verbose_name='Nom')
-    street = models.CharField(max_length=100, verbose_name='Rue')
+    street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
     city = models.CharField(max_length=40, verbose_name='Localité')
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
@@ -69,8 +69,10 @@ class Corporation(models.Model):
 
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution')
-    first_name = models.CharField(max_length=40, verbose_name='Prénom')
+    title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
+    first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
+    role = models.CharField(max_length=40, verbose_name='Fonction')
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.CharField(max_length=40, blank=True, verbose_name='Courriel')
 
@@ -134,7 +136,7 @@ class Training(models.Model):
     """ Stages """
     student = models.ForeignKey(Student, verbose_name='Étudiant')
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité')
-    referent = models.ForeignKey(Referent, verbose_name='Référent')
+    referent = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent')
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
