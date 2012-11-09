@@ -1,0 +1,87 @@
+====================
+Installing epcstages
+====================
+
+Requirements
+============
+
+ * Python >= 2.6.5 < 3.0
+   http://www.python.org/download/
+ * A database with UTF-8 encoding (PostgreSQL or MySQL-InnoDB) and its
+   approriate Python driver (postgresql-psycopg2 or mysqldb)
+ * Git
+
+Downloading code
+================
+
+The code for epcstages is available on GitHub:
+  https://github.com/claudep/epcstages.git
+
+Python dependencies
+===================
+
+Python dependencies are listed in the requirements.txt file. The recommended way
+to install Python dependencies is by using pip [1]. Pip itself can be installed
+using Setuptools/EasyInstall [2].
+
+[1] http://www.pip-installer.org
+[2] http://pypi.python.org/pypi/setuptools
+
+Once pip is installed, it's only a matter of running the following command
+from the main epcstages directory:
+
+  $ pip install -r requirements.txt
+
+(Note that it is possible to install packages in a non-system-wide location by
+using virtualenv (http://www.virtualenv.org/)).
+
+App Configuration
+=================
+
+The configuration settings should be written in the file common/local_settings.py
+
+ADMINS = (
+    ('Claude Paroz', 'claude@2xlibre.net'),
+)
+DEBUG = False
+# This is only an example, choose another random string:
+SECRET_KEY = 'zk!^92901p458c8lo0(fox-&k7jj(aple76_k%eva7b1)xjo8-'
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        # or 'ENGINE': 'django.db.backends.mysql',
+        'NAME'  : 'epcstages',
+        'USER'  : 'db_user',
+        'PASSWORD': '<super_password>',
+        # Mysql only:
+        'OPTIONS': {
+            'init_command': 'SET storage_engine=INNODB',
+        }
+    }
+}
+
+The epcstages application does currently not send mail directly. However, server
+errors are sent by email to ADMINS by default. If 'localhost' is not configured
+to send mail, here are the settings needed to configure a SMTP relay:
+
+EMAIL_HOST = 'my.smtp.relay'
+EMAIL_HOST_USER = '...'
+EMAIL_HOST_PASSWORD = '...'
+
+When the above settings are defined, it's time to initialize the database:
+  $ python manage.py syncdb
+
+And to prepare static files:
+  $ python manage.py collectstatic
+
+
+Web Deployment
+==============
+
+The deployment strategy is left to the system administrator. However, the
+recommended way to deploy a Django application is with Apache and mod_wsgi.
+
+https://docs.djangoproject.com/en/dev/howto/deployment/wsgi/modwsgi/
+
+Static files should be directly served through the /static directory.
