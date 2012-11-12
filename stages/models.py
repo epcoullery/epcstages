@@ -27,12 +27,16 @@ class Klass(models.Model):
 
 
 class Student(models.Model):
+    ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     birth_date = models.DateField(verbose_name='Date de naissance')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
     city = models.CharField(max_length=40, verbose_name='Localité')
-    klass = models.ForeignKey(Klass)
+    klass = models.ForeignKey(Klass, verbose_name='Classe')
+    archived = models.BooleanField(default=False, verbose_name='Archivé')
+
+    support_tabimport = True
 
     class Meta:
         verbose_name = "Étudiant"
@@ -45,6 +49,9 @@ class Referent(models.Model):
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     abrev = models.CharField(max_length=10, blank=True, verbose_name='Initiales')
+    archived = models.BooleanField(default=False, verbose_name='Archivé')
+
+    support_tabimport = True
 
     class Meta:
         verbose_name = "Référent"
@@ -62,6 +69,7 @@ class Corporation(models.Model):
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.EmailField(blank=True, verbose_name='Courriel')
     web = models.URLField(blank=True, verbose_name='Site Web')
+    archived = models.BooleanField(default=False, verbose_name='Archivé')
 
     class Meta:
         verbose_name = "Institution"

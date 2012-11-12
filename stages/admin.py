@@ -7,8 +7,9 @@ from stages.models import (Student, Section, Klass, Referent, Corporation, CorpC
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'pcode', 'city', 'klass')
     list_filter = ('klass',)
+    search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass')
     fields = (('last_name', 'first_name'), ('pcode', 'city'),
-              'birth_date', 'klass')
+              'birth_date', 'klass', 'archived')
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -24,7 +25,9 @@ class ContactInline(admin.StackedInline):
 
 class CorporationAdmin(admin.ModelAdmin):
     list_display = ('name', 'pcode', 'city')
-    fields = ('name', 'typ', 'street', ('pcode', 'city'), ('tel', 'email'), 'web')
+    search_fields = ('name', 'pcode', 'city')
+    fields = ('name', 'typ', 'street', ('pcode', 'city'), ('tel', 'email'),
+              'web', 'archived')
     inlines = [ContactInline]
 
 
