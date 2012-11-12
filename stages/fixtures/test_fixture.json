@@ -81,7 +81,8 @@
     "model": "stages.referent", 
     "fields": {
       "first_name": "Julie", 
-      "last_name": "Caux"
+      "last_name": "Caux",
+      "abrev": "JCA"
     }
   }, 
   {
@@ -91,9 +92,11 @@
       "city": "Moulineaux", 
       "tel": "", 
       "name": "Centre p\u00e9dagogique XY", 
+      "typ": "Institution",
       "pcode": "2500", 
       "street": "Rue des champs 12", 
-      "email": ""
+      "email": "",
+      "web": ""
     }
   }, 
   {
@@ -127,6 +130,7 @@
     "pk": 1, 
     "model": "stages.period", 
     "fields": {
+      "title": "Stage de pré-sensibilisation",
       "section": 1, 
       "start_date": "2012-11-26", 
       "end_date": "2012-12-07"

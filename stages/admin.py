@@ -24,7 +24,7 @@ class ContactInline(admin.StackedInline):
 
 class CorporationAdmin(admin.ModelAdmin):
     list_display = ('name', 'pcode', 'city')
-    fields = ('name', 'street', ('pcode', 'city'), ('tel', 'email'))
+    fields = ('name', 'typ', 'street', ('pcode', 'city'), ('tel', 'email'), 'web')
     inlines = [ContactInline]
 
 
@@ -33,7 +33,7 @@ class AvailabilityInline(admin.TabularInline):
     extra = 1
 
 class PeriodAdmin(admin.ModelAdmin):
-    list_display = ('dates', 'section')
+    list_display = ('title', 'dates', 'section')
     list_filter = ('section',)
     inlines = [AvailabilityInline]
 

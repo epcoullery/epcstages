@@ -44,6 +44,7 @@ class Student(models.Model):
 class Referent(models.Model):
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
+    abrev = models.CharField(max_length=10, blank=True, verbose_name='Initiales')
 
     class Meta:
         verbose_name = "Référent"
@@ -54,11 +55,13 @@ class Referent(models.Model):
 
 class Corporation(models.Model):
     name = models.CharField(max_length=100, verbose_name='Nom')
+    typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
     city = models.CharField(max_length=40, verbose_name='Localité')
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
-    email = models.CharField(max_length=40, blank=True, verbose_name='Courriel')
+    email = models.EmailField(blank=True, verbose_name='Courriel')
+    web = models.URLField(blank=True, verbose_name='Site Web')
 
     class Meta:
         verbose_name = "Institution"
@@ -95,6 +98,7 @@ class Domain(models.Model):
 
 class Period(models.Model):
     """ Périodes de stages """
+    title = models.CharField(max_length=150, verbose_name='Titre')
     section = models.ForeignKey(Section, verbose_name='Filière')
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')
