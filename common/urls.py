@@ -14,6 +14,7 @@ urlpatterns = patterns('',
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
+    url(r'^data-import/', include('tabimport.urls')),
 
     url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),
     url(r'^stages/export/$', 'stages.views.stages_export', name='stages_export'),

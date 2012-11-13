@@ -4,6 +4,14 @@ from __future__ import unicode_literals
 from django.db import models
 
 
+def is_int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+
+
 class Section(models.Model):
     """ Filières """
     name = models.CharField(max_length=20)
@@ -43,6 +51,19 @@ class Student(models.Model):
 
     def __unicode__(self):
         return '%s %s' % (self.last_name, self.first_name)
+
+    @classmethod
+    def prepare_import(cls, values):
+        ''' Hook for tabimport, before new object get created '''
+        if 'klass' in values:
+            try:
+                k = Klass.objects.get(name=values['klass'])
+            except Klass.DoesNotExist:
+                raise Exception("La classe '%s' n'existe pas encore" % values['klass'])
+            values['klass'] = k
+        if 'city' in values and is_int(values['city'][:4]):
+            values['pcode'], _, values['city'] = values['city'].partition(' ')
+        return values
 
 
 class Referent(models.Model):
