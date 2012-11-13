@@ -1,4 +1,6 @@
+from django import forms
 from django.contrib import admin
+from django.db import models
 
 from stages.models import (Student, Section, Klass, Referent, Corporation, CorpContact,
     Domain, Period, Availability, Training)
@@ -10,6 +12,10 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass')
     fields = (('last_name', 'first_name'), ('pcode', 'city'),
               'birth_date', 'klass', 'archived')
+
+
+class ReferentAdmin(admin.ModelAdmin):
+    list_display = ('__unicode__', 'abrev')
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -26,6 +32,7 @@ class ContactInline(admin.StackedInline):
 class CorporationAdmin(admin.ModelAdmin):
     list_display = ('name', 'pcode', 'city')
     search_fields = ('name', 'pcode', 'city')
+    ordering = ('name',)
     fields = ('name', 'typ', 'street', ('pcode', 'city'), ('tel', 'email'),
               'web', 'archived')
     inlines = [ContactInline]
@@ -34,6 +41,10 @@ class CorporationAdmin(admin.ModelAdmin):
 class AvailabilityInline(admin.TabularInline):
     model = Availability
     extra = 1
+    formfield_overrides = {
+        models.TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':40})},
+    }
+
 
 class PeriodAdmin(admin.ModelAdmin):
     list_display = ('title', 'dates', 'section')
@@ -46,11 +57,16 @@ class AvailabilityAdmin(admin.ModelAdmin):
     list_filter = ('period',)
     fields = (('corporation', 'period'), 'domain', 'comment')
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "corporation":
+            kwargs["queryset"] = Corporation.objects.filter(archived=False).order_by('name')
+        return super(AvailabilityAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 admin.site.register(Section)
 admin.site.register(Klass)
 admin.site.register(Student, StudentAdmin)
-admin.site.register(Referent)
+admin.site.register(Referent, ReferentAdmin)
 admin.site.register(Corporation, CorporationAdmin)
 admin.site.register(CorpContact, CorpContactAdmin)
 admin.site.register(Domain)

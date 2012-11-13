@@ -38,7 +38,7 @@ class AttributionView(TemplateView):
         context.update({
             #'period_form': PeriodForm(),
             'sections': Section.objects.all(),
-            'referents': Referent.objects.all(),
+            'referents': Referent.objects.all().order_by('last_name', 'first_name'),
         })
         return context
 

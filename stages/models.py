@@ -120,6 +120,7 @@ class Domain(models.Model):
 
     class Meta:
         verbose_name = "Domaine"
+        ordering = ('name',)
 
     def __unicode__(self):
         return self.name
