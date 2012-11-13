@@ -3,4 +3,5 @@
 {{ object.corporation.street }}<br>
 {{ object.corporation.pcode }} {{ object.corporation.city }}<br>
 Tél: {{ object.corporation.tel }}<br>
-Courriel: {{ object.corporation.courriel }}
+{% if object.corporation.courriel %}Courriel: {{ object.corporation.courriel }}<br>{% endif %}
+{% if object.comment %}<em>{{ object.comment }}</em>{% endif %}

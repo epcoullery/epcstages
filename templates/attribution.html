@@ -16,6 +16,7 @@
 
   div#student_detail { float:left; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
   div#corp_detail { float:right; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
+  div#corp_total, div#student_total { font-style: italic; color: gray; }
   div.filled { border-color: green !important; }
 
   div#training_form { text-align: center; }
@@ -76,6 +77,7 @@ function update_students(period_id) {
     });
     // Keep options as data to enable filtering
     sel.data('options', options);
+    $('div#student_total').html(options.length + " étudiant-e-s").data('num', options.length);
   });
 }
 
@@ -101,6 +103,7 @@ function update_corporations(period_id) {
       }
     });
     sel.data('options', options);
+    $('div#corp_total').html(options.length + " disponibilités").data('num', options.length);
   });
 }
 
@@ -186,9 +189,13 @@ $(document).ready(function() {
             return;
           }
           // Clear selected student/corp
-           $('option:selected', '#student_select').remove();
+          $('option:selected', '#student_select').remove();
+          var prev_num = $('div#student_total').data('num');
+          $('div#student_total').html((prev_num - 1) + " étudiant-e-s").data('num', prev_num - 1);
           $('#student_detail').html('').removeClass("filled");
           $('option:selected', '#corp_select').remove();
+          prev_num = $('div#corp_total').data('num');
+          $('div#corp_total').html((prev_num - 1) + " disponibilités").data('num', prev_num - 1);
           $('#corp_detail').html('').removeClass("filled");
           current_student = null;
           current_avail = null;
@@ -229,6 +236,7 @@ var current_avail = null;
   <form>
     <select id="student_filter" size="1"></select>
     <select id="student_select" size="15"></select>
+    <div id="student_total"></div>
   </form>
 </div>
 
@@ -236,6 +244,7 @@ var current_avail = null;
   <form>
     <select id="corp_filter" size="1"></select>
     <select id="corp_select" size="15"></select>
+    <div id="corp_total"></div>
   </form>
 </div>
 
