@@ -5,7 +5,6 @@ import json
 
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, TemplateView, ListView
 
 from .forms import PeriodForm
@@ -27,7 +26,7 @@ class TrainingsByPeriodView(ListView):
     context_object_name = 'trainings'
 
     def get_queryset(self):
-        return Training.objects.select_related('student', 'availability__corporation', 'availability__domain'
+        return Training.objects.select_related('student__klass', 'availability__corporation', 'availability__domain'
             ).filter(availability__period__pk=self.kwargs['pk'])
 
 
@@ -78,7 +77,6 @@ def period_availabilities(request, pk):
              for av in period.availability_set.select_related('corporation').all()]
     return HttpResponse(json.dumps(corps), content_type="application/json")
 
-@csrf_exempt
 def new_training(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed()
@@ -92,6 +90,13 @@ def new_training(request):
         )
     except Exception as exc:
         return HttpResponse(str(exc))
+    return HttpResponse('OK')
+
+def del_training(request):
+    if request.method != 'POST':
+        return HttpResponseNotAllowed()
+    training = get_object_or_404(Training, pk=request.POST.get('pk'))
+    training.delete()
     return HttpResponse('OK')
 
 

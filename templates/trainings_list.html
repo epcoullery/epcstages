@@ -1,5 +1,6 @@
 {% for obj in trainings %}
-<li>{{ obj.student }} - {{ obj.availability.corporation }} - {{ obj.availability.domain }}
+<li id="training_{{ obj.id }}">{{ obj.student }} ({{ obj.student.klass }}) - {{ obj.availability.corporation }} - {{ obj.availability.domain }}
     {% if obj.referent %} (réf: {{ obj.referent }}){% else %}- <span class="missing">Pas de référent</span>{% endif %}
+    <img class="delete_training" src="{{ STATIC_URL}}admin/img/icon_deletelink.gif">
 </li>
 {% endfor %}

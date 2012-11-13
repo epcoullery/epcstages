@@ -94,7 +94,20 @@ function update_corporations(period_id) {
 
 function update_trainings(period_id) {
   if (period_id == '') $('ul#training_list').html('');
-  else $('ul#training_list').load('/training/by_period/' + period_id + '/');
+  else $('ul#training_list').load('/training/by_period/' + period_id + '/', function() {
+      $('img.delete_training').click(function() {
+        if (!confirm("Voulez-vous vraiment supprimer ce stage ?")) return;
+        var li = $(this).parents('li');
+        $.post('/training/del/',
+          {pk: li.attr('id').split('_')[1],
+           csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()}, function() {
+            li.remove();
+            // dispatch student and corp in their listings
+            update_students($('#period_select').val());
+            update_corporations($('#period_select').val());
+        });
+      });
+  });
 }
 
 $(document).ready(function() {
@@ -140,15 +153,15 @@ $(document).ready(function() {
   $('#valid_training').click(function() {
     $.post('/training/new/', {
             student: current_student, avail: current_avail,
-            referent: $('#referent_select').val()},
+            referent: $('#referent_select').val(),
+            csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()},
         function(data) {
           if (data != 'OK') {
             alert(data);
             return;
           }
           // Clear selected student/corp
-          $('ul#training_list').append('<li>' + $('option:selected', '#student_select').html() + ' - ' + $('option:selected', '#corp_select').html() + '</li>');
-          $('option:selected', '#student_select').remove();
+           $('option:selected', '#student_select').remove();
           $('#student_detail').html('').removeClass("filled");
           $('option:selected', '#corp_select').remove();
           $('#corp_detail').html('').removeClass("filled");
@@ -156,6 +169,7 @@ $(document).ready(function() {
           current_avail = null;
           $('input#valid_training').hide();
           $('#referent_select').val('');
+          update_trainings($('#period_select').val());
         }
     );
   });
@@ -206,7 +220,7 @@ var current_avail = null;
     <div id="corp_detail"></div>
   </div>
   <div id="training_form">
-    <form>
+    <form>{% csrf_token %}
     <div id="referent_choice"><label for="referent_select">Référent:</label>
       <select id="referent_select"><option value="">-------</option>
         {% for ref in referents %}<option value="{{ ref.id }}">{{ ref }}</option>{% endfor %}</select>
