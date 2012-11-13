@@ -12,7 +12,7 @@
   select#student_select, select#student_filter { width: 100%; }
 
   div#corp_choice { float: right; width: 18%; }
-  select#corp_select { width: 100%; }
+  select#corp_select, select#corp_filter { width: 100%; }
 
   div#student_detail { float:left; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
   div#corp_detail { float:right; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
@@ -42,6 +42,7 @@ function update_periods(section_id) {
     }
     update_students('');
     update_corporations('');
+    update_trainings('');
   });
 }
 
@@ -62,7 +63,7 @@ function update_students(period_id) {
   $('#student_select').empty();
   $('#student_detail').html('').removeClass("filled");
   current_student = null;
-  $('input#valid_training').hide()
+  $('input#valid_training').hide();
   if (period_id == '') return;
   $.getJSON('/period/' + period_id + '/students/', function(data) {
     var sel = $('#student_select');
@@ -70,7 +71,7 @@ function update_students(period_id) {
     $.each(data, function() {
       if (this.training_id == null) {
         options.push(this);
-        sel.append($("<option />").val(this.id).text(this.name + ' (' + this.klass + ')')); //.data('klass', this.klass));
+        sel.append($("<option />").val(this.id).text(this.name + ' (' + this.klass + ')'));
       }
     });
     // Keep options as data to enable filtering
@@ -82,13 +83,24 @@ function update_corporations(period_id) {
   $('#corp_select').empty();
   $('#corp_detail').html('').removeClass("filled");
   current_avail = null;
-  $('input#valid_training').hide()
+  $('input#valid_training').hide();
   if (period_id == '') return;
   $.getJSON('/period/' + period_id + '/corporations/', function(data) {
     var sel = $('#corp_select');
+    var domains = [];
+    var options = [];
+    $('#corp_filter').empty().append($("<option />").val('').text('Tous les domaines'));
     $.each(data, function() {
-      if (this.free) sel.append($("<option />").val(this.id).text(this.corp_name));
-    })
+      if (this.free) {
+        options.push(this);
+        sel.append($("<option />").val(this.id).text(this.corp_name));
+      }
+      if (domains.indexOf(this.domain) == -1) {
+        domains.push(this.domain);
+        $('#corp_filter').append($("<option />").val(this.domain).text(this.domain));
+      }
+    });
+    sel.data('options', options);
   });
 }
 
@@ -142,6 +154,19 @@ $(document).ready(function() {
     $('#student_detail').load('/student/' + $(this).val() + '/summary/').addClass("filled");
     current_student = $(this).val();
     if (current_avail !== null) $('input#valid_training').show()
+  });
+
+  $('#corp_filter').change(function(ev) {
+    var sel = $('#corp_select');
+    var options = sel.data('options');
+    var filter_val = $(this).val();
+    sel.empty();
+    $.each(options, function(i) {
+        var option = options[i];
+        if (option.domain == filter_val || filter_val == '') {
+          sel.append($("<option />").val(option.id).text(option.corp_name));
+        }
+    });
   });
 
   $('#corp_select').change(function(ev) {
@@ -209,6 +234,7 @@ var current_avail = null;
 
 <div id="corp_choice">
   <form>
+    <select id="corp_filter" size="1"></select>
     <select id="corp_select" size="15"></select>
   </form>
 </div>
