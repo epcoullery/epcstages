@@ -21,6 +21,7 @@ urlpatterns = patterns('',
 
     # AJAX/JSON urls
     url(r'^section/(?P<pk>\d+)/periods/', 'stages.views.section_periods'),
+    url(r'^section/(?P<pk>\d+)/classes/', 'stages.views.section_classes'),
     url(r'^period/(?P<pk>\d+)/students/', 'stages.views.period_students'),
     url(r'^period/(?P<pk>\d+)/corporations/', 'stages.views.period_availabilities'),
     # Training params in POST:

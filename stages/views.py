@@ -51,6 +51,12 @@ def section_periods(request, pk):
     periods = [(p.id, p.dates) for p in section.period_set.all()]
     return HttpResponse(json.dumps(periods), content_type="application/json")
 
+def section_classes(request, pk):
+    section = get_object_or_404(Section, pk=pk)
+    classes = [(k.id, k.name) for k in section.klass_set.all()]
+    return HttpResponse(json.dumps(classes), content_type="application/json")
+
+
 def period_students(request, pk):
     """ Return all students from period's section, with corresponding Training
     if existing (JSON)
