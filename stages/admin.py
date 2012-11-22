@@ -38,8 +38,38 @@ class CorporationAdmin(admin.ModelAdmin):
     inlines = [ContactInline]
 
 
+class AvailabilityAdminForm(forms.ModelForm):
+    """
+    Custom avail form to create several availabilities at once when inlined in
+    the PeriodAdmin interface
+    """
+    num_avail = forms.IntegerField(label="Nombre de places", initial=1)
+    class Meta:
+        model = Availability
+        widgets = {
+            'num_avail': forms.TextInput(attrs={'size': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(AvailabilityAdminForm, self).__init__(*args, **kwargs)
+        if self.instance.pk is not None:
+            # Hide num_avail on existing instances
+            self.fields['num_avail'].widget = forms.HiddenInput()
+
+    def save(self, **kwargs):
+        instance = super(AvailabilityAdminForm, self).save(**kwargs)
+        # Create supplementary availabilities depending on num_avail
+        for i in range(1, self.cleaned_data.get('num_avail', 1)):
+            Availability.objects.create(
+                corporation=instance.corporation,
+                period=instance.period,
+                domain=instance.domain,
+                comment=instance.comment)
+        return instance
+
 class AvailabilityInline(admin.TabularInline):
     model = Availability
+    form = AvailabilityAdminForm
     extra = 1
     formfield_overrides = {
         models.TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':40})},
