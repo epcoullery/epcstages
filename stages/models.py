@@ -14,7 +14,7 @@ def is_int(s):
 
 class Section(models.Model):
     """ Filières """
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=20, verbose_name='Nom')
 
     class Meta:
         verbose_name = "Filière"
@@ -25,7 +25,7 @@ class Section(models.Model):
 
 class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom')
-    section = models.ForeignKey(Section)
+    section = models.ForeignKey(Section, verbose_name='Filière')
 
     class Meta:
         verbose_name = "Classe"
@@ -76,6 +76,7 @@ class Referent(models.Model):
 
     class Meta:
         verbose_name = "Référent"
+        ordering = ('last_name', 'first_name')
 
     def __unicode__(self):
         return '%s %s' % (self.last_name, self.first_name)
