@@ -23,9 +23,20 @@ class Section(models.Model):
         return self.name
 
 
+class Level(models.Model):
+    name = models.CharField(max_length=10, verbose_name='Nom')
+
+    class Meta:
+        verbose_name = "Niveau"
+
+    def __unicode__(self):
+        return self.name
+
+
 class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom')
     section = models.ForeignKey(Section, verbose_name='Filière')
+    level = models.ForeignKey(Level, verbose_name='Niveau')
 
     class Meta:
         verbose_name = "Classe"
@@ -131,6 +142,7 @@ class Period(models.Model):
     """ Périodes de stages """
     title = models.CharField(max_length=150, verbose_name='Titre')
     section = models.ForeignKey(Section, verbose_name='Filière')
+    level = models.ForeignKey(Level, verbose_name='Niveau')
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')
 

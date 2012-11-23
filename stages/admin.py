@@ -2,8 +2,8 @@ from django import forms
 from django.contrib import admin
 from django.db import models
 
-from stages.models import (Student, Section, Klass, Referent, Corporation, CorpContact,
-    Domain, Period, Availability, Training)
+from stages.models import (Student, Section, Level, Klass, Referent, Corporation,
+    CorpContact, Domain, Period, Availability, Training)
 
 
 class StudentAdmin(admin.ModelAdmin):
@@ -77,8 +77,8 @@ class AvailabilityInline(admin.TabularInline):
 
 
 class PeriodAdmin(admin.ModelAdmin):
-    list_display = ('title', 'dates', 'section')
-    list_filter = ('section',)
+    list_display = ('title', 'dates', 'section', 'level')
+    list_filter = ('section', 'level')
     inlines = [AvailabilityInline]
 
 
@@ -94,6 +94,7 @@ class AvailabilityAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Section)
+admin.site.register(Level)
 admin.site.register(Klass)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Referent, ReferentAdmin)

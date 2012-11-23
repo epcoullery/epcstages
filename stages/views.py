@@ -57,11 +57,12 @@ def section_classes(request, pk):
 
 
 def period_students(request, pk):
-    """ Return all students from period's section, with corresponding Training
-    if existing (JSON)
+    """
+    Return all students from period's section and level,
+    with corresponding Training if existing (JSON)
     """
     period = get_object_or_404(Period, pk=pk)
-    students = Student.objects.filter(klass__section=period.section).order_by('last_name')
+    students = Student.objects.filter(klass__section=period.section, klass__level=period.level).order_by('last_name')
     trainings = dict((t.student_id, t.id) for t in Training.objects.filter(availability__period=period))
     data = [{
         'name': unicode(s),
