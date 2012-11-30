@@ -69,23 +69,8 @@ STATIC_ROOT = os.path.join(PROJECT_PATH, 'static')
 # Example: "http://media.lawrence.com/static/"
 STATIC_URL = '/static/'
 
-# Additional locations of static files
-STATICFILES_DIRS = (
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-)
-
-# List of finder classes that know how to find static files in
-# various locations.
-STATICFILES_FINDERS = (
-    'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
-
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = '@2a-1%9w4rmw#(mi*3jlb9!9#kj0a8_g)6$4nv8zt0h(9r(wb%'
+# Set it in local_settings.py.
+SECRET_KEY = ''
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
