@@ -74,6 +74,12 @@ function update_corporations(period_id) {
 }
 
 function update_trainings(period_id) {
+  function set_export_visibility() {
+      if ($('ul#training_list').children().length > 0)
+        $('input#export').show();
+      else $('input#export').hide();
+  }
+
   if (period_id == '') $('ul#training_list').html('');
   else $('ul#training_list').load('/training/by_period/' + period_id + '/', function() {
       $('img.delete_training').click(function() {
@@ -86,8 +92,10 @@ function update_trainings(period_id) {
             // dispatch student and corp in their listings
             update_students($('#period_select').val());
             update_corporations($('#period_select').val());
+            set_export_visibility();
         });
       });
+      set_export_visibility();
   });
 }
 
@@ -170,6 +178,10 @@ $(document).ready(function() {
           update_trainings($('#period_select').val());
         }
     );
+  });
+
+  $('input#export').click(function() {
+    $('form#list_export').attr('action', '/stages/export/?filter=' + $('#period_select').val()).submit();
   });
 
   update_periods($('#section_select').val());

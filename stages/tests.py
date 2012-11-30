@@ -12,8 +12,12 @@ class StagesTest(TestCase):
         self.client.login(username='me', password='mepassword')
 
     def test_export(self):
-        response = self.client.get(reverse('stages_export'))
-        self.assertEqual(response.status_code, 200)
+        response1 = self.client.get(reverse('stages_export'))
+        self.assertEqual(response1.status_code, 200)
+
+        response2 = self.client.get(reverse('stages_export'), {'filter': '2'})
+        self.assertEqual(response2.status_code, 200)
+        self.assertGreater(len(response1.content), len(response2.content))
 
     def test_new_training(self):
         student = Student.objects.get(last_name='Varrin')

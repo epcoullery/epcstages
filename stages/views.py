@@ -115,6 +115,12 @@ def stages_export(request):
         ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name')
     ]
 
+    period_filter = request.GET.get('filter')
+    if period_filter:
+        query = Training.objects.filter(availability__period_id=period_filter)
+    else:
+        query = Training.objects.all()
+
     wb = Workbook()
     ws = wb.get_active_sheet()
     ws.title = 'Stages'
@@ -123,7 +129,7 @@ def stages_export(request):
         ws.cell(row=0, column=col_idx).value = header
         ws.cell(row=0, column=col_idx).style.font.bold = True
     # Data
-    for row_idx, tr in enumerate(Training.objects.all().values_list(*[f[1] for f in export_fields]), start=1):
+    for row_idx, tr in enumerate(query.values_list(*[f[1] for f in export_fields]), start=1):
         for col_idx, field in enumerate(tr):
             ws.cell(row=row_idx, column=col_idx).value = field
 

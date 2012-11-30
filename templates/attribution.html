@@ -24,6 +24,7 @@
   input#valid_training { display: none; }
 
   div#trainings { clear: both; padding-top: 1em; }
+  input#export { display: none; margin-left: 2em; }
 
   .missing { font-style: italic; color: red; }
 </style>
@@ -88,5 +89,8 @@
   <h3>Stages planifiés pour la période choisie</h3>
   <ul id="training_list">-
   </ul>
+  <form id="list_export" method="get" action=".">{% csrf_token %}
+    <input id="export" type="button" value="Exporter la liste">
+  </form>
 </div>
 {% endblock %}
