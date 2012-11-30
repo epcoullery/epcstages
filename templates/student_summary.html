@@ -1,3 +1,16 @@
-{{ object.first_name }} {{ object.last_name }}<br>
-{{ object.pcode }} {{ object.city }}<br>
-Date de naissance: {{ object.birth_date }}
+<div id="previous_stages">
+  <div id="previous_stages_head">
+    <em><img src="{{ STATIC_URL }}img/closed.png"> Stages précédents ({{ previous_stages|length }}) :</em>
+  </div>
+  <ul id="previous_stages_list">
+  {% for stage in previous_stages %}
+    <li>{{ stage.availability.period.dates }}: {{ stage.availability.corporation }} ({{ stage.availability.corporation.city }})</li>
+  {% endfor %}
+  </ul>
+</div>
+
+<div id="summary">
+  {{ object.first_name }} {{ object.last_name }}<br>
+  {{ object.pcode }} {{ object.city }}<br>
+  Date de naissance: {{ object.birth_date }}
+</div>

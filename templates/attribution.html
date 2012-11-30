@@ -15,6 +15,9 @@
   select#corp_select, select#corp_filter { width: 100%; }
 
   div#student_detail { float:left; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
+  div#previous_stages { background-color: #EEE; border-radius: 4px; }
+  ul#previous_stages_list { display: none; padding-left: 1.5em;}
+
   div#corp_detail { float:right; width: 40%; margin: 1em; padding: 0.5em; border: 3px solid red; min-height: 4em; border-radius: 8px; }
   div#corp_total, div#student_total { font-style: italic; color: gray; }
   div.filled { border-color: green !important; }
@@ -33,6 +36,7 @@
 {% block extrahead %}
   <script type="text/javascript" src="{% static "admin/js/jquery.js" %}"></script>
   <script type="text/javascript" src="{% static "js/attribution.js" %}"></script>
+  <script type="text/javascript">var static_url = '{{ STATIC_URL }}';</script>
 {% endblock %}
 
 {% block breadcrumbs %}

@@ -15,6 +15,12 @@ class StudentSummaryView(DetailView):
     model = Student
     template_name = 'student_summary.html'
 
+    def get_context_data(self, **kwargs):
+        context = super(StudentSummaryView, self).get_context_data(**kwargs)
+        context['previous_stages'] = self.object.training_set.all(
+            ).select_related('availability__corporation').order_by('availability__period__end_date')
+        return context
+
 
 class AvailabilitySummaryView(DetailView):
     model = Availability

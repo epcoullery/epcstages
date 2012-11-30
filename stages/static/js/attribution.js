@@ -128,7 +128,15 @@ $(document).ready(function() {
   });
 
   $('#student_select').change(function(ev) {
-    $('#student_detail').load('/student/' + $(this).val() + '/summary/').addClass("filled");
+    $('#student_detail').load('/student/' + $(this).val() + '/summary/', function() {
+        $('div#previous_stages_head').toggle(function() {
+            $('ul#previous_stages_list').toggle();
+            $(this).find('img').attr('src', static_url + 'img/open.png');
+        }, function() {
+            $('ul#previous_stages_list').toggle();
+            $(this).find('img').attr('src', static_url + 'img/closed.png');
+        });
+    }).addClass("filled");
     current_student = $(this).val();
     if (current_avail !== null) $('input#valid_training').show()
   });
