@@ -1,6 +1,8 @@
+{% load url from future %}
 {% for obj in trainings %}
 <li id="training_{{ obj.id }}">{{ obj.student }} ({{ obj.student.klass }}) - {{ obj.availability.corporation }} - {{ obj.availability.domain }}
     {% if obj.referent %} (réf: {{ obj.referent }}){% else %}- <span class="missing">Pas de référent</span>{% endif %}
+    &nbsp;&nbsp;<a class="edit_training" href="{% url 'admin:stages_training_change' obj.id %}"><img src="{{ STATIC_URL}}admin/img/icon_changelink.gif"></a>
     <img class="delete_training" src="{{ STATIC_URL}}admin/img/icon_deletelink.gif">
 </li>
 {% endfor %}

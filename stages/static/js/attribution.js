@@ -99,6 +99,10 @@ function update_trainings(period_id) {
             referent.text(parsed[1] +' (' + (parseInt(parsed[2]) - 1) + ')');
         });
       });
+      $('a.edit_training').click(function(ev) {
+        ev.preventDefault();
+        showAddAnotherPopup(this);
+      });
       set_export_visibility();
   });
 }
