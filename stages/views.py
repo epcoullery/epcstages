@@ -2,13 +2,24 @@
 from __future__ import unicode_literals
 
 import json
+from datetime import date
 
+from django.db.models import Count
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, TemplateView, ListView
 
 from .forms import PeriodForm
 from .models import Section, Student, Corporation, Period, Training, Referent, Availability
+
+
+def school_year_start():
+    """ Return first official day of current school year """
+    current_year = date.today().year
+    if date(current_year, 8, 1) > date.today():
+        return date(current_year-1, 8, 1)
+    else:
+        return date(current_year, 8, 1)
 
 
 class StudentSummaryView(DetailView):
@@ -41,10 +52,17 @@ class AttributionView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(AttributionView, self).get_context_data(**kwargs)
+        # Need 2 queries, because referents with no training item would not appear in the second query
+        referents = Referent.objects.all().order_by('last_name', 'first_name')
+        ref_counts = dict([(ref.id, ref.num_refs)
+                for ref in Referent.objects.filter(training__availability__period__end_date__gte=school_year_start
+                ).annotate(num_refs=Count('training'))])
+        for ref in referents:
+            ref.num_refs = ref_counts.get(ref.id, 0)
         context.update({
             #'period_form': PeriodForm(),
             'sections': Section.objects.all(),
-            'referents': Referent.objects.all().order_by('last_name', 'first_name'),
+            'referents': referents,
         })
         return context
 
@@ -100,11 +118,13 @@ def new_training(request):
     return HttpResponse('OK')
 
 def del_training(request):
+    """ Delete training and return the referent id """
     if request.method != 'POST':
         return HttpResponseNotAllowed()
     training = get_object_or_404(Training, pk=request.POST.get('pk'))
+    ref_id = training.referent_id
     training.delete()
-    return HttpResponse('OK')
+    return HttpResponse(json.dumps({'ref_id': ref_id}), content_type="application/json")
 
 
 def stages_export(request):

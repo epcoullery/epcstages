@@ -87,12 +87,16 @@ function update_trainings(period_id) {
         var li = $(this).parents('li');
         $.post('/training/del/',
           {pk: li.attr('id').split('_')[1],
-           csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()}, function() {
+           csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()}, function(data) {
             li.remove();
             // dispatch student and corp in their listings
             update_students($('#period_select').val());
             update_corporations($('#period_select').val());
             set_export_visibility();
+            // Decrement referent number
+            var referent = $('#referent_select option[value="' + data.ref_id + '"]')
+            var parsed = referent.text().match(/(.*)\((\d+)\)/);
+            referent.text(parsed[1] +' (' + (parseInt(parsed[2]) - 1) + ')');
         });
       });
       set_export_visibility();
@@ -182,7 +186,12 @@ $(document).ready(function() {
           current_student = null;
           current_avail = null;
           $('input#valid_training').hide();
+
+          // Update referent select
+          var parsed = $('#referent_select option:selected').text().match(/(.*)\((\d+)\)/);
+          $('#referent_select option:selected').text(parsed[1] +' (' + (parseInt(parsed[2]) + 1) + ')');
           $('#referent_select').val('');
+
           update_trainings($('#period_select').val());
         }
     );
