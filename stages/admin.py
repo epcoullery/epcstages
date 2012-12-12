@@ -13,6 +13,12 @@ class StudentAdmin(admin.ModelAdmin):
     fields = (('last_name', 'first_name'), ('pcode', 'city'),
               'birth_date', 'klass', 'archived')
 
+    def get_readonly_fields(self, request, obj=None):
+        if 'edit' not in request.GET:
+            return self.fields
+        else:
+            return self.readonly_fields
+
 
 class ReferentAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'abrev')
@@ -93,6 +99,10 @@ class AvailabilityAdmin(admin.ModelAdmin):
         return super(AvailabilityAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+class TrainingAdmin(admin.ModelAdmin):
+    search_fields = ('student__first_name', 'student__last_name', 'availability__corporation__name')
+
+
 admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass)
@@ -103,4 +113,4 @@ admin.site.register(CorpContact, CorpContactAdmin)
 admin.site.register(Domain)
 admin.site.register(Period, PeriodAdmin)
 admin.site.register(Availability, AvailabilityAdmin)
-admin.site.register(Training)
+admin.site.register(Training, TrainingAdmin)

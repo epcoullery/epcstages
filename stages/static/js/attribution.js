@@ -193,8 +193,10 @@ $(document).ready(function() {
 
           // Update referent select
           var parsed = $('#referent_select option:selected').text().match(/(.*)\((\d+)\)/);
-          $('#referent_select option:selected').text(parsed[1] +' (' + (parseInt(parsed[2]) + 1) + ')');
-          $('#referent_select').val('');
+          if (parsed) {
+            $('#referent_select option:selected').text(parsed[1] +' (' + (parseInt(parsed[2]) + 1) + ')');
+            $('#referent_select').val('');
+          }
 
           update_trainings($('#period_select').val());
         }

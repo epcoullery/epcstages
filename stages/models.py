@@ -28,6 +28,7 @@ class Level(models.Model):
 
     class Meta:
         verbose_name = "Niveau"
+        verbose_name_plural = "Niveaux"
 
     def __unicode__(self):
         return self.name
