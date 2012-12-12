@@ -203,8 +203,10 @@ $(document).ready(function() {
     );
   });
 
-  $('input#export').click(function() {
-    $('form#list_export').attr('action', '/stages/export/?filter=' + $('#period_select').val()).submit();
+  $('input#export').click(function(ev) {
+    ev.preventDefault();
+    $('form#list_export').find('input#filter').val($('#period_select').val());
+    $('form#list_export').submit();
   });
 
   update_periods($('#section_select').val());

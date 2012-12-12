@@ -94,7 +94,8 @@
   <h3>Stages planifiés pour la période choisie</h3>
   <ul id="training_list">-
   </ul>
-  <form id="list_export" method="get" action=".">{% csrf_token %}
+  <form id="list_export" method="get" action="{% url 'stages_export' %}">{% csrf_token %}
+    <input id="filter" name="filter" type="hidden" value="">
     <input id="export" type="button" value="Exporter la liste">
   </form>
 </div>
