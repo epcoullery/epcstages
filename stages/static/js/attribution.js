@@ -4,7 +4,7 @@ function update_periods(section_id) {
     sel.append($("<option />").val('').text('-------'));
     if (data.length > 0) {
       $.each(data, function() {
-        sel.append($("<option />").val(this[0]).text(this[1]));
+        sel.append($("<option />").val(this.id).text(this.dates + ' ' + this.title));
       })
     }
     update_students('');

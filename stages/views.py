@@ -71,7 +71,8 @@ class AttributionView(TemplateView):
 def section_periods(request, pk):
     """ Return all periods from a section (JSON) """
     section = get_object_or_404(Section, pk=pk)
-    periods = [(p.id, p.dates) for p in section.period_set.all().order_by('start_date')]
+    periods = [{'id': p.id, 'dates': p.dates, 'title': p.title}
+               for p in section.period_set.all().order_by('-start_date')]
     return HttpResponse(json.dumps(periods), content_type="application/json")
 
 def section_classes(request, pk):
@@ -137,6 +138,9 @@ def stages_export(request):
         ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
         ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
         ('Institution', 'availability__corporation__name'),
+        ('Rue Inst.', 'availability__corporation__street'),
+        ('NPA Inst.', 'availability__corporation__pcode'),
+        ('Ville Inst.', 'availability__corporation__city'),
         ('Domaine', 'availability__domain__name'),
         ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name')
     ]

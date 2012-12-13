@@ -10,7 +10,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'pcode', 'city', 'klass')
     list_filter = ('klass',)
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass')
-    fields = (('last_name', 'first_name'), ('pcode', 'city'),
+    fields = (('last_name', 'first_name'), ('pcode', 'city'), ('email', 'tel'),
               'birth_date', 'klass', 'archived')
 
     def get_readonly_fields(self, request, obj=None):
@@ -26,12 +26,12 @@ class ReferentAdmin(admin.ModelAdmin):
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'corporation', 'role')
-    fields = ('corporation', ('title', 'last_name', 'first_name'),
+    fields = (('corporation', 'is_main'), ('title', 'last_name', 'first_name'),
               'role', ('tel', 'email'))
 
 class ContactInline(admin.StackedInline):
     model = CorpContact
-    fields = (('title', 'last_name', 'first_name'),
+    fields = ('is_main', ('title', 'last_name', 'first_name'),
               ('role', 'tel', 'email'))
     extra = 1
 

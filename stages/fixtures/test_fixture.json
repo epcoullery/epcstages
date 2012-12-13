@@ -136,6 +136,7 @@
       "corporation": 1, 
       "title": "Monsieur",
       "first_name": "Jean", 
+      "is_main": true,
       "last_name": "Horner", 
       "role": "Responsable formation",
       "tel": "", 

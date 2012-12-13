@@ -53,6 +53,8 @@ class Student(models.Model):
     birth_date = models.DateField(verbose_name='Date de naissance')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
     city = models.CharField(max_length=40, verbose_name='Localité')
+    tel = models.CharField(max_length=40, blank=True, verbose_name='Téléphone')
+    email = models.EmailField(verbose_name='Courriel', blank=True)
     klass = models.ForeignKey(Klass, verbose_name='Classe')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
 
@@ -107,6 +109,7 @@ class Corporation(models.Model):
 
     class Meta:
         verbose_name = "Institution"
+        ordering = ('name',)
 
     def __unicode__(self):
         return self.name
@@ -114,6 +117,7 @@ class Corporation(models.Model):
 
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution')
+    is_main = models.BooleanField(default=False, verbose_name='Contact principal')
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')

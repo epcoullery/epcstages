@@ -81,7 +81,7 @@
   </div>
   <div id="training_form">
     <form>{% csrf_token %}
-    <div id="referent_choice"><label for="referent_select">Référent:</label>
+    <div id="referent_choice"><label for="referent_select">Référent école:</label>
       <select id="referent_select"><option value="">-------</option>
         {% for ref in referents %}<option value="{{ ref.id }}">{{ ref }} ({{ ref.num_refs }})</option>{% endfor %}</select>
     </div>
