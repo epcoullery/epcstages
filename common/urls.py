@@ -1,14 +1,13 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
+from django.views.generic import RedirectView
 
 from stages import views
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'epcstages.views.home', name='home'),
-    # url(r'^epcstages/', include('epcstages.foo.urls')),
+    url(r'^$', RedirectView.as_view(url='/admin/'), name='home'),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
