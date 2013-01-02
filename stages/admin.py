@@ -6,18 +6,25 @@ from stages.models import (Student, Section, Level, Klass, Referent, Corporation
     CorpContact, Domain, Period, Availability, Training)
 
 
+class KlassAdmin(admin.ModelAdmin):
+    list_display = ('name', 'section', 'level')
+    ordering = ('name',)
+
+
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'pcode', 'city', 'klass')
+    ordering = ('last_name', 'first_name')
     list_filter = ('klass',)
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass')
-    fields = (('last_name', 'first_name'), ('pcode', 'city'), ('email', 'tel'),
-              'birth_date', 'klass', 'archived')
+    fields = (('last_name', 'first_name'), 'street', ('pcode', 'city'), 'email',
+              ('tel', 'mobile'), 'birth_date', 'klass', 'archived')
 
-    def get_readonly_fields(self, request, obj=None):
+    '''def get_readonly_fields(self, request, obj=None):
         if 'edit' not in request.GET:
             return self.fields
         else:
             return self.readonly_fields
+    '''
 
 
 class ReferentAdmin(admin.ModelAdmin):
@@ -105,7 +112,7 @@ class TrainingAdmin(admin.ModelAdmin):
 
 admin.site.register(Section)
 admin.site.register(Level)
-admin.site.register(Klass)
+admin.site.register(Klass, KlassAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Referent, ReferentAdmin)
 admin.site.register(Corporation, CorporationAdmin)
