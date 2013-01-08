@@ -63,7 +63,7 @@ function update_corporations(period_id) {
         options.push(this);
         sel.append($("<option />").val(this.id).text(this.corp_name));
       }
-      if (domains.indexOf(this.domain) == -1) {
+      if ($.inArray(this.domain, domains) < 0) {
         domains.push(this.domain);
         $('#corp_filter').append($("<option />").val(this.domain).text(this.domain));
       }
