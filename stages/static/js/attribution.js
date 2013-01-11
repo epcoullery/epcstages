@@ -13,32 +13,26 @@ function update_periods(section_id) {
   });
 }
 
-function update_class_filter(section_id) {
-  $('#student_filter').empty();
-  $.getJSON('/section/' + section_id + '/classes/', function(data) {
-    var sel = $('#student_filter');
-    sel.append($("<option />").val('').text('Toutes les classes'));
-    if (data.length > 0) {
-      $.each(data, function() {
-        sel.append($("<option />").val(this[1]).text(this[1]));
-      })
-    }
-  });
-}
-
 function update_students(period_id) {
   $('#student_select').empty();
+  $('#student_filter').empty();
   $('#student_detail').html('').removeClass("filled");
   current_student = null;
   $('input#valid_training').hide();
   if (period_id == '') return;
   $.getJSON('/period/' + period_id + '/students/', function(data) {
     var sel = $('#student_select');
+    var classes = [];
     var options = [];
+    $('#student_filter').append($("<option />").val('').text('Toutes les classes'));
     $.each(data, function() {
       if (this.training_id == null) {
         options.push(this);
         sel.append($("<option />").val(this.id).text(this.name + ' (' + this.klass + ')'));
+      }
+      if ($.inArray(this.klass, classes) < 0) {
+        classes.push(this.klass);
+        $('#student_filter').append($("<option />").val(this.klass).text(this.klass));
       }
     });
     // Keep options as data to enable filtering
@@ -112,7 +106,6 @@ $(document).ready(function() {
     // Update period list when section is modified
     $('#period_select').empty();
     update_periods($(this).val());
-    update_class_filter($(this).val());
   });
 
   $('#period_select').change(function(ev) {
@@ -146,7 +139,7 @@ $(document).ready(function() {
         });
     }).addClass("filled");
     current_student = $(this).val();
-    if (current_avail !== null) $('input#valid_training').show()
+    if (current_avail !== null) $('input#valid_training').show();
   });
 
   $('#corp_filter').change(function(ev) {
@@ -210,7 +203,6 @@ $(document).ready(function() {
   });
 
   update_periods($('#section_select').val());
-  update_class_filter($('#section_select').val());
 });
 
 var current_student = null;
