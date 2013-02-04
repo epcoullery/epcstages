@@ -15,7 +15,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'pcode', 'city', 'klass')
     ordering = ('last_name', 'first_name')
     list_filter = ('klass',)
-    search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass')
+    search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name'), 'street', ('pcode', 'city'), 'email',
               ('tel', 'mobile'), 'birth_date', 'klass', 'archived')
 
