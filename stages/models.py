@@ -99,7 +99,7 @@ class Referent(models.Model):
 
 
 class Corporation(models.Model):
-    name = models.CharField(max_length=100, verbose_name='Nom')
+    name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
@@ -123,7 +123,7 @@ class CorpContact(models.Model):
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
-    role = models.CharField(max_length=40, verbose_name='Fonction')
+    role = models.CharField(max_length=40, verbose_name='Fonction', blank=True)
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.CharField(max_length=40, blank=True, verbose_name='Courriel')
 
