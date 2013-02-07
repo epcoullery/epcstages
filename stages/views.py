@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404
 from django.views.generic import DetailView, TemplateView, ListView
 
 from .forms import PeriodForm
-from .models import Section, Student, Corporation, Period, Training, Referent, Availability
+from .models import (Section, Student, Corporation, CorpContact, Period,
+    Training, Referent, Availability)
 
 
 def school_year_start():
@@ -137,12 +138,13 @@ def stages_export(request):
         ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
         ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
         ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
+        ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name'),
         ('Institution', 'availability__corporation__name'),
         ('Rue Inst.', 'availability__corporation__street'),
         ('NPA Inst.', 'availability__corporation__pcode'),
         ('Ville Inst.', 'availability__corporation__city'),
         ('Domaine', 'availability__domain__name'),
-        ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name')
+        ('Civilité contact', None), ('Prénom contact', None), ('Nom contact', None),
     ]
 
     period_filter = request.GET.get('filter')
@@ -150,6 +152,11 @@ def stages_export(request):
         query = Training.objects.filter(availability__period_id=period_filter)
     else:
         query = Training.objects.all()
+
+    contacts = {}
+    for contact in CorpContact.objects.all().select_related('corporation').order_by('corporation'):
+        if contact.corporation.name not in contacts or contact.is_main is True:
+            contacts[contact.corporation.name] = contact
 
     wb = Workbook()
     ws = wb.get_active_sheet()
@@ -159,9 +166,15 @@ def stages_export(request):
         ws.cell(row=0, column=col_idx).value = header
         ws.cell(row=0, column=col_idx).style.font.bold = True
     # Data
-    for row_idx, tr in enumerate(query.values_list(*[f[1] for f in export_fields]), start=1):
-        for col_idx, field in enumerate(tr):
-            ws.cell(row=row_idx, column=col_idx).value = field
+    query_keys = [f[1] for f in export_fields if f[1] is not None]
+    for row_idx, tr in enumerate(query.values(*query_keys), start=1):
+        for col_idx, field in enumerate(query_keys):
+            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+        contact = contacts.get(tr['availability__corporation__name'])
+        if contact:
+            ws.cell(row=row_idx, column=col_idx+1).value = contact.title
+            ws.cell(row=row_idx, column=col_idx+2).value = contact.first_name
+            ws.cell(row=row_idx, column=col_idx+3).value = contact.last_name
 
     response = HttpResponse(save_virtual_workbook(wb), mimetype='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
