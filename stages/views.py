@@ -45,7 +45,8 @@ class TrainingsByPeriodView(ListView):
 
     def get_queryset(self):
         return Training.objects.select_related('student__klass', 'availability__corporation', 'availability__domain'
-            ).filter(availability__period__pk=self.kwargs['pk'])
+            ).filter(availability__period__pk=self.kwargs['pk']
+            ).order_by('student__last_name', 'student__first_name')
 
 
 class CorpContactJSONView(ListView):
