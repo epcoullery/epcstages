@@ -212,6 +212,7 @@ $(document).ready(function() {
             $('#referent_select option:selected').text(parsed[1] +' (' + (parseInt(parsed[2]) + 1) + ')');
             $('#referent_select').val('');
           }
+          $('#contact_select').val('');
 
           update_trainings($('#period_select').val());
         }
