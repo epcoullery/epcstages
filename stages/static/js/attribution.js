@@ -45,6 +45,7 @@ function update_corporations(period_id) {
   $('#corp_select').empty();
   $('#corp_detail').html('').removeClass("filled");
   current_avail = null;
+  $('#contact_select').find('option:gt(0)').remove();
   $('input#valid_training').hide();
   if (period_id == '') return;
   $.getJSON('/period/' + period_id + '/corporations/', function(data) {
@@ -52,10 +53,11 @@ function update_corporations(period_id) {
     var domains = [];
     var options = [];
     $('#corp_filter').empty().append($("<option />").val('').text('Tous les domaines'));
+    // data contains availabilities (id is availability not corporation)
     $.each(data, function() {
       if (this.free) {
         options.push(this);
-        sel.append($("<option />").val(this.id).text(this.corp_name));
+        sel.append($("<option />").val(this.id).text(this.corp_name).data('id_corp', this.id_corp));
       }
       if ($.inArray(this.domain, domains) < 0) {
         domains.push(this.domain);
@@ -158,13 +160,26 @@ $(document).ready(function() {
   $('#corp_select').change(function(ev) {
     $('#corp_detail').load('/availability/' + $(this).val() + '/summary/').addClass("filled");
     current_avail = $(this).val();
-    if (current_student !== null) $('input#valid_training').show()
+    if (current_student !== null) $('input#valid_training').show();
+    // Fill contact select
+    var sel = $('#contact_select');
+    sel.html('<option value="">-------</option>');
+    var id_corp = $("option:selected", this).data('id_corp');
+    $.getJSON('/corporation/' + id_corp + '/contacts/', function(data) {
+        $.each(data, function(key, contact) {
+            var item = contact.first_name + ' ' + contact.last_name;
+            if (contact.role.length) item += ' (' + contact.role + ')';
+            sel.append($("<option />").val(contact.id).text(item));
+        });
+        if (data.length == 1) sel.val(data[0].id);
+    });
   });
 
   $('#valid_training').click(function() {
     $.post('/training/new/', {
             student: current_student, avail: current_avail,
             referent: $('#referent_select').val(),
+            contact: $('#contact_select').val(),
             csrfmiddlewaretoken: $("input[name='csrfmiddlewaretoken']").val()},
         function(data) {
           if (data != 'OK') {

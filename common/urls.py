@@ -30,4 +30,5 @@ urlpatterns = patterns('',
 
     url(r'^student/(?P<pk>\d+)/summary/', views.StudentSummaryView.as_view()),
     url(r'^availability/(?P<pk>\d+)/summary/', views.AvailabilitySummaryView.as_view()),
+    url(r'^corporation/(?P<pk>\d+)/contacts/', views.CorpContactJSONView.as_view()),
 )

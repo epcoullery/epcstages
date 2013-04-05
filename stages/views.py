@@ -48,6 +48,19 @@ class TrainingsByPeriodView(ListView):
             ).filter(availability__period__pk=self.kwargs['pk'])
 
 
+class CorpContactJSONView(ListView):
+    """ Return all contacts from a given corporation """
+    return_fields = ['id', 'first_name', 'last_name', 'role', 'is_main']
+
+    def get_queryset(self):
+        return CorpContact.objects.filter(corporation__pk=self.kwargs['pk'])
+
+    def render_to_response(self, context):
+        serialized = [dict([(field, getattr(obj, field)) for field in self.return_fields])
+                      for obj in context['object_list']]
+        return HttpResponse(json.dumps(serialized), content_type="application/json")
+
+
 class AttributionView(TemplateView):
     template_name = 'attribution.html'
 
@@ -100,7 +113,8 @@ def period_students(request, pk):
 def period_availabilities(request, pk):
     """ Return all availabilities in the specified period """
     period = get_object_or_404(Period, pk=pk)
-    corps = [{'id': av.id, 'corp_name': av.corporation.name, 'domain': av.domain.name, 'free': av.free}
+    corps = [{'id': av.id, 'id_corp': av.corporation.id, 'corp_name': av.corporation.name,
+              'domain': av.domain.name, 'free': av.free}
              for av in period.availability_set.select_related('corporation').all()]
     return HttpResponse(json.dumps(corps), content_type="application/json")
 
@@ -108,12 +122,15 @@ def new_training(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed()
     ref_key = request.POST.get('referent')
+    cont_key = request.POST.get('contact')
     try:
         ref = Referent.objects.get(pk=ref_key) if ref_key else None
+        contact = CorpContact.objects.get(pk=cont_key) if cont_key else None
         training = Training.objects.create(
             student=Student.objects.get(pk=request.POST.get('student')),
             availability=Availability.objects.get(pk=request.POST.get('avail')),
             referent=ref,
+            contact=contact,
         )
     except Exception as exc:
         return HttpResponse(str(exc))
@@ -144,7 +161,8 @@ def stages_export(request):
         ('NPA Inst.', 'availability__corporation__pcode'),
         ('Ville Inst.', 'availability__corporation__city'),
         ('Domaine', 'availability__domain__name'),
-        ('Civilité contact', None), ('Prénom contact', None), ('Nom contact', None),
+        ('Civilité contact', 'contact__title'), ('Prénom contact', 'contact__first_name'),
+        ('Nom contact', 'contact__last_name'),
     ]
 
     period_filter = request.GET.get('filter')
@@ -153,6 +171,7 @@ def stages_export(request):
     else:
         query = Training.objects.all()
 
+    # Prepare "default" contacts (when not defined on training)
     contacts = {}
     for contact in CorpContact.objects.all().select_related('corporation').order_by('corporation'):
         if contact.corporation.name not in contacts or contact.is_main is True:
@@ -170,11 +189,13 @@ def stages_export(request):
     for row_idx, tr in enumerate(query.values(*query_keys), start=1):
         for col_idx, field in enumerate(query_keys):
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
-        contact = contacts.get(tr['availability__corporation__name'])
-        if contact:
-            ws.cell(row=row_idx, column=col_idx+1).value = contact.title
-            ws.cell(row=row_idx, column=col_idx+2).value = contact.first_name
-            ws.cell(row=row_idx, column=col_idx+3).value = contact.last_name
+        if tr['contact__last_name'] is None:
+            # Use default contact
+            contact = contacts.get(tr['availability__corporation__name'])
+            if contact:
+                ws.cell(row=row_idx, column=col_idx-2).value = contact.title
+                ws.cell(row=row_idx, column=col_idx-1).value = contact.first_name
+                ws.cell(row=row_idx, column=col_idx).value = contact.last_name
 
     response = HttpResponse(save_virtual_workbook(wb), mimetype='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (

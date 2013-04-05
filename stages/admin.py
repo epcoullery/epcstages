@@ -83,6 +83,7 @@ class AvailabilityAdminForm(forms.ModelForm):
 class AvailabilityInline(admin.TabularInline):
     model = Availability
     form = AvailabilityAdminForm
+    ordering = ('corporation__name',)
     extra = 1
     formfield_overrides = {
         models.TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':40})},

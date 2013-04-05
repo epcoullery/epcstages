@@ -85,6 +85,9 @@
       <select id="referent_select"><option value="">-------</option>
         {% for ref in referents %}<option value="{{ ref.id }}">{{ ref }} ({{ ref.num_refs }})</option>{% endfor %}</select>
     </div>
+    <div id="contact_choice"><label for="contact_select">Contact institution:</label>
+      <select id="contact_select"><option value="">-------</option></select>
+    </div>
     <div id="buttons_div"><input id="valid_training" type="button" value="Valider ce stage"></div>
     </form>
   </div>
