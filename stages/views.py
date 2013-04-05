@@ -155,6 +155,7 @@ def stages_export(request):
         ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
         ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
         ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
+        ('Remarques', 'comment'),
         ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name'),
         ('Institution', 'availability__corporation__name'),
         ('Rue Inst.', 'availability__corporation__street'),
