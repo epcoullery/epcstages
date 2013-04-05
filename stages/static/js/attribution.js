@@ -7,9 +7,13 @@ function update_periods(section_id) {
         sel.append($("<option />").val(this.id).text(this.dates + ' ' + this.title));
       })
     }
-    update_students('');
-    update_corporations('');
-    update_trainings('');
+    if ($.cookie('periode') != 'undefined')
+        sel.val($.cookie('periode'));
+
+    var periode_val = sel.val();
+    update_students(periode_val);
+    update_corporations(periode_val);
+    update_trainings(periode_val);
   });
 }
 
@@ -108,6 +112,8 @@ $(document).ready(function() {
     // Update period list when section is modified
     $('#period_select').empty();
     update_periods($(this).val());
+    $.cookie('section', $(this).val(), { expires: 7 });
+    $.removeCookie('periode');
   });
 
   $('#period_select').change(function(ev) {
@@ -115,6 +121,7 @@ $(document).ready(function() {
     update_students($(this).val());
     update_corporations($(this).val());
     update_trainings($(this).val());
+    $.cookie('periode', $(this).val(), { expires: 7 });
   });
 
   $('#student_filter').change(function(ev) {
@@ -217,6 +224,8 @@ $(document).ready(function() {
     $('form#list_export').submit();
   });
 
+  if ($.cookie('section') != 'undefined')
+    $('#section_select').val($.cookie('section'));
   update_periods($('#section_select').val());
 });
 
