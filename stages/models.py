@@ -155,9 +155,10 @@ class Period(models.Model):
 
     class Meta:
         verbose_name = "Période de stage"
+        ordering = ('-start_date',)
 
     def __unicode__(self):
-        return '%s (filière %s)' % (self.dates, self.section)
+        return '%s (%s)' % (self.dates, self.title)
 
     @property
     def dates(self):
