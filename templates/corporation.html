@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block extrastyle %}
+<style>
+  h3 {background-color: #eee; padding: 4px;}
+  tr.totaux td {font-style: italic;}
+  tr.dispo td {font-style: italic; color: green;}
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'corporations' %}">Liste des institutions</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div style="float:right;"><a href="{% url 'admin:stages_corporation_change' corp.pk %}"><img src="{{ STATIC_URL }}img/edit.png" title="Modifier"></a></div>
+<h2>{{ corp.name }}</h2>
+<table width="100%">
+<tr><th rowspan="2">Adresse :</th>
+    <td rowspan="2">{{ corp.street }}<br>
+        {{ corp.pcode }} {{ corp.city }}<br>
+        Tél: {{ corp.tel }}<br>
+        {% if corp.email %}<a href="mailto:{{ corp.email }}">{{ corp.email }}</a><br>{% endif %}
+        {% if corp.web %}<a href="{{ corp.web }}">{{ corp.web }}</a><br>{% endif %}
+     </td>
+     <th>Type de structure :</th>
+     <td>{{ corp.typ }}</td>
+</tr>
+<tr>
+    <th>Contacts :</th>
+    <td>{% for cont in corp.corpcontact_set.all %}
+        <a href="{% url 'admin:stages_corpcontact_change' cont.pk %}">{{ cont.first_name }} {{ cont.last_name }}</a> {% if cont.role %} ({{ cont.role }}){% endif %}{% endfor %}
+    </td>
+</tr>
+</table>
+
+{% for year, data in years.items %}
+  <h3>{{ year }}</h3>
+  <table>
+  {% for avail in data.avails %}
+    <tr class="{% if not avail.training %}dispo{% endif %}">
+        <td>{{ avail.period.dates }}</td>
+        <td>{% if not avail.training %}Disponibilité{% else %}{{ avail.training.student }} ({{ avail.training.student.klass }}){% endif %}</td>
+        <td>{{ avail.period.section }}</td></tr>
+  {% endfor %}
+    <tr class="totaux"><td colspan="2" align="right" valign="top">Totaux :</td>
+        <td>{% for fil, num in data.stats.items %}{{ fil }} : {{ num }} semaine(s)<br>{% endfor %}</td>
+    </tr>
+  </table>
+{% endfor %}
+
+{% endblock %}

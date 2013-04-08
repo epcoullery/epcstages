@@ -1,8 +1,11 @@
+# -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from .models import Student, Availability, Referent
+from .models import Period, Student, Availability, Referent
 
 class StagesTest(TestCase):
     fixtures = ['test_fixture.json']
@@ -29,4 +32,12 @@ class StagesTest(TestCase):
         self.assertEqual(response.content, b'OK')
         avail = Availability.objects.get(pk=2)
         self.assertEqual(avail.training.student, student)
-        
+
+    def test_period_schoolyear(self):
+        per = Period.objects.get(pk=1)
+        self.assertEqual(per.school_year, "2012 — 2013")
+
+    def test_period_weeks(self):
+        per = Period.objects.get(pk=1)
+        self.assertEqual(per.weeks, 1)
+

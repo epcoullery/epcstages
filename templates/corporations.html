@@ -1,0 +1,12 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<h2>Liste des institutions</h2>
+
+<table>
+{% for corp in object_list %}
+<tr class="{% cycle 'row1' 'row2' %}">
+  <td><a href="{% url 'corporation' corp.pk %}">{{ corp.name }}</a></td><td>{{ corp.pcode }} {{ corp.city }}</td></tr>
+{% endfor %}
+</table>
+{% endblock %}

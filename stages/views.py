@@ -7,6 +7,7 @@ from datetime import date
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
+from django.utils.datastructures import SortedDict
 from django.views.generic import DetailView, TemplateView, ListView
 
 from .forms import PeriodForm
@@ -21,6 +22,41 @@ def school_year_start():
         return date(current_year-1, 8, 1)
     else:
         return date(current_year, 8, 1)
+
+
+class CorporationListView(ListView):
+    model = Corporation
+    template_name = 'corporations.html'
+
+
+class CorporationView(DetailView):
+    model = Corporation
+    template_name = 'corporation.html'
+    context_object_name = 'corp'
+
+    def get_context_data(self, **kwargs):
+        context = super(CorporationView, self).get_context_data(**kwargs)
+        # Create a structure like:
+        #   {'2011-2012': {'avails': [avail1, avail2, ...], 'stats': {'fil': num}},
+        #    '2012-2013': ...}
+        school_years = SortedDict()
+        for av in Availability.objects.filter(corporation=self.object
+                ).select_related('training__student__klass', 'period__section'
+                ).order_by('period__start_date'):
+            if av.period.school_year not in school_years:
+                school_years[av.period.school_year] = {'avails': [], 'stats': {}}
+            school_years[av.period.school_year]['avails'].append(av)
+            if av.period.section.name not in school_years[av.period.school_year]['stats']:
+                school_years[av.period.school_year]['stats'][av.period.section.name] = 0
+            try:
+                av.training
+                # Only add to stats if training exists
+                school_years[av.period.school_year]['stats'][av.period.section.name] += av.period.weeks
+            except Training.DoesNotExist:
+                pass
+
+        context['years'] = school_years
+        return context
 
 
 class StudentSummaryView(DetailView):
@@ -69,11 +105,14 @@ class AttributionView(TemplateView):
         context = super(AttributionView, self).get_context_data(**kwargs)
         # Need 2 queries, because referents with no training item would not appear in the second query
         referents = Referent.objects.all().order_by('last_name', 'first_name')
+
+        # Populate each referent with the number of referencies done during the current school year
         ref_counts = dict([(ref.id, ref.num_refs)
                 for ref in Referent.objects.filter(training__availability__period__end_date__gte=school_year_start
                 ).annotate(num_refs=Count('training'))])
         for ref in referents:
             ref.num_refs = ref_counts.get(ref.id, 0)
+
         context.update({
             #'period_form': PeriodForm(),
             'sections': Section.objects.all(),

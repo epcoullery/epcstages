@@ -163,6 +163,19 @@ class Period(models.Model):
     def dates(self):
         return '%s - %s' % (self.start_date, self.end_date)
 
+    @property
+    def school_year(self):
+        if self.start_date.month < 8:
+            start_year = self.start_date.year - 1
+        else:
+            start_year = self.start_date.year
+        return "%d — %d" % (start_year, start_year + 1)
+
+    @property
+    def weeks(self):
+        """ Return the number of weeks of this period """
+        return (self.end_date - self.start_date).days // 7
+
 
 class Availability(models.Model):
     """ Disponibilités des institutions """
