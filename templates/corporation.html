@@ -34,7 +34,8 @@
 <tr>
     <th>Contacts :</th>
     <td>{% for cont in corp.corpcontact_set.all %}
-        <a href="{% url 'admin:stages_corpcontact_change' cont.pk %}">{{ cont.first_name }} {{ cont.last_name }}</a> {% if cont.role %} ({{ cont.role }}){% endif %}{% endfor %}
+        <a href="{% url 'admin:stages_corpcontact_change' cont.pk %}">{{ cont.first_name }} {{ cont.last_name }}</a> {% if cont.role %} ({{ cont.role }}){% endif %}<br>
+        {% endfor %}
     </td>
 </tr>
 </table>
@@ -45,7 +46,8 @@
   {% for avail in data.avails %}
     <tr class="{% if not avail.training %}dispo{% endif %}">
         <td>{{ avail.period.dates }}</td>
-        <td>{% if not avail.training %}Disponibilité{% else %}{{ avail.training.student }} ({{ avail.training.student.klass }}){% endif %}</td>
+        <td>{% if not avail.training %}Disponibilité pour «{{ avail.period.title }}»
+            {% else %}{{ avail.training.student }} ({{ avail.training.student.klass }}){% endif %}</td>
         <td>{{ avail.period.section }}</td></tr>
   {% endfor %}
     <tr class="totaux"><td colspan="2" align="right" valign="top">Totaux :</td>
