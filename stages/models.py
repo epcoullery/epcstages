@@ -1,7 +1,10 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
+from datetime import date
 
 from django.db import models
+
+from . import utils
 
 
 def is_int(s):
@@ -32,6 +35,14 @@ class Level(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    def delta(self, diff):
+        if diff == 0:
+            return self
+        try:
+            return Level.objects.get(name=str(int(self.name)+diff))
+        except Level.DoesNotExist:
+            return None
 
 
 class Klass(models.Model):
@@ -166,11 +177,17 @@ class Period(models.Model):
 
     @property
     def school_year(self):
-        if self.start_date.month < 8:
-            start_year = self.start_date.year - 1
-        else:
-            start_year = self.start_date.year
-        return "%d — %d" % (start_year, start_year + 1)
+        return utils.school_year(self.start_date)
+
+    @property
+    def relative_level(self):
+        """
+        Return the level depending on current school year. For example, if the
+        period is planned for next school year, level will be level - 1.
+        """
+        diff = (utils.school_year(self.start_date, as_tuple=True)[0] -
+                utils.school_year(date.today(), as_tuple=True)[0])
+        return self.level.delta(-diff)
 
     @property
     def weeks(self):

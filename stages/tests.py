@@ -1,11 +1,13 @@
 # -*- encoding: utf-8 -*-
 from __future__ import unicode_literals
+from datetime import date
 
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from .models import Period, Student, Availability, Referent
+from .models import Level, Section, Period, Student, Availability, Referent
+from .utils import school_year
 
 class StagesTest(TestCase):
     fixtures = ['test_fixture.json']
@@ -33,11 +35,28 @@ class StagesTest(TestCase):
         avail = Availability.objects.get(pk=2)
         self.assertEqual(avail.training.student, student)
 
+
+class PeriodTest(TestCase):
+    def setUp(self):
+        self.section = Section.objects.create(name="ASE")
+        self.level1 = Level.objects.create(name='1')
+        self.level2 = Level.objects.create(name='2')
+
     def test_period_schoolyear(self):
-        per = Period.objects.get(pk=1)
+        per = Period.objects.create(title="Week test", section=self.section, level=self.level1,
+            start_date=date(2012, 9, 12), end_date=date(2012, 9, 26))
+        self.assertEqual(per.school_year, "2012 — 2013")
+        per = Period.objects.create(title="Week test", section=self.section, level=self.level1,
+            start_date=date(2013, 5, 2), end_date=date(2013, 7, 4))
         self.assertEqual(per.school_year, "2012 — 2013")
 
-    def test_period_weeks(self):
-        per = Period.objects.get(pk=1)
-        self.assertEqual(per.weeks, 1)
+    def test_period_relativelevel(self):
+        year = school_year(date.today(), as_tuple=True)[1]
+        per = Period.objects.create(title="For next year", section=self.section, level=self.level2,
+            start_date=date(year, 9, 12), end_date=date(year, 10, 1))
+        self.assertEqual(per.relative_level, self.level1)
 
+    def test_period_weeks(self):
+        per = Period.objects.create(title="Week test", section=self.section, level=self.level1,
+            start_date=date(2013, 9, 12), end_date=date(2013, 9, 26))
+        self.assertEqual(per.weeks, 2)

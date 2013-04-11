@@ -59,6 +59,41 @@ class CorporationView(DetailView):
         return context
 
 
+class AttributionView(TemplateView):
+    """
+    Base view for the attribution screen. Populate sections and referents.
+    All other data are retrieved through AJAX requests:
+      * training periods: section_period
+      * corp. availabilities for current period: period_availabilities
+      * already planned training for current period: TrainingsByPeriodView
+      * student list targetted by current period: period_students
+    When an availability is chosen:
+      * corp. contact list: CorpContactJSONView
+    When a student is chosen;
+      * details of a student: StudentSummaryView
+    """
+    template_name = 'attribution.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(AttributionView, self).get_context_data(**kwargs)
+        # Need 2 queries, because referents with no training item would not appear in the second query
+        referents = Referent.objects.all().order_by('last_name', 'first_name')
+
+        # Populate each referent with the number of referencies done during the current school year
+        ref_counts = dict([(ref.id, ref.num_refs)
+                for ref in Referent.objects.filter(training__availability__period__end_date__gte=school_year_start
+                ).annotate(num_refs=Count('training'))])
+        for ref in referents:
+            ref.num_refs = ref_counts.get(ref.id, 0)
+
+        context.update({
+            #'period_form': PeriodForm(),
+            'sections': Section.objects.all(),
+            'referents': referents,
+        })
+        return context
+
+
 class StudentSummaryView(DetailView):
     model = Student
     template_name = 'student_summary.html'
@@ -97,29 +132,6 @@ class CorpContactJSONView(ListView):
                       for obj in context['object_list']]
         return HttpResponse(json.dumps(serialized), content_type="application/json")
 
-
-class AttributionView(TemplateView):
-    template_name = 'attribution.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(AttributionView, self).get_context_data(**kwargs)
-        # Need 2 queries, because referents with no training item would not appear in the second query
-        referents = Referent.objects.all().order_by('last_name', 'first_name')
-
-        # Populate each referent with the number of referencies done during the current school year
-        ref_counts = dict([(ref.id, ref.num_refs)
-                for ref in Referent.objects.filter(training__availability__period__end_date__gte=school_year_start
-                ).annotate(num_refs=Count('training'))])
-        for ref in referents:
-            ref.num_refs = ref_counts.get(ref.id, 0)
-
-        context.update({
-            #'period_form': PeriodForm(),
-            'sections': Section.objects.all(),
-            'referents': referents,
-        })
-        return context
-
 # AJAX views:
 
 def section_periods(request, pk):
@@ -141,7 +153,8 @@ def period_students(request, pk):
     with corresponding Training if existing (JSON)
     """
     period = get_object_or_404(Period, pk=pk)
-    students = Student.objects.filter(klass__section=period.section, klass__level=period.level).order_by('last_name')
+    students = Student.objects.filter(klass__section=period.section, klass__level=period.relative_level
+                             ).order_by('last_name')
     trainings = dict((t.student_id, t.id) for t in Training.objects.filter(availability__period=period))
     data = [{
         'name': unicode(s),
