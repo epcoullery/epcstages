@@ -104,4 +104,6 @@ INSTALLED_APPS = (
     'stages',
 )
 
+ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
+
 from local_settings import *
