@@ -28,7 +28,7 @@ class StudentAdmin(admin.ModelAdmin):
 
 
 class ReferentAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'abrev')
+    list_display = ('__unicode__', 'abrev', 'email')
 
 
 class CorpContactAdmin(admin.ModelAdmin):

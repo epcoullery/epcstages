@@ -97,6 +97,7 @@ class Referent(models.Model):
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     abrev = models.CharField(max_length=10, blank=True, verbose_name='Initiales')
+    email = models.EmailField(blank=True, verbose_name='Courriel')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
 
     support_tabimport = True
