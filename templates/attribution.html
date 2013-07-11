@@ -99,8 +99,10 @@
   <ul id="training_list">-
   </ul>
   <form id="list_export" method="get" action="{% url 'stages_export' %}">{% csrf_token %}
-    <input id="filter" name="filter" type="hidden" value="">
+    <input id="period" name="period" type="hidden" value="">
+    <input id="non_attr" name="non_attr" type="hidden" value="0">
     <input id="export" type="button" value="Exporter la liste">
+    <input id="export_non_attr" type="button" value="Exporter la liste des stages non attribués">
   </form>
 </div>
 {% endblock %}

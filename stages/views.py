@@ -202,34 +202,66 @@ def del_training(request):
     return HttpResponse(json.dumps({'ref_id': ref_id}), content_type="application/json")
 
 
+EXPORT_FIELDS = [
+    ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
+    ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
+    ('Nom du stage', 'availability__period__title'),
+    ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
+    ('Remarques stage', 'comment'),
+    ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name'),
+    ('Courriel référent', 'referent__email'),
+    ('Institution', 'availability__corporation__name'),
+    ('Rue Inst.', 'availability__corporation__street'),
+    ('NPA Inst.', 'availability__corporation__pcode'),
+    ('Ville Inst.', 'availability__corporation__city'),
+    ('Domaine', 'availability__domain__name'),
+    ('Remarques Inst.', 'availability__comment'),
+    ('Civilité contact', 'availability__contact__title'),
+    ('Prénom contact', 'availability__contact__first_name'),
+    ('Nom contact', 'availability__contact__last_name'),
+    ('Courriel contact', 'availability__contact__email'),
+]
+
+NON_ATTR_EXPORT_FIELDS = [
+    ('Filière', 'period__section__name'),
+    ('Nom du stage', 'period__title'),
+    ('Début', 'period__start_date'), ('Fin', 'period__end_date'),
+    ('Institution', 'corporation__name'),
+    ('Rue Inst.', 'corporation__street'),
+    ('NPA Inst.', 'corporation__pcode'),
+    ('Ville Inst.', 'corporation__city'),
+    ('Domaine', 'domain__name'),
+    ('Remarques Inst.', 'comment'),
+    ('Civilité contact', 'contact__title'),
+    ('Prénom contact', 'contact__first_name'),
+    ('Nom contact', 'contact__last_name'),
+    ('Courriel contact', 'contact__email'),
+]
+
 def stages_export(request):
     from datetime import date
     from openpyxl import Workbook
     from openpyxl.writer.excel import save_virtual_workbook
 
-    export_fields = [
-        ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
-        ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
-        ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
-        ('Remarques stage', 'comment'),
-        ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name'),
-        ('Courriel référent', 'referent__email'),
-        ('Institution', 'availability__corporation__name'),
-        ('Rue Inst.', 'availability__corporation__street'),
-        ('NPA Inst.', 'availability__corporation__pcode'),
-        ('Ville Inst.', 'availability__corporation__city'),
-        ('Domaine', 'availability__domain__name'),
-        ('Remarques Inst.', 'availability__comment'),
-        ('Civilité contact', 'availability__contact__title'),
-        ('Prénom contact', 'availability__contact__first_name'),
-        ('Nom contact', 'availability__contact__last_name'),
-        ('Courriel contact', 'availability__contact__email'),
-    ]
+    period_filter = request.GET.get('period')
+    non_attributed = bool(int(request.GET.get('non_attr', 0)))
 
-    period_filter = request.GET.get('filter')
+    export_fields = EXPORT_FIELDS
+    contact_test_field = 'availability__contact__last_name'
+    corp_name_field = 'availability__corporation__name'
+
     if period_filter:
-        query = Training.objects.filter(availability__period_id=period_filter)
+        if non_attributed:
+            # Export non attributed availabilities for a specific period
+            query = Availability.objects.filter(period_id=period_filter, training__isnull=True)
+            export_fields = NON_ATTR_EXPORT_FIELDS
+            contact_test_field = 'contact__last_name'
+            corp_name_field = 'corporation__name'
+        else:
+            # Export trainings for a specific period
+            query = Training.objects.filter(availability__period_id=period_filter)
     else:
+        # Export all trainings in the database
         query = Training.objects.all()
 
     # Prepare "default" contacts (when not defined on training)
@@ -250,9 +282,9 @@ def stages_export(request):
     for row_idx, tr in enumerate(query.values(*query_keys), start=1):
         for col_idx, field in enumerate(query_keys):
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
-        if tr['availability__contact__last_name'] is None:
+        if tr[contact_test_field] is None:
             # Use default contact
-            contact = contacts.get(tr['availability__corporation__name'])
+            contact = contacts.get(tr[corp_name_field])
             if contact:
                 ws.cell(row=row_idx, column=col_idx-3).value = contact.title
                 ws.cell(row=row_idx, column=col_idx-2).value = contact.first_name

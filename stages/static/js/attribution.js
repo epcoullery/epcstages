@@ -78,6 +78,9 @@ function update_trainings(period_id) {
       if ($('ul#training_list').children().length > 0)
         $('input#export').show();
       else $('input#export').hide();
+      if ($('#corp_select').attr('options').length > 0)
+        $('input#export_non_attr').show();
+      else $('input#export_non_attr').hide();
   }
 
   if (period_id == '') $('ul#training_list').html('');
@@ -221,7 +224,14 @@ $(document).ready(function() {
 
   $('input#export').click(function(ev) {
     ev.preventDefault();
-    $('form#list_export').find('input#filter').val($('#period_select').val());
+    $('form#list_export').find('input#period').val($('#period_select').val());
+    $('form#list_export').find('input#non_attr').val('0');
+    $('form#list_export').submit();
+  });
+  $('input#export_non_attr').click(function(ev) {
+    ev.preventDefault();
+    $('form#list_export').find('input#period').val($('#period_select').val());
+    $('form#list_export').find('input#non_attr').val('1');
     $('form#list_export').submit();
   });
 
