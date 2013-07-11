@@ -224,7 +224,6 @@ class Training(models.Model):
     student = models.ForeignKey(Student, verbose_name='Étudiant')
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité')
     referent = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent')
-    contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution')
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:

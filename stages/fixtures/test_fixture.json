@@ -186,7 +186,8 @@
       "corporation": 1, 
       "domain": 1, 
       "period": 1, 
-      "comment": "Dispo pour pré-sensibilisation"
+      "comment": "Dispo pour pré-sensibilisation",
+      "contact": 1
     }
   }, 
   {
@@ -196,7 +197,8 @@
       "corporation": 1, 
       "domain": 2, 
       "period": 1, 
-      "comment": ""
+      "comment": "",
+      "contact": 1
     }
   }, 
   {
