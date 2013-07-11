@@ -119,6 +119,7 @@ class AvailabilityAdmin(admin.ModelAdmin):
 
 class TrainingAdmin(admin.ModelAdmin):
     search_fields = ('student__first_name', 'student__last_name', 'availability__corporation__name')
+    raw_id_fields = ('availability',)
 
 
 admin.site.register(Section)
