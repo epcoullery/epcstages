@@ -34,8 +34,8 @@ def clone_remote_db(dbtype='sqlite'):
 
     # Recreate a fresh DB with downloaded data
     local("python ../manage.py syncdb --noinput")
-    local("python ../manage.py migrate")
     local("python ../manage.py flush --noinput")
+    local("python ../manage.py migrate")
     local("python ../manage.py loaddata epcstages.json")
 
 
