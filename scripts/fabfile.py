@@ -6,6 +6,9 @@ from fabric.api import cd, env, get, local, prefix, prompt, run
 from fabric.utils import abort
 
 env.hosts = ['stages.pierre-coullery.ch']
+APP_DIR = '/var/www/epcstages'
+VIRTUALENV_DIR = '/var/venvs/stages/bin/activate'
+
 
 def clone_remote_db(dbtype='sqlite'):
     """
@@ -24,8 +27,8 @@ def clone_remote_db(dbtype='sqlite'):
             abort("Database not copied")
 
     # Dump remote data and download the file
-    with cd('/var/www/epcstages'):
-        with prefix('source /var/venvs/stages/bin/activate'):
+    with cd(APP_DIR):
+        with prefix('source %s' % VIRTUALENV_DIR):
             run('python manage.py dumpdata --indent 1 contenttypes auth stages > epcstages.json')
         get('epcstages.json', '.')
 
@@ -34,3 +37,16 @@ def clone_remote_db(dbtype='sqlite'):
     local("python ../manage.py migrate")
     local("python ../manage.py flush --noinput")
     local("python ../manage.py loaddata epcstages.json")
+
+
+def deploy():
+    """
+    Deploy project with latest Github code
+    """
+    with cd(APP_DIR):
+        run("git pull")
+        with prefix('source %s' % VIRTUALENV_DIR):
+            run("python manage.py migrate")
+            run("python manage.py collectstatic --noinput")
+        run("touch common/wsgi.py")
+
