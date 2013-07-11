@@ -210,6 +210,7 @@ def stages_export(request):
         ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
         ('Remarques stage', 'comment'),
         ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name'),
+        ('Courriel référent', 'referent__email'),
         ('Institution', 'availability__corporation__name'),
         ('Rue Inst.', 'availability__corporation__street'),
         ('NPA Inst.', 'availability__corporation__pcode'),
@@ -217,7 +218,7 @@ def stages_export(request):
         ('Domaine', 'availability__domain__name'),
         ('Remarques Inst.', 'availability__comment'),
         ('Civilité contact', 'contact__title'), ('Prénom contact', 'contact__first_name'),
-        ('Nom contact', 'contact__last_name'),
+        ('Nom contact', 'contact__last_name'), ('Courriel contact', 'contact__email'),
     ]
 
     period_filter = request.GET.get('filter')
