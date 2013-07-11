@@ -56,27 +56,36 @@ class AvailabilityAdminForm(forms.ModelForm):
     Custom avail form to create several availabilities at once when inlined in
     the PeriodAdmin interface
     """
-    num_avail = forms.IntegerField(label="Nombre de places", initial=1)
+    num_avail = forms.IntegerField(label="Nombre de places", initial=1, required=False)
+
+    class Media:
+        js = ('js/avail_form.js',)
+
     class Meta:
         model = Availability
         widgets = {
             'num_avail': forms.TextInput(attrs={'size': 3}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super(AvailabilityAdminForm, self).__init__(*args, **kwargs)
+    def __init__(self, data=None, files=None, **kwargs):
+        super(AvailabilityAdminForm, self).__init__(data=data, files=files, **kwargs)
         if self.instance.pk is not None:
             # Hide num_avail on existing instances
             self.fields['num_avail'].widget = forms.HiddenInput()
+        # Limit CorpContact objects to contacts of chosen corporation
+        if data is None and self.instance.corporation_id:
+            self.fields['contact'].queryset = self.instance.corporation.corpcontact_set
 
     def save(self, **kwargs):
         instance = super(AvailabilityAdminForm, self).save(**kwargs)
         # Create supplementary availabilities depending on num_avail
-        for i in range(1, self.cleaned_data.get('num_avail', 1)):
+        num_avail = self.cleaned_data.get('num_avail', 1) or 1
+        for i in range(1, num_avail):
             Availability.objects.create(
                 corporation=instance.corporation,
                 period=instance.period,
                 domain=instance.domain,
+                contact=instance.contact,
                 comment=instance.comment)
         return instance
 
@@ -99,7 +108,8 @@ class PeriodAdmin(admin.ModelAdmin):
 class AvailabilityAdmin(admin.ModelAdmin):
     list_display = ('corporation', 'period', 'domain')
     list_filter = ('period',)
-    fields = (('corporation', 'period'), 'domain', 'comment')
+    fields = (('corporation', 'period'), 'domain', 'contact', 'comment')
+    form = AvailabilityAdminForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "corporation":

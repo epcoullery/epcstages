@@ -179,12 +179,15 @@ def new_training(request):
     try:
         ref = Referent.objects.get(pk=ref_key) if ref_key else None
         contact = CorpContact.objects.get(pk=cont_key) if cont_key else None
+        avail = Availability.objects.get(pk=request.POST.get('avail'))
         training = Training.objects.create(
             student=Student.objects.get(pk=request.POST.get('student')),
-            availability=Availability.objects.get(pk=request.POST.get('avail')),
+            availability=avail,
             referent=ref,
-            contact=contact,
         )
+        if avail.contact != contact:
+            avail.contact = contact
+            avail.save()
     except Exception as exc:
         return HttpResponse(str(exc))
     return HttpResponse('OK')
@@ -217,8 +220,10 @@ def stages_export(request):
         ('Ville Inst.', 'availability__corporation__city'),
         ('Domaine', 'availability__domain__name'),
         ('Remarques Inst.', 'availability__comment'),
-        ('Civilité contact', 'contact__title'), ('Prénom contact', 'contact__first_name'),
-        ('Nom contact', 'contact__last_name'), ('Courriel contact', 'contact__email'),
+        ('Civilité contact', 'availability__contact__title'),
+        ('Prénom contact', 'availability__contact__first_name'),
+        ('Nom contact', 'availability__contact__last_name'),
+        ('Courriel contact', 'availability__contact__email'),
     ]
 
     period_filter = request.GET.get('filter')
@@ -245,13 +250,14 @@ def stages_export(request):
     for row_idx, tr in enumerate(query.values(*query_keys), start=1):
         for col_idx, field in enumerate(query_keys):
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
-        if tr['contact__last_name'] is None:
+        if tr['availability__contact__last_name'] is None:
             # Use default contact
             contact = contacts.get(tr['availability__corporation__name'])
             if contact:
-                ws.cell(row=row_idx, column=col_idx-2).value = contact.title
-                ws.cell(row=row_idx, column=col_idx-1).value = contact.first_name
-                ws.cell(row=row_idx, column=col_idx).value = contact.last_name
+                ws.cell(row=row_idx, column=col_idx-3).value = contact.title
+                ws.cell(row=row_idx, column=col_idx-2).value = contact.first_name
+                ws.cell(row=row_idx, column=col_idx-1).value = contact.last_name
+                ws.cell(row=row_idx, column=col_idx).value = contact.email
 
     response = HttpResponse(save_virtual_workbook(wb), mimetype='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
