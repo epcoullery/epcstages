@@ -88,8 +88,10 @@ class Student(models.Model):
             except Klass.DoesNotExist:
                 raise Exception("La classe '%s' n'existe pas encore" % values['klass'])
             values['klass'] = k
+        # See if postal code included in city, and split them
         if 'city' in values and is_int(values['city'][:4]):
             values['pcode'], _, values['city'] = values['city'].partition(' ')
+        values['archived'] = False
         return values
 
 

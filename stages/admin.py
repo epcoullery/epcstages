@@ -1,3 +1,6 @@
+# -*- encoding: utf-8 -*-
+from __future__ import unicode_literals
+
 from django import forms
 from django.contrib import admin
 from django.db import models
@@ -18,6 +21,11 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name'), 'street', ('pcode', 'city'), 'email',
               ('tel', 'mobile'), 'birth_date', 'klass', 'archived')
+    actions = ['archive']
+
+    def archive(self, request, queryset):
+        queryset.update(archived=True)
+    archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
     '''def get_readonly_fields(self, request, obj=None):
         if 'edit' not in request.GET:
