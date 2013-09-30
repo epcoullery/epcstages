@@ -221,6 +221,7 @@ EXPORT_FIELDS = [
     ('Prénom contact', 'availability__contact__first_name'),
     ('Nom contact', 'availability__contact__last_name'),
     ('Courriel contact', 'availability__contact__email'),
+    ('Courriel contact - copie', None),
 ]
 
 NON_ATTR_EXPORT_FIELDS = [
@@ -237,6 +238,7 @@ NON_ATTR_EXPORT_FIELDS = [
     ('Prénom contact', 'contact__first_name'),
     ('Nom contact', 'contact__last_name'),
     ('Courriel contact', 'contact__email'),
+    ('Courriel contact - copie', None),
 ]
 
 def stages_export(request):
@@ -266,10 +268,13 @@ def stages_export(request):
         query = Training.objects.all()
 
     # Prepare "default" contacts (when not defined on training)
-    contacts = {}
+    default_contacts = dict((c, '') for c in Corporation.objects.all().values_list('name', flat=True))
+    always_ccs = dict((c, []) for c in Corporation.objects.all().values_list('name', flat=True))
     for contact in CorpContact.objects.all().select_related('corporation').order_by('corporation'):
-        if contact.corporation.name not in contacts or contact.is_main is True:
-            contacts[contact.corporation.name] = contact
+        if not default_contacts[contact.corporation.name] or contact.is_main is True:
+            default_contacts[contact.corporation.name] = contact
+        if contact.always_cc:
+            always_ccs[contact.corporation.name].append(contact)
 
     wb = Workbook()
     ws = wb.get_active_sheet()
@@ -285,12 +290,14 @@ def stages_export(request):
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
         if tr[contact_test_field] is None:
             # Use default contact
-            contact = contacts.get(tr[corp_name_field])
+            contact = default_contacts.get(tr[corp_name_field])
             if contact:
                 ws.cell(row=row_idx, column=col_idx-3).value = contact.title
                 ws.cell(row=row_idx, column=col_idx-2).value = contact.first_name
                 ws.cell(row=row_idx, column=col_idx-1).value = contact.last_name
                 ws.cell(row=row_idx, column=col_idx).value = contact.email
+        if always_ccs[tr[corp_name_field]]:
+            ws.cell(row=row_idx, column=col_idx+1).value = "; ".join([c.email for c in always_ccs[tr[corp_name_field]]])
 
     response = HttpResponse(save_virtual_workbook(wb), mimetype='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (

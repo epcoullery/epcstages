@@ -41,12 +41,13 @@ class ReferentAdmin(admin.ModelAdmin):
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'corporation', 'role')
-    fields = (('corporation', 'is_main'), ('title', 'last_name', 'first_name'),
+    fields = (('corporation', 'is_main', 'always_cc'),
+              ('title', 'last_name', 'first_name'),
               'role', ('tel', 'email'))
 
 class ContactInline(admin.StackedInline):
     model = CorpContact
-    fields = ('is_main', ('title', 'last_name', 'first_name'),
+    fields = (('is_main', 'always_cc'), ('title', 'last_name', 'first_name'),
               ('role', 'tel', 'email'))
     extra = 1
 

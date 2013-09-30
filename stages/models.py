@@ -134,6 +134,7 @@ class Corporation(models.Model):
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution')
     is_main = models.BooleanField(default=False, verbose_name='Contact principal')
+    always_cc = models.BooleanField(default=False, verbose_name='Toujours en copie')
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
