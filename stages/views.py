@@ -299,7 +299,7 @@ def stages_export(request):
         if always_ccs[tr[corp_name_field]]:
             ws.cell(row=row_idx, column=col_idx+1).value = "; ".join([c.email for c in always_ccs[tr[corp_name_field]]])
 
-    response = HttpResponse(save_virtual_workbook(wb), mimetype='application/ms-excel')
+    response = HttpResponse(save_virtual_workbook(wb), content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
     return response
