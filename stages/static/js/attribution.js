@@ -61,7 +61,7 @@ function update_corporations(period_id) {
     $.each(data, function() {
       if (this.free) {
         options.push(this);
-        sel.append($("<option />").val(this.id).text(this.corp_name).data('id_corp', this.id_corp));
+        sel.append($("<option />").val(this.id).text(this.corp_name).data('idCorp', this.id_corp));
       }
       if ($.inArray(this.domain, domains) < 0) {
         domains.push(this.domain);
@@ -174,7 +174,7 @@ $(document).ready(function() {
     // Fill contact select
     var sel = $('#contact_select');
     sel.html('<option value="">-------</option>');
-    var id_corp = $("option:selected", this).data('id_corp');
+    var id_corp = $(this).find("option:selected").data('idCorp');
     $.getJSON('/corporation/' + id_corp + '/contacts/', function(data) {
         $.each(data, function(key, contact) {
             var item = contact.first_name + ' ' + contact.last_name;
