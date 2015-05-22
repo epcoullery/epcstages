@@ -248,6 +248,7 @@ NON_ATTR_EXPORT_FIELDS = [
 def stages_export(request):
     from datetime import date
     from openpyxl import Workbook
+    from openpyxl.styles import Font, Style
     from openpyxl.writer.excel import save_virtual_workbook
 
     period_filter = request.GET.get('period')
@@ -283,14 +284,16 @@ def stages_export(request):
     wb = Workbook()
     ws = wb.get_active_sheet()
     ws.title = 'Stages'
+    bold = Style(font=Font(bold=True))
     # Headers
-    for col_idx, header in enumerate([f[0] for f in export_fields]):
-        ws.cell(row=0, column=col_idx).value = header
-        ws.cell(row=0, column=col_idx).style.font.bold = True
+    for col_idx, header in enumerate([f[0] for f in export_fields], start=1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value = header
+        cell.style = bold
     # Data
     query_keys = [f[1] for f in export_fields if f[1] is not None]
-    for row_idx, tr in enumerate(query.values(*query_keys), start=1):
-        for col_idx, field in enumerate(query_keys):
+    for row_idx, tr in enumerate(query.values(*query_keys), start=2):
+        for col_idx, field in enumerate(query_keys, start=1):
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
         if tr[contact_test_field] is None:
             # Use default contact

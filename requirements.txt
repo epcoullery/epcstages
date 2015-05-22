@@ -1,5 +1,5 @@
 Django >= 1.4.2
 south
 -e git+https://github.com/claudep/tabimport.git#egg=tabimport
-openpyxl
+openpyxl==2.2.2
 xlrd
