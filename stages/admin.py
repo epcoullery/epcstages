@@ -20,7 +20,8 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = ('klass', 'archived')
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name'), 'street', ('pcode', 'city'), 'email',
-              ('tel', 'mobile'), 'birth_date', 'klass', 'archived')
+              ('tel', 'mobile'), ('birth_date', 'ext_id'), 'klass', 'archived')
+    readonly_fields = ('ext_id',)
     actions = ['archive']
 
     def archive(self, request, queryset):

@@ -205,6 +205,7 @@ def del_training(request):
 
 EXPORT_FIELDS = [
     ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
+    ('ID externe', 'student__ext_id'),
     ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
     ('Nom du stage', 'availability__period__title'),
     ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
