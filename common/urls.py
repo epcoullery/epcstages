@@ -5,7 +5,7 @@ from django.views.generic import RedirectView
 from stages import views
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(url='/admin/'), name='home'),
+    url(r'^$', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^data-import/', include('tabimport.urls')),

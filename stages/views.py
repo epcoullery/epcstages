@@ -159,7 +159,7 @@ def period_students(request, pk):
         ).order_by('last_name')
     trainings = dict((t.student_id, t.id) for t in Training.objects.filter(availability__period=period))
     data = [{
-        'name': unicode(s),
+        'name': str(s),
         'id': s.id,
         'training_id': trainings.get(s.id),
         'klass': s.klass.name} for s in students]

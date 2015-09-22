@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
 from datetime import date
 
 from django.db import models
@@ -22,7 +20,7 @@ class Section(models.Model):
     class Meta:
         verbose_name = "Filière"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -33,7 +31,7 @@ class Level(models.Model):
         verbose_name = "Niveau"
         verbose_name_plural = "Niveaux"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def delta(self, diff):
@@ -53,7 +51,7 @@ class Klass(models.Model):
     class Meta:
         verbose_name = "Classe"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -76,7 +74,7 @@ class Student(models.Model):
     class Meta:
         verbose_name = "Étudiant"
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
 
     @classmethod
@@ -108,7 +106,7 @@ class Referent(models.Model):
         verbose_name = "Référent"
         ordering = ('last_name', 'first_name')
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
 
 
@@ -130,7 +128,7 @@ class Corporation(models.Model):
         verbose_name = "Institution"
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         sect = ' (%s)' % self.sector if self.sector else ''
         return "%s%s, %s %s" % (self.name, sect, self.pcode, self.city)
 
@@ -150,7 +148,7 @@ class CorpContact(models.Model):
     class Meta:
         verbose_name = "Contact"
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
 
 
@@ -161,7 +159,7 @@ class Domain(models.Model):
         verbose_name = "Domaine"
         ordering = ('name',)
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -177,7 +175,7 @@ class Period(models.Model):
         verbose_name = "Période de stage"
         ordering = ('-start_date',)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s (%s)' % (self.dates, self.title)
 
     @property
@@ -215,7 +213,7 @@ class Availability(models.Model):
     class Meta:
         verbose_name = "Disponibilité"
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s (%s) - %s' % (self.period, self.corporation, self.domain, self.contact)
 
     @property
@@ -237,5 +235,5 @@ class Training(models.Model):
     class Meta:
         verbose_name = "Stage"
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s chez %s (%s)' % (self.student, self.availability.corporation, self.availability.period)

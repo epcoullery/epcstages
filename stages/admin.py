@@ -1,6 +1,3 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-
 from django import forms
 from django.contrib import admin
 from django.db import models
@@ -15,7 +12,7 @@ class KlassAdmin(admin.ModelAdmin):
 
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'pcode', 'city', 'klass', 'archived')
+    list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
     list_filter = ('klass', 'archived')
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
@@ -37,11 +34,11 @@ class StudentAdmin(admin.ModelAdmin):
 
 
 class ReferentAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'abrev', 'email')
+    list_display = ('__str__', 'abrev', 'email')
 
 
 class CorpContactAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'corporation', 'role')
+    list_display = ('__str__', 'corporation', 'role')
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('corporation', 'is_main', 'always_cc'),
