@@ -1,4 +1,4 @@
-Django >= 1.4.2
+Django >= 1.8
 -e git+https://github.com/claudep/tabimport.git#egg=tabimport
 openpyxl==2.2.2
 xlrd
