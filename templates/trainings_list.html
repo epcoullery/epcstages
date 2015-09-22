@@ -1,4 +1,3 @@
-{% load url from future %}
 {% for obj in trainings %}
 <li id="training_{{ obj.id }}">{{ obj.student }} ({{ obj.student.klass }}) - {{ obj.availability.corporation }} - {{ obj.availability.domain }}
     {% if obj.referent %} (réf: {{ obj.referent }}){% else %}- <span class="missing">Pas de référent</span>{% endif %}

@@ -73,6 +73,7 @@ class AvailabilityAdminForm(forms.ModelForm):
 
     class Meta:
         model = Availability
+        fields = '__all__'
         widgets = {
             'num_avail': forms.TextInput(attrs={'size': 3}),
         }
