@@ -133,6 +133,7 @@ class Corporation(models.Model):
 
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution')
+    ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     is_main = models.BooleanField(default=False, verbose_name='Contact principal')
     always_cc = models.BooleanField(default=False, verbose_name='Toujours en copie')
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
