@@ -55,10 +55,11 @@ class ContactInline(admin.StackedInline):
     extra = 1
 
 class CorporationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'pcode', 'city')
+    list_display = ('name', 'short_name', 'pcode', 'city')
+    list_editable = ('short_name',)  # Temporarily?
     search_fields = ('name', 'pcode', 'city')
     ordering = ('name',)
-    fields = ('name', 'typ', 'street', ('pcode', 'city'), ('tel', 'email'),
+    fields = (('name', 'short_name', 'sector'), ('typ', 'ext_id'), 'street', ('pcode', 'city'), ('tel', 'email'),
               'web', 'archived')
     inlines = [ContactInline]
 
