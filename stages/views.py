@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import json
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseNotAllowed
@@ -135,10 +135,11 @@ class CorpContactJSONView(ListView):
 # AJAX views:
 
 def section_periods(request, pk):
-    """ Return all periods from a section (JSON) """
+    """ Return all periods (until 2 years ago) from a section (JSON) """
     section = get_object_or_404(Section, pk=pk)
+    two_years_ago = datetime.now() - timedelta(days=365 * 2)
     periods = [{'id': p.id, 'dates': p.dates, 'title': p.title}
-               for p in section.period_set.all().order_by('-start_date')]
+               for p in section.period_set.filter(start_date__gt=two_years_ago).order_by('-start_date')]
     return HttpResponse(json.dumps(periods), content_type="application/json")
 
 def section_classes(request, pk):
