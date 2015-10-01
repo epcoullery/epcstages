@@ -216,7 +216,7 @@ class Availability(models.Model):
         verbose_name = "Disponibilité"
 
     def __unicode__(self):
-        return '%s - %s (%s)' % (self.period, self.corporation, self.domain)
+        return '%s - %s (%s) - %s' % (self.period, self.corporation, self.domain, self.contact)
 
     @property
     def free(self):
