@@ -42,6 +42,8 @@ class ReferentAdmin(admin.ModelAdmin):
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__unicode__', 'corporation', 'role')
+    ordering = ('last_name', 'first_name')
+    search_fields = ('last_name', 'first_name', 'role')
     fields = (('corporation', 'is_main', 'always_cc'),
               ('title', 'last_name', 'first_name'),
               'role', ('tel', 'email'))
