@@ -73,7 +73,8 @@
     <h2>Importation/exportation</h2>
     <ul>
       <li><a href="{% url 'tabimport' %}">Importer des données</a></li>
-      <li><a href="{% url 'stages_export' %}">Exporter les données de stages</a></li>
+      <li><a href="{% url 'stages_export' %}">Exporter les données de stages</a> (récentes)</li>
+      <li><a href="{% url 'stages_export' 'all' %}">Exporter les données de stages</a> (toutes)</li>
     </ul>
     </div>
 </div>

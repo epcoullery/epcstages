@@ -248,7 +248,7 @@ NON_ATTR_EXPORT_FIELDS = [
     ('Courriel contact - copie', None),
 ]
 
-def stages_export(request):
+def stages_export(request, scope=None):
     from datetime import date
     from openpyxl import Workbook
     from openpyxl.styles import Font, Style
@@ -272,8 +272,11 @@ def stages_export(request):
             # Export trainings for a specific period
             query = Training.objects.filter(availability__period_id=period_filter)
     else:
-        # Export all trainings in the database
-        query = Training.objects.all()
+        if scope and scope == 'all':
+            # Export all trainings in the database
+            query = Training.objects.all()
+        else:
+            query = Training.objects.filter(availability__period__end_date__gt=school_year_start())
 
     # Prepare "default" contacts (when not defined on training)
     default_contacts = dict((c, '') for c in Corporation.objects.all().values_list('name', flat=True))

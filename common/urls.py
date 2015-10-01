@@ -16,7 +16,7 @@ urlpatterns = patterns('',
     url(r'^data-import/', include('tabimport.urls')),
 
     url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),
-    url(r'^stages/export/$', 'stages.views.stages_export', name='stages_export'),
+    url(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),
 
     url(r'^institutions/$', views.CorporationListView.as_view(), name='corporations'),
     url(r'^institutions/(?P<pk>\d+)/$', views.CorporationView.as_view(), name='corporation'),
