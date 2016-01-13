@@ -2,12 +2,12 @@
 from __future__ import unicode_literals
 
 import json
+from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import get_object_or_404
-from django.utils.datastructures import SortedDict
 from django.views.generic import DetailView, TemplateView, ListView
 
 from .forms import PeriodForm
@@ -39,7 +39,7 @@ class CorporationView(DetailView):
         # Create a structure like:
         #   {'2011-2012': {'avails': [avail1, avail2, ...], 'stats': {'fil': num}},
         #    '2012-2013': ...}
-        school_years = SortedDict()
+        school_years = OrderedDict()
         for av in Availability.objects.filter(corporation=self.object
                 ).select_related('training__student__klass', 'period__section'
                 ).order_by('period__start_date'):
@@ -81,7 +81,7 @@ class AttributionView(TemplateView):
 
         # Populate each referent with the number of referencies done during the current school year
         ref_counts = dict([(ref.id, ref.num_refs)
-                for ref in Referent.objects.filter(training__availability__period__end_date__gte=school_year_start
+                for ref in Referent.objects.filter(training__availability__period__end_date__gte=school_year_start()
                 ).annotate(num_refs=Count('training'))])
         for ref in referents:
             ref.num_refs = ref_counts.get(ref.id, 0)
