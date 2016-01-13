@@ -1,16 +1,11 @@
-from django.conf.urls import patterns, include, url
+from django.conf.urls import include, url
 from django.contrib import admin
 from django.views.generic import RedirectView
 
 from stages import views
 
-admin.autodiscover()
-
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/admin/'), name='home'),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^data-import/', include('tabimport.urls')),
@@ -22,16 +17,16 @@ urlpatterns = patterns('',
     url(r'^institutions/(?P<pk>\d+)/$', views.CorporationView.as_view(), name='corporation'),
 
     # AJAX/JSON urls
-    url(r'^section/(?P<pk>\d+)/periods/', 'stages.views.section_periods'),
-    url(r'^section/(?P<pk>\d+)/classes/', 'stages.views.section_classes'),
-    url(r'^period/(?P<pk>\d+)/students/', 'stages.views.period_students'),
-    url(r'^period/(?P<pk>\d+)/corporations/', 'stages.views.period_availabilities'),
+    url(r'^section/(?P<pk>\d+)/periods/', views.section_periods),
+    url(r'^section/(?P<pk>\d+)/classes/', views.section_classes),
+    url(r'^period/(?P<pk>\d+)/students/', views.period_students),
+    url(r'^period/(?P<pk>\d+)/corporations/', views.period_availabilities),
     # Training params in POST:
-    url(r'^training/new/', 'stages.views.new_training', name="new_training"),
-    url(r'^training/del/', 'stages.views.del_training', name="del_training"),
+    url(r'^training/new/', views.new_training, name="new_training"),
+    url(r'^training/del/', views.del_training, name="del_training"),
     url(r'^training/by_period/(?P<pk>\d+)/', views.TrainingsByPeriodView.as_view()),
 
     url(r'^student/(?P<pk>\d+)/summary/', views.StudentSummaryView.as_view()),
     url(r'^availability/(?P<pk>\d+)/summary/', views.AvailabilitySummaryView.as_view()),
     url(r'^corporation/(?P<pk>\d+)/contacts/', views.CorpContactJSONView.as_view()),
-)
+]
