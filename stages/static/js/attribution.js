@@ -1,4 +1,5 @@
 function update_periods(section_id) {
+  if (!section_id) return;
   $.getJSON('/section/' + section_id + '/periods/', function(data) {
     var sel = $('#period_select');
     sel.append($("<option />").val('').text('-------'));
@@ -78,7 +79,7 @@ function update_trainings(period_id) {
       if ($('ul#training_list').children().length > 0)
         $('input#export').show();
       else $('input#export').hide();
-      if ($('#corp_select').attr('options').length > 0)
+      if ($('#corp_select option').length > 0)
         $('input#export_non_attr').show();
       else $('input#export_non_attr').hide();
   }
