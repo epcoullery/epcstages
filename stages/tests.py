@@ -17,7 +17,7 @@ class StagesTest(TestCase):
         self.client.login(username='me', password='mepassword')
 
     def test_export(self):
-        response1 = self.client.get(reverse('stages_export'))
+        response1 = self.client.get(reverse('stages_export', args=['all']))
         self.assertEqual(response1.status_code, 200)
 
         response2 = self.client.get(reverse('stages_export'), {'period': '2', 'non_attr': '0'})

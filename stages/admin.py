@@ -41,15 +41,29 @@ class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
-    fields = (('corporation', 'is_main', 'always_cc'),
+    fields = (('corporation',), ('sections', 'is_main', 'always_cc'),
               ('title', 'last_name', 'first_name'),
               'role', ('tel', 'email'))
+    formfield_overrides = {
+        models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
+    }
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        form.base_fields['sections'].widget.can_add_related = False
+        return form
+
 
 class ContactInline(admin.StackedInline):
     model = CorpContact
-    fields = (('is_main', 'always_cc'), ('title', 'last_name', 'first_name'),
+    fields = (('sections', 'is_main', 'always_cc'),
+              ('title', 'last_name', 'first_name'),
               ('role', 'tel', 'email'))
     extra = 1
+    formfield_overrides = {
+        models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
+    }
+
 
 class CorporationAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'pcode', 'city')

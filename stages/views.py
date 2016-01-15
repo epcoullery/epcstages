@@ -1,6 +1,3 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-
 import json
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
@@ -215,7 +212,8 @@ def del_training(request):
 EXPORT_FIELDS = [
     ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
     ('ID externe', 'student__ext_id'),
-    ('Classe', 'student__klass__name'), ('Filière', 'student__klass__section__name'),
+    ('Classe', 'student__klass__name'),
+    ('Filière', 'student__klass__section__name'),
     ('Nom du stage', 'availability__period__title'),
     ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
     ('Remarques stage', 'comment'),
@@ -258,7 +256,6 @@ NON_ATTR_EXPORT_FIELDS = [
 ]
 
 def stages_export(request, scope=None):
-    from datetime import date
     from openpyxl import Workbook
     from openpyxl.styles import Font, Style
     from openpyxl.writer.excel import save_virtual_workbook
@@ -266,7 +263,7 @@ def stages_export(request, scope=None):
     period_filter = request.GET.get('period')
     non_attributed = bool(int(request.GET.get('non_attr', 0)))
 
-    export_fields = EXPORT_FIELDS
+    export_fields = OrderedDict(EXPORT_FIELDS)
     contact_test_field = 'availability__contact__last_name'
     corp_name_field = 'availability__corporation__name'
 
@@ -274,7 +271,7 @@ def stages_export(request, scope=None):
         if non_attributed:
             # Export non attributed availabilities for a specific period
             query = Availability.objects.filter(period_id=period_filter, training__isnull=True)
-            export_fields = NON_ATTR_EXPORT_FIELDS
+            export_fields = OrderedDict(NON_ATTR_EXPORT_FIELDS)
             contact_test_field = 'contact__last_name'
             corp_name_field = 'corporation__name'
         else:
@@ -288,38 +285,49 @@ def stages_export(request, scope=None):
             query = Training.objects.filter(availability__period__end_date__gt=school_year_start())
 
     # Prepare "default" contacts (when not defined on training)
-    default_contacts = dict((c, '') for c in Corporation.objects.all().values_list('name', flat=True))
-    always_ccs = dict((c, []) for c in Corporation.objects.all().values_list('name', flat=True))
-    for contact in CorpContact.objects.all().select_related('corporation').order_by('corporation'):
-        if not default_contacts[contact.corporation.name] or contact.is_main is True:
-            default_contacts[contact.corporation.name] = contact
-        if contact.always_cc:
-            always_ccs[contact.corporation.name].append(contact)
+    section_names = Section.objects.all().values_list('name', flat=True)
+    default_contacts = dict(
+        (c, {s: '' for s in section_names})
+        for c in Corporation.objects.all().values_list('name', flat=True)
+    )
+    always_ccs = dict(
+        (c, {s: [] for s in section_names})
+        for c in Corporation.objects.all().values_list('name', flat=True)
+    )
+    for contact in CorpContact.objects.all().select_related('corporation'
+            ).prefetch_related('sections').order_by('corporation'):
+        for section in contact.sections.all():
+            if not default_contacts[contact.corporation.name][section.name] or contact.is_main is True:
+                default_contacts[contact.corporation.name][section.name] = contact
+            if contact.always_cc:
+                always_ccs[contact.corporation.name][section.name].append(contact)
 
     wb = Workbook()
     ws = wb.get_active_sheet()
     ws.title = 'Stages'
     bold = Style(font=Font(bold=True))
     # Headers
-    for col_idx, header in enumerate([f[0] for f in export_fields], start=1):
+    for col_idx, header in enumerate(export_fields.keys(), start=1):
         cell = ws.cell(row=1, column=col_idx)
         cell.value = header
         cell.style = bold
     # Data
-    query_keys = [f[1] for f in export_fields if f[1] is not None]
+    query_keys = [f for f in export_fields.values() if f is not None]
     for row_idx, tr in enumerate(query.values(*query_keys), start=2):
         for col_idx, field in enumerate(query_keys, start=1):
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
         if tr[contact_test_field] is None:
             # Use default contact
-            contact = default_contacts.get(tr[corp_name_field])
+            contact = default_contacts.get(tr[corp_name_field], {}).get(tr[export_fields['Filière']])
             if contact:
                 ws.cell(row=row_idx, column=col_idx-3).value = contact.title
                 ws.cell(row=row_idx, column=col_idx-2).value = contact.first_name
                 ws.cell(row=row_idx, column=col_idx-1).value = contact.last_name
                 ws.cell(row=row_idx, column=col_idx).value = contact.email
-        if always_ccs[tr[corp_name_field]]:
-            ws.cell(row=row_idx, column=col_idx+1).value = "; ".join([c.email for c in always_ccs[tr[corp_name_field]]])
+        if always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']]):
+            ws.cell(row=row_idx, column=col_idx+1).value = "; ".join(
+                [c.email for c in always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']])]
+            )
 
     response = HttpResponse(save_virtual_workbook(wb), content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (

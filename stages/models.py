@@ -151,6 +151,7 @@ class CorpContact(models.Model):
     role = models.CharField(max_length=40, verbose_name='Fonction', blank=True)
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
+    sections = models.ManyToManyField(Section, blank=True)
 
     class Meta:
         verbose_name = "Contact"
