@@ -150,7 +150,7 @@ class CorpContact(models.Model):
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     role = models.CharField(max_length=40, verbose_name='Fonction', blank=True)
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
-    email = models.CharField(max_length=40, blank=True, verbose_name='Courriel')
+    email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
 
     class Meta:
         verbose_name = "Contact"
