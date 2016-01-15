@@ -1,3 +1,5 @@
+$ = django.jQuery;
+
 function update_periods(section_id) {
   if (!section_id) return;
   $.getJSON('/section/' + section_id + '/periods/', function(data) {

@@ -35,7 +35,8 @@
 		} catch(er) {}
 	}
 
-	var config = $.cookie = function (key, value, options) {
+	var $ = django.jQuery;
+    var config = $.cookie = function (key, value, options) {
 
 		// write
 		if (value !== undefined) {
