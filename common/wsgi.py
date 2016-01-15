@@ -20,7 +20,7 @@ def upgrade_in_progress(environ, start_response):
     else:
         status = '403 Forbidden'
     start_response(status, response_headers)
-    return [response]
+    return [response.encode('utf-8')]
 
 if UPGRADING:
     application = upgrade_in_progress
