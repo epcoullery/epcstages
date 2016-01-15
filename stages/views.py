@@ -102,6 +102,14 @@ class StudentSummaryView(DetailView):
         context = super(StudentSummaryView, self).get_context_data(**kwargs)
         context['previous_stages'] = self.object.training_set.all(
             ).select_related('availability__corporation').order_by('availability__period__end_date')
+        period_id = self.request.GET.get('period')
+        if period_id:
+            try:
+                period = Period.objects.get(pk=int(period_id))
+            except Period.DoesNotExist:
+                pass
+            else:
+                context['age_for_stage'] = self.object.age_at(period.start_date)
         return context
 
 

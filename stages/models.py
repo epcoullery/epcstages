@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 
 from django.db import models
 
@@ -76,6 +76,13 @@ class Student(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
+
+    def age_at(self, date_):
+        """Return age of student at `date_` time, as a string."""
+        age = (date.today() - self.birth_date) / timedelta(days=365.2425)
+        age_y = int(age)
+        age_m = int((age - age_y) * 12)
+        return '%d ans%s' % (age_y, ' %d m.' % age_m if age_m > 0 else '')
 
     @classmethod
     def prepare_import(cls, values):
