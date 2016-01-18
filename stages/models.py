@@ -121,6 +121,7 @@ class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
+    parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère', on_delete=models.SET_NULL)
     sector = models.CharField(max_length=40, blank=True, verbose_name='Secteur')
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')

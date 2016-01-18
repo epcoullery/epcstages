@@ -70,8 +70,8 @@ class CorporationAdmin(admin.ModelAdmin):
     list_editable = ('short_name',)  # Temporarily?
     search_fields = ('name', 'pcode', 'city')
     ordering = ('name',)
-    fields = (('name', 'short_name', 'sector'), ('typ', 'ext_id'), 'street', ('pcode', 'city'), ('tel', 'email'),
-              'web', 'archived')
+    fields = (('name', 'short_name'), 'parent', ('sector', 'typ', 'ext_id'),
+              'street', ('pcode', 'city'), ('tel', 'email'), 'web', 'archived')
     inlines = [ContactInline]
 
 
