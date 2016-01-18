@@ -130,7 +130,7 @@ class CorpContactJSONView(ListView):
     return_fields = ['id', 'first_name', 'last_name', 'role', 'is_main']
 
     def get_queryset(self):
-        return CorpContact.objects.filter(corporation__pk=self.kwargs['pk'])
+        return CorpContact.objects.filter(corporation__pk=self.kwargs['pk'], archived=False)
 
     def render_to_response(self, context):
         serialized = [dict([(field, getattr(obj, field)) for field in self.return_fields])

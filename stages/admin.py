@@ -41,8 +41,8 @@ class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
-    fields = (('corporation',), ('sections', 'is_main', 'always_cc'),
-              ('title', 'last_name', 'first_name'),
+    fields = (('corporation',), ('title', 'last_name', 'first_name'),
+              ('sections', 'is_main', 'always_cc', 'archived'),
               'role', ('tel', 'email'))
     formfield_overrides = {
         models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
@@ -56,8 +56,8 @@ class CorpContactAdmin(admin.ModelAdmin):
 
 class ContactInline(admin.StackedInline):
     model = CorpContact
-    fields = (('sections', 'is_main', 'always_cc'),
-              ('title', 'last_name', 'first_name'),
+    fields = (('title', 'last_name', 'first_name'),
+              ('sections', 'is_main', 'always_cc', 'archived'),
               ('role', 'tel', 'email'))
     extra = 1
     formfield_overrides = {
@@ -139,6 +139,8 @@ class AvailabilityAdmin(admin.ModelAdmin):
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         if db_field.name == "corporation":
             kwargs["queryset"] = Corporation.objects.filter(archived=False).order_by('name')
+        if db_field.name == "contact":
+            kwargs["queryset"] = CorpContact.objects.filter(archived=False)
         return super(AvailabilityAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
 
 
