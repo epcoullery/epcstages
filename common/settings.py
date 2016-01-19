@@ -110,6 +110,22 @@ INSTALLED_APPS = (
     'stages',
 )
 
+FILE_UPLOAD_HANDLERS = ["django.core.files.uploadhandler.TemporaryFileUploadHandler"]
+
 ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
+
+# Mapping between column names of a tabular file and Student field names
+STUDENT_IMPORT_MAPPING = {
+    'Num élève': 'ext_id',
+    'Nom élève': 'last_name',
+    'Prénom élève': 'first_name',
+    'Rue élève': 'street',
+    'Localité élève': 'city',  # pcode is separated from city in prepare_import
+    'Tél. élève': 'tel',
+    'Natel élève': 'mobile',
+    'Email élève': 'email',
+    'Date nais. élève': 'birth_date',
+    'Classe': 'klass',
+}
 
 from .local_settings import *

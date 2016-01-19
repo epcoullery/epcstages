@@ -2,12 +2,18 @@ import json
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
-from django.db.models import Count
-from django.http import HttpResponse, HttpResponseNotAllowed
-from django.shortcuts import get_object_or_404
-from django.views.generic import DetailView, TemplateView, ListView
+from tabimport import FileFactory
 
-from .forms import PeriodForm
+from django.conf import settings
+from django.contrib import messages
+from django.core.urlresolvers import reverse
+from django.db.models import Count
+from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
+from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext as _
+from django.views.generic import DetailView, FormView, TemplateView, ListView
+
+from .forms import PeriodForm, StudentImportForm
 from .models import (Section, Student, Corporation, CorpContact, Period,
     Training, Referent, Availability)
 
@@ -197,7 +203,7 @@ def new_training(request):
             avail.save()
     except Exception as exc:
         return HttpResponse(str(exc))
-    return HttpResponse('OK')
+    return HttpResponse(b'OK')
 
 def del_training(request):
     """ Delete training and return the referent id """
@@ -207,6 +213,44 @@ def del_training(request):
     ref_id = training.referent_id
     training.delete()
     return HttpResponse(json.dumps({'ref_id': ref_id}), content_type="application/json")
+
+
+class StudentImportView(FormView):
+    template_name = 'student_import.html'
+    form_class = StudentImportForm
+
+    def form_valid(self, form):
+        try:
+            imp_file = FileFactory(form.cleaned_data['upload'])
+            created, modified = self.import_data(imp_file)
+        except Exception as e:
+            if settings.DEBUG:
+                raise
+            messages.error(self.request, _("The import failed. Error message: %s") % e)
+        else:
+            messages.info(self.request, _("Created objects: %(cr)d, modified objects: %(mod)d") % {
+                'cr': created, 'mod': modified})
+        return HttpResponseRedirect(reverse('admin:index'))
+
+    def import_data(self, up_file):
+        """ Import Student data from uploaded file. """
+        mapping = settings.STUDENT_IMPORT_MAPPING
+        rev_mapping = {v: k for k, v in mapping.items()}
+        obj_created = obj_modified = 0
+        for line in up_file:
+            defaults = dict((val, line[key]) for key, val in mapping.items() if val != 'ext_id')
+            defaults = Student.prepare_import(defaults)
+            obj, created = Student.objects.get_or_create(
+                ext_id=line[rev_mapping['ext_id']], defaults=defaults)
+            if not created:
+                for key, val in defaults.items():
+                    setattr(obj, key, val)
+                    obj.save()
+                obj_modified += 1
+            else:
+                obj_created += 1
+        #FIXME: implement arch_staled
+        return obj_created, obj_modified
 
 
 EXPORT_FIELDS = [
