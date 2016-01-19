@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+{% load i18n %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'classes' %}">Liste des classes</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h2>{{ klass.name }}</h2>
+<h3>Récapitulatif des stages</h3>
+<table>
+{% for student in students %}
+  <tr class="{% cycle 'row1' 'row2' %}">
+      <td><a href="{% url 'admin:stages_student_change' student.pk %}">{{ student }}</a></td>
+      <td>{{ student.birth_date }}</td>
+      {% for train in student.training_set.all %}
+      <td>{{ train.availability.period }}<br>{{ train.availability.corporation }}<br>
+        {% if train.comment %}<div style="float: right;"><img src="{{ STATIC_URL}}admin/img/icon-unknown.svg" title="{{ train.comment }}"></div>{% endif %}
+        <i>{{ train.availability.domain }}</i></td>
+      {% endfor %}
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrastyle %}
+<style>
+  div.section {border: 1px solid #ccc; float: left; margin-right: 5em;}
+</style>
+{% endblock %}
+
+{% block content %}
+<h2>Liste des classes</h2>
+
+{% regroup object_list by section as classes %}
+
+{% for section in classes %}
+  <div class="section">
+  <table>
+  <tr><td><b>{{ section.grouper }}</b></td></tr>
+  {% for class in section.list %}
+    <tr class="{% cycle 'row1' 'row2' %}">
+      <td><a href="{% url 'class' class.pk %}">{{ class.name }}</a></td>
+      <td>{{ class.num_students }} étudiants</td>
+    </tr>
+  {% endfor %}
+  </table>
+  </div>
+{% endfor %}
+{% endblock %}

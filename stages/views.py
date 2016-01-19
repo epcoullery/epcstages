@@ -7,14 +7,14 @@ from tabimport import FileFactory
 from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.db.models import Count
+from django.db.models import Case, Count, When
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
 from .forms import PeriodForm, StudentImportForm
-from .models import (Section, Student, Corporation, CorpContact, Period,
+from .models import (Klass, Section, Student, Corporation, CorpContact, Period,
     Training, Referent, Availability)
 
 
@@ -59,6 +59,24 @@ class CorporationView(DetailView):
                 pass
 
         context['years'] = school_years
+        return context
+
+
+class KlassListView(ListView):
+    queryset = Klass.objects.all().annotate(num_students=Count(Case(When(student__archived=False, then=1)))
+                                 ).filter(num_students__gt=0).order_by('section', 'name')
+    template_name = 'classes.html'
+
+
+class KlassView(DetailView):
+    model = Klass
+    template_name = 'class.html'
+    context_object_name = 'klass'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['students'] = self.object.student_set.filter(archived=False
+            ).prefetch_related('training_set').order_by('last_name', 'first_name')
         return context
 
 

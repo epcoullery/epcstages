@@ -245,6 +245,7 @@ class Training(models.Model):
 
     class Meta:
         verbose_name = "Stage"
+        ordering = ("-availability__period",)
 
     def __str__(self):
         return '%s chez %s (%s)' % (self.student, self.availability.corporation, self.availability.period)
