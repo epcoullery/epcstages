@@ -179,9 +179,11 @@ def period_students(request, pk):
 def period_availabilities(request, pk):
     """ Return all availabilities in the specified period """
     period = get_object_or_404(Period, pk=pk)
+    # Sorting by the boolean priority is first with PostgreSQL, last with SQLite :-/
     corps = [{'id': av.id, 'id_corp': av.corporation.id, 'corp_name': av.corporation.name,
-              'domain': av.domain.name, 'free': av.free}
-             for av in period.availability_set.select_related('corporation').all()]
+              'domain': av.domain.name, 'free': av.free, 'priority': av.priority}
+             for av in period.availability_set.select_related('corporation').all(
+                                             ).order_by('priority', 'corporation__name')]
     return HttpResponse(json.dumps(corps), content_type="application/json")
 
 def new_training(request):

@@ -218,6 +218,7 @@ class Availability(models.Model):
     period = models.ForeignKey(Period, verbose_name='Période')
     domain = models.ForeignKey(Domain, verbose_name='Domaine')
     contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution')
+    priority = models.BooleanField('Prioritaire', default=False)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:

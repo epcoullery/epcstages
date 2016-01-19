@@ -136,7 +136,7 @@ class AvailabilityAdminForm(forms.ModelForm):
                 comment=instance.comment)
         return instance
 
-class AvailabilityInline(admin.TabularInline):
+class AvailabilityInline(admin.StackedInline):
     model = Availability
     form = AvailabilityAdminForm
     ordering = ('corporation__name',)
@@ -155,7 +155,7 @@ class PeriodAdmin(admin.ModelAdmin):
 class AvailabilityAdmin(admin.ModelAdmin):
     list_display = ('corporation', 'period', 'domain')
     list_filter = ('period',)
-    fields = (('corporation', 'period'), 'domain', 'contact', 'comment')
+    fields = (('corporation', 'period'), 'domain', 'contact', 'priority', 'comment')
     form = AvailabilityAdminForm
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):

@@ -64,7 +64,9 @@ function update_corporations(period_id) {
     $.each(data, function() {
       if (this.free) {
         options.push(this);
-        sel.append($("<option />").val(this.id).text(this.corp_name).data('idCorp', this.id_corp));
+        var new_opt = $("<option />").val(this.id).text(this.corp_name).data('idCorp', this.id_corp);
+        if (this.priority) new_opt.addClass('priority');
+        sel.append(new_opt);
       }
       if ($.inArray(this.domain, domains) < 0) {
         domains.push(this.domain);
@@ -167,7 +169,9 @@ $(document).ready(function() {
     $.each(options, function(i) {
         var option = options[i];
         if (option.domain == filter_val || filter_val == '') {
-          sel.append($("<option />").val(option.id).text(option.corp_name));
+          var new_opt = $("<option />").val(option.id).text(option.corp_name);
+          if (option.priority) new_opt.addClass('priority');
+          sel.append(new_opt);
         }
     });
   });
