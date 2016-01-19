@@ -6,6 +6,25 @@ from stages.models import (Student, Section, Level, Klass, Referent, Corporation
     CorpContact, Domain, Period, Availability, Training)
 
 
+class ArchivedListFilter(admin.BooleanFieldListFilter):
+    """
+    Default filter that shows by default unarchived elements.
+    """
+    def __init__(self, request, params, *args, **kwargs):
+        super().__init__(request, params, *args, **kwargs)
+        if self.lookup_val is None:
+            self.lookup_val = '0'
+
+    def choices(self, cl):
+        # Removing the "all" choice
+        return list(super().choices(cl))[1:]
+
+    def queryset(self, request, queryset):
+        if not self.used_parameters:
+            self.used_parameters[self.lookup_kwarg] = '0'
+        return super().queryset(request, queryset)
+
+
 class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section', 'level')
     ordering = ('name',)
@@ -14,7 +33,7 @@ class KlassAdmin(admin.ModelAdmin):
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
-    list_filter = ('klass', 'archived')
+    list_filter = (('archived', ArchivedListFilter), 'klass')
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name'), 'street', ('pcode', 'city'), 'email',
               ('tel', 'mobile'), ('birth_date', 'ext_id'), 'klass', 'archived')
@@ -35,10 +54,12 @@ class StudentAdmin(admin.ModelAdmin):
 
 class ReferentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'abrev', 'email')
+    list_filter = (('archived', ArchivedListFilter),)
 
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
+    list_filter = (('archived', ArchivedListFilter),)
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('corporation',), ('title', 'last_name', 'first_name'),
@@ -68,6 +89,7 @@ class ContactInline(admin.StackedInline):
 class CorporationAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'pcode', 'city')
     list_editable = ('short_name',)  # Temporarily?
+    list_filter = (('archived', ArchivedListFilter),)
     search_fields = ('name', 'pcode', 'city')
     ordering = ('name',)
     fields = (('name', 'short_name'), 'parent', ('sector', 'typ', 'ext_id'),
