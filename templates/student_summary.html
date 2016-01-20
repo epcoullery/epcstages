@@ -12,5 +12,6 @@
 <div id="summary">
   {{ object.first_name }} {{ object.last_name }}<br>
   {{ object.pcode }} {{ object.city }}<br>
-  Date de naissance: {{ object.birth_date }} {% if age_for_stage %}(<span title="Âge au début du stage">{{ age_for_stage }}){% endif %}</span>
+  Date de naissance: {{ object.birth_date }}
+  {% if age_for_stage %}(<span title="Âge au début du stage" class="{{ age_style }}">{{ age_for_stage }}</span>){% endif %}
 </div>

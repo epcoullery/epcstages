@@ -177,6 +177,7 @@ class StudentSummaryView(DetailView):
                 pass
             else:
                 context['age_for_stage'] = self.object.age_at(period.start_date)
+                context['age_style'] = 'under_17' if (int(context['age_for_stage'].split()[0]) < 17) else ''
         return context
 
 
