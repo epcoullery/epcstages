@@ -79,6 +79,52 @@ class KlassView(DetailView):
             ).prefetch_related('training_set').order_by('last_name', 'first_name')
         return context
 
+    def render_to_response(self, context, **response_kwargs):
+        if self.request.GET.get('format') != 'xls':
+            return super().render_to_response(context, **response_kwargs)
+
+        from openpyxl import Workbook
+        from openpyxl.cell import get_column_letter
+        from openpyxl.styles import Font, Style
+        from openpyxl.writer.excel import save_virtual_workbook
+
+        wb = Workbook()
+        ws = wb.get_active_sheet()
+        ws.title = self.object.name
+        bold = Style(font=Font(bold=True))
+        headers = [
+            'Nom', 'Prénom', 'Domicile', 'Date de naissance',
+            'Stage 1', 'Domaine 1', 'Stage 2', 'Domaine 2', 'Stage 3', 'Domaine 3',
+        ]
+        col_widths = [18, 15, 20, 14, 25, 12, 25, 12, 25, 12]
+        # Headers
+        for col_idx, header in enumerate(headers, start=1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.value = header
+            cell.style = bold
+            ws.column_dimensions[get_column_letter(col_idx)].width = col_widths[col_idx - 1]
+        # Data
+        for row_idx, student in enumerate(context['students'], start=2):
+            ws.cell(row=row_idx, column=1).value = student.last_name
+            ws.cell(row=row_idx, column=2).value = student.first_name
+            ws.cell(row=row_idx, column=3).value = " ".join([student.pcode, student.city])
+            ws.cell(row=row_idx, column=4).value = student.birth_date
+            col_idx = 5
+            for training in student.training_set.select_related(
+                        'availability', 'availability__corporation', 'availability__domain'
+                    ).all():
+                ws.cell(row=row_idx, column=col_idx).value = training.availability.corporation.name
+                ws.cell(row=row_idx, column=col_idx + 1).value = training.availability.domain.name
+                col_idx += 2
+
+        response = HttpResponse(
+            save_virtual_workbook(wb),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s_export_%s.xlsx' % (
+              self.object.name.replace(' ', '_'), date.strftime(date.today(), '%Y-%m-%d'))
+        return response
+
 
 class AttributionView(TemplateView):
     """
@@ -393,7 +439,10 @@ def stages_export(request, scope=None):
                 [c.email for c in always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']])]
             )
 
-    response = HttpResponse(save_virtual_workbook(wb), content_type='application/ms-excel')
+    response = HttpResponse(
+        save_virtual_workbook(wb),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
     return response
