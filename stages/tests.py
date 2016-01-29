@@ -6,14 +6,74 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
-from .models import Level, Section, Period, Student, Availability, Referent
+from .models import (
+    Level, Domain, Section, Klass, Period, Student, Corporation, Availability,
+    CorpContact, Referent, Training
+)
 from .utils import school_year
 
 class StagesTest(TestCase):
-    fixtures = ['test_fixture.json']
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        Section.objects.bulk_create([
+            Section(name='ASE'), Section(name='ASSC'), Section(name='EDE')
+        ])
+        sect_ase = Section.objects.get(name='ASE')
+        lev1 = Level.objects.create(name='1')
+        lev2 = Level.objects.create(name='2')
+        klass1 = Klass.objects.create(name="1ASE3", section=sect_ase, level=lev1)
+        klass2 = Klass.objects.create(name="2ASE3", section=sect_ase, level=lev2)
+        dom_hand = Domain.objects.create(name="handicap")
+        dom_pe = Domain.objects.create(name="petite enfance")
+        Student.objects.bulk_create([
+            Student(first_name="Albin", last_name="Dupond", birth_date="1994-05-12",
+                    pcode="2300", city="La Chaux-de-Fonds", klass=klass1),
+            Student(first_name="Justine", last_name="Varrin", birth_date="1994-07-12",
+                    pcode="2000", city="Neuchâtel", klass=klass1),
+            Student(first_name="Elvire", last_name="Hickx", birth_date="1994-05-20",
+                    pcode="2053", city="Cernier", klass=klass1),
+            Student(first_name="André", last_name="Allemand", birth_date="1994-10-11",
+                    pcode="2314", city="La Sagne", klass=klass2),
+        ])
+        ref1 = Referent.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
+        corp = Corporation.objects.create(
+            name="Centre pédagogique XY", typ="Institution", street="Rue des champs 12",
+            city="Moulineaux", pcode="2500",
+        )
+        contact = CorpContact.objects.create(
+            corporation=corp, title="Monsieur", first_name="Jean", last_name="Horner",
+            is_main=True, role="Responsable formation",
+        )
+        p1 = Period.objects.create(
+            title="Stage de pré-sensibilisation", start_date="2012-11-26", end_date="2012-12-07",
+            section=sect_ase, level=lev1,
+        )
+        p2 = Period.objects.create(
+            title="Stage final", start_date="2013-02-01", end_date="2013-03-15",
+            section=sect_ase, level=lev2,
+        )
+        av1 = Availability.objects.create(
+            corporation=corp, domain=dom_hand, period=p1, contact=contact,
+            comment="Dispo pour pré-sensibilisation",
+        )
+        Availability.objects.create(
+            corporation=corp, domain=dom_pe, period=p1, contact=contact,
+            comment="",
+        )
+        av3 = Availability.objects.create(
+            corporation=corp, domain=dom_pe, period=p2,
+            comment="Dispo pour stage final",
+        )
+        Training.objects.create(
+            availability=av1, student=Student.objects.get(first_name="Albin"), referent=ref1,
+        )
+        Training.objects.create(
+            availability=av3, student=Student.objects.get(first_name="André"), referent=ref1,
+        )
+        cls.admin = User.objects.create_user('me', 'me@example.org', 'mepassword')
 
     def setUp(self):
-        self.admin = User.objects.create_user('me', 'me@example.org', 'mepassword')
         self.client.login(username='me', password='mepassword')
 
     def test_export(self):
