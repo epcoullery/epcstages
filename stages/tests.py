@@ -98,6 +98,21 @@ class StagesTest(TestCase):
         avail = Availability.objects.get(pk=2)
         self.assertEqual(avail.training.student, student)
 
+    def test_archived_trainings(self):
+        """
+        Once a student is archived, training data are serialized in its archive_text field.
+        """
+        st = Student.objects.get(first_name="Albin")
+        st.archived = True
+        st.save()
+        self.assertGreater(len(st.archived_text), 0)
+        arch = eval(st.archived_text)
+        self.assertEqual(arch[0]['corporation'], "Centre pédagogique XY, 2500 Moulineaux")
+        # Un-archiving should delete archived_text content
+        st.archived = False
+        st.save()
+        self.assertEqual(st.archived_text, "")
+
 
 class PeriodTest(TestCase):
     def setUp(self):

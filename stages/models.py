@@ -1,4 +1,5 @@
 from datetime import date, timedelta
+import json
 
 from django.db import models
 
@@ -68,6 +69,7 @@ class Student(models.Model):
     email = models.EmailField(verbose_name='Courriel', blank=True)
     klass = models.ForeignKey(Klass, verbose_name='Classe')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
+    archived_text = models.TextField(blank=True)
 
     support_tabimport = True
 
@@ -76,6 +78,17 @@ class Student(models.Model):
 
     def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
+
+    def save(self, **kwargs):
+        if self.archived and not self.archived_text:
+            # Fill archived_text with training data, JSON-formatted
+            trainings = [
+                tr.serialize() for tr in self.training_set.all().select_related('availability')
+            ]
+            self.archived_text = json.dumps(trainings)
+        if self.archived_text and not self.archived:
+            self.archived_text = ""
+        super().save(**kwargs)
 
     def age_at(self, date_):
         """Return age of student at `date_` time, as a string."""
@@ -249,3 +262,17 @@ class Training(models.Model):
 
     def __str__(self):
         return '%s chez %s (%s)' % (self.student, self.availability.corporation, self.availability.period)
+
+    def serialize(self):
+        """
+        Compute a summary of the training as a dict representation (for archiving purpose).
+        """
+        return {
+            'period': str(self.availability.period),
+            'corporation': str(self.availability.corporation),
+            'referent': str(self.referent),
+            'comment': self.comment,
+            'contact': str(self.availability.contact),
+            'comment_avail': self.availability.comment,
+            'domain': str(self.availability.domain),
+        }
