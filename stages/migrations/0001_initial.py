@@ -95,7 +95,7 @@ class Migration(migrations.Migration):
                 ('title', models.CharField(max_length=150, verbose_name='Titre')),
                 ('start_date', models.DateField(verbose_name='Date de début')),
                 ('end_date', models.DateField(verbose_name='Date de fin')),
-                ('level', models.ForeignKey(verbose_name='Niveau', to='stages.Level')),
+                ('level', models.ForeignKey(verbose_name='Niveau', to='stages.Level', on_delete=models.PROTECT)),
             ],
             options={
                 'ordering': ('-start_date',),
@@ -142,7 +142,7 @@ class Migration(migrations.Migration):
                 ('mobile', models.CharField(max_length=40, verbose_name='Portable', blank=True)),
                 ('email', models.EmailField(max_length=254, verbose_name='Courriel', blank=True)),
                 ('archived', models.BooleanField(default=False, verbose_name='Archivé')),
-                ('klass', models.ForeignKey(verbose_name='Classe', to='stages.Klass')),
+                ('klass', models.ForeignKey(verbose_name='Classe', to='stages.Klass', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': '\xc9tudiant',
@@ -153,9 +153,9 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('comment', models.TextField(verbose_name='Remarques', blank=True)),
-                ('availability', models.OneToOneField(verbose_name='Disponibilité', to='stages.Availability')),
-                ('referent', models.ForeignKey(verbose_name='Référent', blank=True, to='stages.Referent', null=True)),
-                ('student', models.ForeignKey(verbose_name='\xc9tudiant', to='stages.Student')),
+                ('availability', models.OneToOneField(verbose_name='Disponibilité', to='stages.Availability', on_delete=models.CASCADE)),
+                ('referent', models.ForeignKey(verbose_name='Référent', blank=True, to='stages.Referent', null=True, on_delete=models.SET_NULL)),
+                ('student', models.ForeignKey(verbose_name='\xc9tudiant', to='stages.Student', on_delete=models.CASCADE)),
             ],
             options={
                 'verbose_name': 'Stage',
@@ -164,41 +164,41 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='period',
             name='section',
-            field=models.ForeignKey(verbose_name='Filière', to='stages.Section'),
+            field=models.ForeignKey(verbose_name='Filière', to='stages.Section', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='klass',
             name='level',
-            field=models.ForeignKey(verbose_name='Niveau', to='stages.Level'),
+            field=models.ForeignKey(verbose_name='Niveau', to='stages.Level', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='klass',
             name='section',
-            field=models.ForeignKey(verbose_name='Filière', to='stages.Section'),
+            field=models.ForeignKey(verbose_name='Filière', to='stages.Section', on_delete=models.PROTECT),
         ),
         migrations.AddField(
             model_name='corpcontact',
             name='corporation',
-            field=models.ForeignKey(verbose_name='Institution', to='stages.Corporation'),
+            field=models.ForeignKey(verbose_name='Institution', to='stages.Corporation', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='availability',
             name='contact',
-            field=models.ForeignKey(verbose_name='Contact institution', blank=True, to='stages.CorpContact', null=True),
+            field=models.ForeignKey(verbose_name='Contact institution', blank=True, to='stages.CorpContact', null=True, on_delete=models.SET_NULL),
         ),
         migrations.AddField(
             model_name='availability',
             name='corporation',
-            field=models.ForeignKey(verbose_name='Institution', to='stages.Corporation'),
+            field=models.ForeignKey(verbose_name='Institution', to='stages.Corporation', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='availability',
             name='domain',
-            field=models.ForeignKey(verbose_name='Domaine', to='stages.Domain'),
+            field=models.ForeignKey(verbose_name='Domaine', to='stages.Domain', on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='availability',
             name='period',
-            field=models.ForeignKey(verbose_name='Période', to='stages.Period'),
+            field=models.ForeignKey(verbose_name='Période', to='stages.Period', on_delete=models.CASCADE),
         ),
     ]

@@ -46,8 +46,8 @@ class Level(models.Model):
 
 class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom')
-    section = models.ForeignKey(Section, verbose_name='Filière')
-    level = models.ForeignKey(Level, verbose_name='Niveau')
+    section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
+    level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
 
     class Meta:
         verbose_name = "Classe"
@@ -157,7 +157,7 @@ class Corporation(models.Model):
 
 
 class CorpContact(models.Model):
-    corporation = models.ForeignKey(Corporation, verbose_name='Institution')
+    corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     is_main = models.BooleanField(default=False, verbose_name='Contact principal')
     always_cc = models.BooleanField(default=False, verbose_name='Toujours en copie')
@@ -191,8 +191,8 @@ class Domain(models.Model):
 class Period(models.Model):
     """ Périodes de stages """
     title = models.CharField(max_length=150, verbose_name='Titre')
-    section = models.ForeignKey(Section, verbose_name='Filière')
-    level = models.ForeignKey(Level, verbose_name='Niveau')
+    section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
+    level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')
 
@@ -229,10 +229,11 @@ class Period(models.Model):
 
 class Availability(models.Model):
     """ Disponibilités des institutions """
-    corporation = models.ForeignKey(Corporation, verbose_name='Institution')
-    period = models.ForeignKey(Period, verbose_name='Période')
-    domain = models.ForeignKey(Domain, verbose_name='Domaine')
-    contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution')
+    corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
+    period = models.ForeignKey(Period, verbose_name='Période', on_delete=models.CASCADE)
+    domain = models.ForeignKey(Domain, verbose_name='Domaine', on_delete=models.CASCADE)
+    contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution',
+        on_delete=models.SET_NULL)
     priority = models.BooleanField('Prioritaire', default=False)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
@@ -253,9 +254,10 @@ class Availability(models.Model):
 
 class Training(models.Model):
     """ Stages """
-    student = models.ForeignKey(Student, verbose_name='Étudiant')
-    availability = models.OneToOneField(Availability, verbose_name='Disponibilité')
-    referent = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent')
+    student = models.ForeignKey(Student, verbose_name='Étudiant', on_delete=models.CASCADE)
+    availability = models.OneToOneField(Availability, verbose_name='Disponibilité', on_delete=models.CASCADE)
+    referent = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent',
+        on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
