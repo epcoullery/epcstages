@@ -1,3 +1,4 @@
+import json
 from datetime import date
 
 from django.contrib.auth.models import User
@@ -44,7 +45,7 @@ class StagesTest(TestCase):
             corporation=corp, title="Monsieur", first_name="Jean", last_name="Horner",
             is_main=True, role="Responsable formation",
         )
-        p1 = Period.objects.create(
+        cls.p1 = Period.objects.create(
             title="Stage de pré-sensibilisation", start_date="2012-11-26", end_date="2012-12-07",
             section=sect_ase, level=lev1,
         )
@@ -53,12 +54,12 @@ class StagesTest(TestCase):
             section=sect_ase, level=lev2,
         )
         av1 = Availability.objects.create(
-            corporation=corp, domain=dom_hand, period=p1, contact=contact,
+            corporation=corp, domain=dom_hand, period=cls.p1, contact=contact,
             comment="Dispo pour pré-sensibilisation",
         )
         Availability.objects.create(
-            corporation=corp, domain=dom_pe, period=p1, contact=contact,
-            comment="",
+            corporation=corp, domain=dom_pe, period=cls.p1, contact=contact,
+            comment="Dispo prioritaire", priority=True,
         )
         av3 = Availability.objects.create(
             corporation=corp, domain=dom_pe, period=p2,
@@ -111,6 +112,13 @@ class StagesTest(TestCase):
         st.archived = False
         st.save()
         self.assertEqual(st.archived_text, "")
+
+    def test_period_availabilities(self):
+        # Testing here because PeriodTest does not have all data at hand.
+        response = self.client.get(reverse('period_availabilities', args=[self.p1.pk]))
+        decoded = json.loads(response.content.decode('utf-8'))
+        self.assertEqual(len(decoded), 2)
+        self.assertEqual([item['priority'] for item in decoded], [True, False])
 
 
 class PeriodTest(TestCase):

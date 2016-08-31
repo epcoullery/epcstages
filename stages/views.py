@@ -248,7 +248,7 @@ def period_availabilities(request, pk):
     corps = [{'id': av.id, 'id_corp': av.corporation.id, 'corp_name': av.corporation.name,
               'domain': av.domain.name, 'free': av.free, 'priority': av.priority}
              for av in period.availability_set.select_related('corporation').all(
-                                             ).order_by('priority', 'corporation__name')]
+                                             ).order_by('-priority', 'corporation__name')]
     return HttpResponse(json.dumps(corps), content_type="application/json")
 
 def new_training(request):

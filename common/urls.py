@@ -19,10 +19,10 @@ urlpatterns = [
     url(r'^classes/(?P<pk>\d+)/$', views.KlassView.as_view(), name='class'),
 
     # AJAX/JSON urls
-    url(r'^section/(?P<pk>\d+)/periods/', views.section_periods),
-    url(r'^section/(?P<pk>\d+)/classes/', views.section_classes),
-    url(r'^period/(?P<pk>\d+)/students/', views.period_students),
-    url(r'^period/(?P<pk>\d+)/corporations/', views.period_availabilities),
+    url(r'^section/(?P<pk>\d+)/periods/', views.section_periods, name='section_periods'),
+    url(r'^section/(?P<pk>\d+)/classes/', views.section_classes, name='section_classes'),
+    url(r'^period/(?P<pk>\d+)/students/', views.period_students, name='period_students'),
+    url(r'^period/(?P<pk>\d+)/corporations/', views.period_availabilities, name='period_availabilities'),
     # Training params in POST:
     url(r'^training/new/', views.new_training, name="new_training"),
     url(r'^training/del/', views.del_training, name="del_training"),
