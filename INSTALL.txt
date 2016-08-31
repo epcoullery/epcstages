@@ -5,7 +5,7 @@ Installing epcstages
 Requirements
 ============
 
- * Python >= 2.6.5 < 3.0
+ * Python >= 3.4
    http://www.python.org/download/
  * A database with UTF-8 encoding (PostgreSQL or MySQL-InnoDB) and its
    approriate Python driver (postgresql-psycopg2 or mysqldb)
@@ -15,7 +15,7 @@ Downloading code
 ================
 
 The code for epcstages is available on GitHub:
-  https://github.com/claudep/epcstages.git
+  https://github.com/epcoullery/epcstages.git
 
 Python dependencies
 ===================
@@ -70,7 +70,7 @@ EMAIL_HOST_USER = '...'
 EMAIL_HOST_PASSWORD = '...'
 
 When the above settings are defined, it's time to initialize the database:
-  $ python manage.py syncdb
+  $ python manage.py migrate
 
 And to prepare static files:
   $ python manage.py collectstatic
