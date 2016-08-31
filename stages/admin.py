@@ -64,7 +64,7 @@ class CorpContactAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('corporation',), ('title', 'last_name', 'first_name'),
               ('sections', 'is_main', 'always_cc', 'archived'),
-              'role', ('tel', 'email'))
+              ('role', 'ext_id'), ('tel', 'email'))
     formfield_overrides = {
         models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
     }
