@@ -1,5 +1,3 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
 from datetime import date
 
 from django.contrib.auth.models import User
@@ -11,6 +9,7 @@ from .models import (
     CorpContact, Referent, Training
 )
 from .utils import school_year
+
 
 class StagesTest(TestCase):
     @classmethod

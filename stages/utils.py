@@ -1,7 +1,3 @@
-# -*- encoding: utf-8 -*-
-from __future__ import unicode_literals
-
-
 def school_year(date, as_tuple=False):
     """
     Return the school year of 'date'. Example:
