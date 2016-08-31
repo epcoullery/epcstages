@@ -67,7 +67,8 @@ class Student(models.Model):
     tel = models.CharField(max_length=40, blank=True, verbose_name='Téléphone')
     mobile = models.CharField(max_length=40, blank=True, verbose_name='Portable')
     email = models.EmailField(verbose_name='Courriel', blank=True)
-    klass = models.ForeignKey(Klass, verbose_name='Classe')
+    klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
+        on_delete=models.SET_NULL)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
 
@@ -134,7 +135,8 @@ class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
-    parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère', on_delete=models.SET_NULL)
+    parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
+        on_delete=models.SET_NULL)
     sector = models.CharField(max_length=40, blank=True, verbose_name='Secteur')
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
