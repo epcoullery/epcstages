@@ -90,8 +90,10 @@ function update_trainings(period_id) {
       else $('input#export').hide();
   }
 
-  if (period_id == '') $('ul#training_list').html('');
-  else $('ul#training_list').load('/training/by_period/' + period_id + '/', function() {
+  if (period_id == '') {
+      $('ul#training_list').html('');
+      $('input#export').hide();
+  } else $('ul#training_list').load('/training/by_period/' + period_id + '/', function() {
       $('img.delete_training').click(function() {
         if (!confirm("Voulez-vous vraiment supprimer ce stage ?")) return;
         var li = $(this).parents('li');
@@ -113,8 +115,8 @@ function update_trainings(period_id) {
         ev.preventDefault();
         showAddAnotherPopup(this);
       });
+      set_export_visibility();
   });
-  set_export_visibility();
 }
 
 $(document).ready(function() {
