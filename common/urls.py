@@ -7,7 +7,7 @@ from stages import views
 urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
     url(r'^data-import/', views.StudentImportView.as_view(), name='tabimport'),
 
     url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),

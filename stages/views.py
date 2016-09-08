@@ -6,10 +6,10 @@ from tabimport import FileFactory
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.urlresolvers import reverse
 from django.db.models import Case, Count, When
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils.translation import ugettext as _
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
