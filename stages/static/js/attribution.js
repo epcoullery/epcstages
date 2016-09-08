@@ -151,12 +151,12 @@ $(document).ready(function() {
     $('#student_detail').load(
         '/student/' + $(this).val() + '/summary/?period=' + $.cookie('periode'),
         function() {
-            $('div#previous_stages_head').toggle(function() {
+            $('div#previous_stages_head').click(function() {
                 $('ul#previous_stages_list').toggle();
-                $(this).find('img').attr('src', static_url + 'img/open.png');
-            }, function() {
-                $('ul#previous_stages_list').toggle();
-                $(this).find('img').attr('src', static_url + 'img/closed.png');
+                var img = $(this).find('img');
+                var cur_img = img.attr('src');
+                img.attr('src', img.data('imgtoggle'));
+                img.data('imgtoggle', cur_img);
             });
     }).addClass("filled");
     current_student = $(this).val();

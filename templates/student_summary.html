@@ -1,6 +1,7 @@
+{% load static %}
 <div id="previous_stages">
   <div id="previous_stages_head">
-    <em><img src="{{ STATIC_URL }}img/closed.png"> Stages précédents ({{ previous_stages|length }}) :</em>
+    <em><img src="{% static 'img/closed.png' %}" data-imgtoggle="{% static 'img/open.png' %}"> Stages précédents ({{ previous_stages|length }}) :</em>
   </div>
   <ul id="previous_stages_list">
   {% for stage in previous_stages %}

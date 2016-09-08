@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
@@ -11,7 +11,7 @@
 {% block content %}
 <h2>{{ klass.name }}</h2>
 <div style="float:right;">
-    <a href="{% url 'class' object.pk %}?format=xls"><img src="{{ STATIC_URL}}img/xls.png" title="Exportation Excel" width="24"></a>
+    <a href="{% url 'class' object.pk %}?format=xls"><img src="{% static 'img/xls.png' %}" title="Exportation Excel" width="24"></a>
 </div>
 <h3>Récapitulatif des stages</h3>
 <table>
@@ -21,7 +21,7 @@
       <td>{{ student.birth_date }}</td>
       {% for train in student.training_set.all %}
       <td>{{ train.availability.period }}<br>{{ train.availability.corporation }}<br>
-        {% if train.comment %}<div style="float: right;"><img src="{{ STATIC_URL}}admin/img/icon-unknown.svg" title="{{ train.comment }}"></div>{% endif %}
+        {% if train.comment %}<div style="float: right;"><img src="{% static 'admin/img/icon-unknown.svg' %}" title="{{ train.comment }}"></div>{% endif %}
         <i>{{ train.availability.domain }}</i></td>
       {% endfor %}
   </tr>

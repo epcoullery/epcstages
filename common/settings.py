@@ -112,6 +112,8 @@ INSTALLED_APPS = (
 
 FILE_UPLOAD_HANDLERS = ["django.core.files.uploadhandler.TemporaryFileUploadHandler"]
 
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
 ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 
 # Mapping between column names of a tabular file and Student field names

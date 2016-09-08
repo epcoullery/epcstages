@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block extrastyle %}
 <style>
@@ -17,7 +17,9 @@
 {% endblock %}
 
 {% block content %}
-<div style="float:right;"><a href="{% url 'admin:stages_corporation_change' corp.pk %}"><img src="{{ STATIC_URL }}img/edit.png" title="Modifier"></a></div>
+<div style="float:right;">
+    <a href="{% url 'admin:stages_corporation_change' corp.pk %}"><img src="{% static 'img/edit.png' %}" title="Modifier"></a>
+</div>
 <h2>{{ corp.name }}</h2>
 <table width="100%">
 <tr><th rowspan="2">Adresse :</th>
