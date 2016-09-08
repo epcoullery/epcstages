@@ -54,7 +54,10 @@ function update_corporations(period_id) {
   current_avail = null;
   $('#contact_select').find('option:gt(0)').remove();
   $('input#valid_training').hide();
-  if (period_id == '') return;
+  if (period_id == '') {
+      $('input#export_non_attr').hide();
+      return;
+  }
   $.getJSON('/period/' + period_id + '/corporations/', function(data) {
     var sel = $('#corp_select');
     var domains = [];
@@ -74,6 +77,8 @@ function update_corporations(period_id) {
       }
     });
     sel.data('options', options);
+    if (options.length > 0) $('input#export_non_attr').show();
+    else $('input#export_non_attr').hide();
     $('div#corp_total').html(options.length + " disponibilités").data('num', options.length);
   });
 }
@@ -83,9 +88,6 @@ function update_trainings(period_id) {
       if ($('ul#training_list').children().length > 0)
         $('input#export').show();
       else $('input#export').hide();
-      if ($('#corp_select option').length > 0)
-        $('input#export_non_attr').show();
-      else $('input#export_non_attr').hide();
   }
 
   if (period_id == '') $('ul#training_list').html('');
@@ -111,8 +113,8 @@ function update_trainings(period_id) {
         ev.preventDefault();
         showAddAnotherPopup(this);
       });
-      set_export_visibility();
   });
+  set_export_visibility();
 }
 
 $(document).ready(function() {
