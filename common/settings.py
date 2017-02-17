@@ -125,7 +125,7 @@ STUDENT_IMPORT_MAPPING = {
     'Localité élève': 'city',  # pcode is separated from city in prepare_import
     'Tél. élève': 'tel',
     'Natel élève': 'mobile',
-    'Email élève': 'email',
+    'Email RPN élève': 'email',
     'Date nais. élève': 'birth_date',
     'Classe': 'klass',
 }
