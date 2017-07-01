@@ -7,7 +7,7 @@ from fabric.utils import abort
 
 env.hosts = ['stages.pierre-coullery.ch']
 APP_DIR = '/var/www/epcstages'
-VIRTUALENV_DIR = '/var/www/virtualenvs/stages3/bin/activate'
+VIRTUALENV_DIR = '/var/virtualenvs/stages/bin/activate'
 
 
 def clone_remote_db(dbtype='sqlite'):
