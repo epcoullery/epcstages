@@ -48,12 +48,35 @@ class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom')
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
+    teacher = models.ForeignKey('Teacher', blank=True, null=True,
+        on_delete=models.SET_NULL, verbose_name='Maître de classe')
 
     class Meta:
         verbose_name = "Classe"
 
     def __str__(self):
         return self.name
+
+
+class Teacher(models.Model):
+    civility = models.CharField(max_length=10, verbose_name='Civilité')
+    first_name = models.CharField(max_length=40, verbose_name='Prénom')
+    last_name = models.CharField(max_length=40, verbose_name='Nom')
+    abrev = models.CharField(max_length=10, verbose_name='Sigle')
+    birth_date = models.DateField(verbose_name='Date de naissance', blank=True)
+    email = models.EmailField(verbose_name='Courriel', blank=True)
+    contract = models.CharField(max_length=20, verbose_name='Contrat')
+    rate = models.DecimalField(default=0.0, max_digits=4, decimal_places=1, verbose_name="Taux d'activité")
+    ext_id = models.IntegerField(blank=True, null=True)
+    previous_report = models.IntegerField(default=0, verbose_name='Report précédent')
+    next_report = models.IntegerField(default=0, verbose_name='Report suivant')
+
+    class Meta:
+        verbose_name='Enseignant'
+        ordering = ('last_name', 'first_name')
+
+    def __str__(self):
+        return '{0} {1}'.format(self.last_name, self.first_name)
 
 
 class Student(models.Model):

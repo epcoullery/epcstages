@@ -2,8 +2,10 @@ from django import forms
 from django.contrib import admin
 from django.db import models
 
-from stages.models import (Student, Section, Level, Klass, Referent, Corporation,
-    CorpContact, Domain, Period, Availability, Training)
+from stages.models import (
+    Teacher, Student, Section, Level, Klass, Referent, Corporation,
+    CorpContact, Domain, Period, Availability, Training,
+)
 
 
 class ArchivedListFilter(admin.BooleanFieldListFilter):
@@ -28,6 +30,10 @@ class ArchivedListFilter(admin.BooleanFieldListFilter):
 class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section', 'level')
     ordering = ('name',)
+
+
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = ('__str__', 'abrev', 'email')
 
 
 class StudentAdmin(admin.ModelAdmin):
@@ -176,6 +182,7 @@ admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Referent, ReferentAdmin)
+admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(Corporation, CorporationAdmin)
 admin.site.register(CorpContact, CorpContactAdmin)
 admin.site.register(Domain)
