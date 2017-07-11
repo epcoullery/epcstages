@@ -28,8 +28,9 @@ class ArchivedListFilter(admin.BooleanFieldListFilter):
 
 
 class KlassAdmin(admin.ModelAdmin):
-    list_display = ('name', 'section', 'level')
+    list_display = ('name', 'section')
     ordering = ('name',)
+    list_filter = ('section', 'level',)
 
 
 class TeacherAdmin(admin.ModelAdmin):
@@ -41,8 +42,10 @@ class StudentAdmin(admin.ModelAdmin):
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), 'klass')
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
-    fields = (('last_name', 'first_name'), 'street', ('pcode', 'city'), 'email',
-              ('tel', 'mobile'), ('birth_date', 'ext_id'), 'klass', 'archived')
+    fields = (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
+              ('email', 'tel', 'mobile'), ('avs', 'birth_date'),
+              ('dispense_ecg', 'dispense_eps', 'soutien_dys'), ('klass', 'archived'),
+              ('corporation', 'instructor'))
     readonly_fields = ('ext_id',)
     actions = ['archive']
 
