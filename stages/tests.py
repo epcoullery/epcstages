@@ -1,9 +1,11 @@
 import json
+import os
 from datetime import date
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.html import escape
 
 from .models import (
     Level, Domain, Section, Klass, Period, Student, Corporation, Availability,
@@ -145,3 +147,30 @@ class PeriodTest(TestCase):
         per = Period.objects.create(title="Week test", section=self.section, level=self.level1,
             start_date=date(2013, 9, 12), end_date=date(2013, 9, 26))
         self.assertEqual(per.weeks, 2)
+
+
+class ImportTests(TestCase):
+    def setUp(self):
+        User.objects.create_user('me', 'me@example.org', 'mepassword')
+
+    def test_import_gan(self):
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'EXPORT_GAN.xls')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('tabimport'), {'upload': fh}, follow=True)
+        self.assertContains(response, escape("La classe '1ASEFEa' n'existe pas encore"))
+
+        lev1 = Level.objects.create(name='1')
+        Klass.objects.create(
+            name='1ASEFEa',
+            section=Section.objects.create(name='ASE'),
+            level=lev1,
+        )
+        Klass.objects.create(
+            name='1EDS',
+            section=Section.objects.create(name='EDE'),
+            level=lev1,
+        )
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('tabimport'), {'upload': fh}, follow=True)
+        self.assertContains(response, "Created objects: 2")

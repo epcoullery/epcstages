@@ -301,14 +301,28 @@ class StudentImportView(FormView):
 
     def import_data(self, up_file):
         """ Import Student data from uploaded file. """
-        mapping = settings.STUDENT_IMPORT_MAPPING
-        rev_mapping = {v: k for k, v in mapping.items()}
+        student_mapping = settings.STUDENT_IMPORT_MAPPING
+        student_rev_mapping = {v: k for k, v in student_mapping.items()}
+        corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
+        instructor_mapping = settings.INSTRUCTOR_IMPORT_MAPPING
+
         obj_created = obj_modified = 0
         for line in up_file:
-            defaults = dict((val, line[key]) for key, val in mapping.items() if val != 'ext_id')
-            defaults = Student.prepare_import(defaults)
+            student_defaults = {
+                val: line[key] for key, val in student_mapping.items() if val != 'ext_id'
+            }
+            corporation_defaults = {
+                val: line[key] for key, val in corporation_mapping.items()
+            }
+            instructor_defaults = {
+                val: line[key] for key, val in instructor_mapping.items()
+            }
+
+            defaults = Student.prepare_import(
+                student_defaults, corporation_defaults, instructor_defaults
+            )
             obj, created = Student.objects.get_or_create(
-                ext_id=line[rev_mapping['ext_id']], defaults=defaults)
+                ext_id=line[student_rev_mapping['ext_id']], defaults=defaults)
             if not created:
                 for key, val in defaults.items():
                     setattr(obj, key, val)

@@ -118,16 +118,37 @@ ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 
 # Mapping between column names of a tabular file and Student field names
 STUDENT_IMPORT_MAPPING = {
-    'Num élève': 'ext_id',
-    'Nom élève': 'last_name',
-    'Prénom élève': 'first_name',
-    'Rue élève': 'street',
-    'Localité élève': 'city',  # pcode is separated from city in prepare_import
-    'Tél. élève': 'tel',
-    'Natel élève': 'mobile',
-    'Email RPN élève': 'email',
-    'Date nais. élève': 'birth_date',
-    'Classe': 'klass',
+    'NO_CLOEE': 'ext_id',
+    'NOM': 'last_name',
+    'PRENOM': 'first_name',
+    'RUE': 'street',
+    'LOCALITE': 'city',  # pcode is separated from city in prepare_import
+    'TEL_PRIVE': 'tel',
+    'TEL_MOBILE': 'mobile',
+    'EMAIL_RPN': 'email',
+    'DATENAI': 'birth_date',
+    'NAVS13': 'avs',
+    'SEXE': 'gender',
+    'NO_EMPLOYEUR' : 'corporation',
+    'NO_FORMATEUR' : 'instructor',
+    'CLASSE_ACTUELLE': 'klass',
+}
+
+CORPORATION_IMPORT_MAPPING = {
+    'NO_EMPLOYEUR' : 'ext_id',
+    'EMPLOYEUR' : 'name',
+    'RUE_EMPLOYEUR': 'street',
+    'LOCALITE_EMPLOYEUR': 'city',
+    'TEL_EMPLOYEUR': 'tel',
+    'CANTON_EMPLOYEUR' : 'district',
+}
+
+INSTRUCTOR_IMPORT_MAPPING = {
+    'NO_FORMATEUR': 'ext_id',
+    'NOM_FORMATEUR': 'last_name',
+    'PRENOM_FORMATEUR': 'first_name',
+    'TEL_FORMATEUR': 'tel',
+    'MAIL_FORMATEUR': 'email',
 }
 
 from .local_settings import *
