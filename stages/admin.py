@@ -4,7 +4,7 @@ from django.db import models
 
 from stages.models import (
     Teacher, Student, Section, Level, Klass, Referent, Corporation,
-    CorpContact, Domain, Period, Availability, Training,
+    CorpContact, Domain, Period, Availability, Training, Course,
 )
 
 
@@ -186,6 +186,7 @@ admin.site.register(Klass, KlassAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Referent, ReferentAdmin)
 admin.site.register(Teacher, TeacherAdmin)
+admin.site.register(Course)
 admin.site.register(Corporation, CorporationAdmin)
 admin.site.register(CorpContact, CorpContactAdmin)
 admin.site.register(Domain)
