@@ -63,7 +63,7 @@ class Teacher(models.Model):
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     abrev = models.CharField(max_length=10, verbose_name='Sigle')
-    birth_date = models.DateField(verbose_name='Date de naissance', blank=True)
+    birth_date = models.DateField(verbose_name='Date de naissance', blank=True, null=True)
     email = models.EmailField(verbose_name='Courriel', blank=True)
     contract = models.CharField(max_length=20, verbose_name='Contrat')
     rate = models.DecimalField(default=0.0, max_digits=4, decimal_places=1, verbose_name="Taux d'activité")
