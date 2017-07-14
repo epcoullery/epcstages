@@ -8,7 +8,8 @@ urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
 
     url(r'^admin/', admin.site.urls),
-    url(r'^data-import/', views.StudentImportView.as_view(), name='tabimport'),
+    url(r'^import_students/', views.StudentImportView.as_view(), name='import-students'),
+    url(r'^import_hp/', views.HPImportView.as_view(), name='import-hp'),
 
     url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),
     url(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),

@@ -30,4 +30,7 @@ class PeriodForm(forms.Form):
 
     def __init__(self, data, *args, **kwargs):
         pass
-        
+
+
+class UploadHPFileForm(forms.Form):
+    upload = forms.FileField(label='Fichier HyperPlanning')

@@ -2,10 +2,11 @@ import json
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
-from tabimport import FileFactory
+from tabimport import CSVImportedFile, FileFactory
 
 from django.conf import settings
 from django.contrib import messages
+from django.core.files import File
 from django.db.models import Case, Count, When
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -13,9 +14,11 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
-from .forms import PeriodForm, StudentImportForm
-from .models import (Klass, Section, Student, Corporation, CorpContact, Period,
-    Training, Referent, Availability)
+from .forms import PeriodForm, StudentImportForm, UploadHPFileForm
+from .models import (
+    Klass, Section, Student, Teacher, Corporation, CorpContact, Course, Period,
+    Training, Referent, Availability,
+)
 
 
 def school_year_start():
@@ -282,13 +285,18 @@ def del_training(request):
     return HttpResponse(json.dumps({'ref_id': ref_id}), content_type="application/json")
 
 
-class StudentImportView(FormView):
-    template_name = 'student_import.html'
-    form_class = StudentImportForm
+class ImportViewBase(FormView):
+    template_name = 'file_import.html'
 
     def form_valid(self, form):
+        upfile = form.cleaned_data['upload']
         try:
-            imp_file = FileFactory(form.cleaned_data['upload'])
+            if 'csv' in upfile.content_type:
+                # Reopen the file in text mode
+                upfile = open(upfile.temporary_file_path(), mode='r', encoding='utf-8-sig')
+                imp_file = CSVImportedFile(File(upfile))
+            else:
+                imp_file = FileFactory(upfile)
             created, modified = self.import_data(imp_file)
         except Exception as e:
             if settings.DEBUG:
@@ -298,6 +306,11 @@ class StudentImportView(FormView):
             messages.info(self.request, _("Created objects: %(cr)d, modified objects: %(mod)d") % {
                 'cr': created, 'mod': modified})
         return HttpResponseRedirect(reverse('admin:index'))
+
+
+class StudentImportView(ImportViewBase):
+    title = "Importation étudiants"
+    form_class = StudentImportForm
 
     def import_data(self, up_file):
         """ Import Student data from uploaded file. """
@@ -331,6 +344,74 @@ class StudentImportView(FormView):
             else:
                 obj_created += 1
         #FIXME: implement arch_staled
+        return obj_created, obj_modified
+
+
+class HPImportView(ImportViewBase):
+    """
+    Importation du fichier HyperPlanning pour l'établissement  des feuilles
+    de charges.
+    """
+    form_class = UploadHPFileForm
+    mapping = {
+        'NOMPERSO_ENS': 'teacher',
+        'LIBELLE_MAT': 'subject',
+        'NOMPERSO_DIP': 'klass',
+        'TOTAL': 'period',
+    }
+    # Mapping between klass field and imputation
+    account_categories = {
+        'ASAFE': 'ASA',
+        'ASEFE': 'ASE',
+        'ASSCFE': 'ASSC',
+        'MP': 'LEP',
+        'EDEpe': 'EDEpe',
+        'EDEps': 'EDEps',
+        'EDE': 'EDE',
+        'EDS': 'EDS',
+        'CAS-FPP': 'CAS-FPP',
+        'Mandat_ASSC': 'ASSC',
+        'Mandat_ASE': 'ASE',
+        'Mandat_EDE': 'EDE',
+        'Mandat_EDS': 'EDA',
+    }
+
+    def import_data(self, up_file):
+        obj_created = obj_modified = 0
+
+        #Pour accélérer la recherche
+        profs = {}
+        for t in Teacher.objects.all():
+            profs[t.__str__()] = t
+        Course.objects.all().delete()
+
+        for line in up_file:
+            if (line['LIBELLE_MAT'] == '' or line['NOMPERSO_DIP'] == '' or
+                    line['TOTAL'] == ''):
+                continue
+            defaults = {
+                'teacher': profs[line['NOMPERSO_ENS']],
+                'subject': line['LIBELLE_MAT'],
+                'klass': line['NOMPERSO_DIP'],
+            }
+
+            obj, created = Course.objects.get_or_create(
+                teacher = defaults['teacher'],
+                subject = defaults['subject'],
+                klass = defaults['klass'])
+
+            period = int(float(line['TOTAL']))
+            if created:
+                obj.period = period
+                obj_created += 1
+                for k, v in self.account_categories.items():
+                    if k in obj.klass:
+                        obj.imputation = v
+                        break
+            else:
+                obj.period += period
+                obj_modified += 1
+            obj.save()
         return obj_created, obj_modified
 
 

@@ -9,7 +9,7 @@ from django.utils.html import escape
 
 from .models import (
     Level, Domain, Section, Klass, Period, Student, Corporation, Availability,
-    CorpContact, Referent, Training
+    CorpContact, Referent, Teacher, Training,
 )
 from .utils import school_year
 
@@ -157,7 +157,7 @@ class ImportTests(TestCase):
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'EXPORT_GAN.xls')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
-            response = self.client.post(reverse('tabimport'), {'upload': fh}, follow=True)
+            response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         self.assertContains(response, escape("La classe '1ASEFEa' n'existe pas encore"))
 
         lev1 = Level.objects.create(name='1')
@@ -172,5 +172,16 @@ class ImportTests(TestCase):
             level=lev1,
         )
         with open(path, 'rb') as fh:
-            response = self.client.post(reverse('tabimport'), {'upload': fh}, follow=True)
+            response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         self.assertContains(response, "Created objects: 2")
+
+    def test_import_hp(self):
+        teacher = Teacher.objects.create(
+            first_name='Laurie', last_name='Bernasconi', birth_date='1974-08-08'
+        )
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'HYPERPLANNING.csv')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-hp'), {'upload': fh}, follow=True)
+        self.assertContains(response, "Created objects: 13, modified objects: 10")
+        self.assertEqual(teacher.course_set.count(), 13)
