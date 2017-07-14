@@ -149,6 +149,28 @@ class PeriodTest(TestCase):
         self.assertEqual(per.weeks, 2)
 
 
+class TeacherTests(TestCase):
+    def setUp(self):
+        User.objects.create_superuser('me', 'me@example.org', 'mepassword')
+
+    def test_export_charge_sheet(self):
+        Teacher.objects.create(
+            first_name='Laurie', last_name='Bernasconi', birth_date='1974-08-08'
+        )
+        change_url = reverse('admin:stages_teacher_changelist')
+        self.client.login(username='me', password='mepassword')
+        response = self.client.post(change_url, {
+            'action': 'print_charge_sheet',
+            '_selected_action': Teacher.objects.values_list('pk', flat=True)
+        }, follow=True)
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename="archive_FeuillesDeCharges.zip"'
+        )
+        self.assertEqual(response['Content-Type'], 'application/zip')
+        self.assertGreater(len(response.content), 200)
+
+
 class ImportTests(TestCase):
     def setUp(self):
         User.objects.create_user('me', 'me@example.org', 'mepassword')

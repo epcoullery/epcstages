@@ -1,11 +1,40 @@
+import os
+import tempfile
+import zipfile
+
 from django import forms
 from django.contrib import admin
 from django.db import models
+from django.http import HttpResponse
 
 from stages.models import (
     Teacher, Student, Section, Level, Klass, Referent, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
 )
+from stages.pdf import ChargeSheetPDF
+
+
+def print_charge_sheet(modeladmin, request, queryset):
+    """
+    Génère un pdf pour chaque enseignant, écrit le fichier créé
+    dans une archive et renvoie une archive de pdf
+    """
+    filename = 'archive_FeuillesDeCharges.zip'
+    path = os.path.join(tempfile.gettempdir(), filename)
+
+    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+        for teacher in queryset:
+            activities = teacher.calc_activity()
+            pdf = ChargeSheetPDF(teacher)
+            pdf.produce(activities)
+            filezip.write(pdf.filename)
+
+    with open(filezip.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    return response
+
+print_charge_sheet.short_description = "Imprimer les feuilles de charge"
 
 
 class ArchivedListFilter(admin.BooleanFieldListFilter):
@@ -35,6 +64,7 @@ class KlassAdmin(admin.ModelAdmin):
 
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'abrev', 'email')
+    actions = [print_charge_sheet]
 
 
 class StudentAdmin(admin.ModelAdmin):

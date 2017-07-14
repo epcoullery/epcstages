@@ -78,6 +78,29 @@ class Teacher(models.Model):
     def __str__(self):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
+    def calc_activity(self):
+        """
+        Return a dictionary of calculations relative to teacher courses.
+        """
+        mandats = self.course_set.filter(subject__startswith='#')
+        ens = self.course_set.exclude(subject__startswith='#')
+        tot_mandats = mandats.aggregate(models.Sum('period'))['period__sum'] or 0
+        tot_ens = ens.aggregate(models.Sum('period'))['period__sum'] or 0
+        tot_formation = int(round((tot_mandats + tot_ens) / 1900 * 250))
+        tot_trav = self.previous_report + tot_mandats + tot_ens + tot_formation
+        tot_paye = tot_trav
+        if self.rate == 100 and tot_paye != 100:
+            tot_paye = 2150
+        return {
+            'mandats': mandats,
+            'tot_mandats': tot_mandats,
+            'tot_ens': tot_ens,
+            'tot_formation': tot_formation,
+            'tot_trav': tot_trav,
+            'tot_paye': tot_paye,
+            'report': tot_trav - tot_paye,
+        }
+
 
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
