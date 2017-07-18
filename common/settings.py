@@ -155,5 +155,6 @@ CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2017-2018"
 
 if 'TRAVIS' in os.environ:
     SECRET_KEY = 'secretkeyfortravistests'
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
     from .local_settings import *
