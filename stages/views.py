@@ -291,7 +291,7 @@ class ImportViewBase(FormView):
     def form_valid(self, form):
         upfile = form.cleaned_data['upload']
         try:
-            if 'csv' in upfile.content_type:
+            if 'csv' in upfile.content_type or upfile.content_type == 'text/plain':
                 # Reopen the file in text mode
                 upfile = open(upfile.temporary_file_path(), mode='r', encoding='utf-8-sig')
                 imp_file = CSVImportedFile(File(upfile))
