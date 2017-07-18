@@ -70,6 +70,7 @@ class Teacher(models.Model):
     ext_id = models.IntegerField(blank=True, null=True)
     previous_report = models.IntegerField(default=0, verbose_name='Report précédent')
     next_report = models.IntegerField(default=0, verbose_name='Report suivant')
+    archived = models.BooleanField(default=False)
 
     class Meta:
         verbose_name='Enseignant'
@@ -336,7 +337,9 @@ class Training(models.Model):
     """ Stages """
     student = models.ForeignKey(Student, verbose_name='Étudiant', on_delete=models.CASCADE)
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité', on_delete=models.CASCADE)
-    referent = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent',
+    referent_old = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent',
+        on_delete=models.SET_NULL)
+    referent = models.ForeignKey(Teacher, null=True, blank=True, verbose_name='Référent',
         on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 

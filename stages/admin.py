@@ -63,7 +63,8 @@ class KlassAdmin(admin.ModelAdmin):
 
 
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'abrev', 'email')
+    list_display = ('__str__', 'abrev', 'email', 'archived')
+    list_filter = ('archived',)
     actions = [print_charge_sheet]
 
 
