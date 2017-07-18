@@ -101,7 +101,38 @@ class Teacher(models.Model):
             'report': tot_trav - tot_paye,
         }
 
+    def calc_imputations(self):
+        """
+        Return a tupple for accountings charges
+        """
+        activities = self.calc_activity()
+        imputations = OrderedDict()
+        courses = self.course_set.all()
+        
+        l1 = ['ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction']
+        for k in l1:
+            imputations[k] = courses.filter(imputation__contains=k).aggregate(models.Sum('period'))['period__sum'] or 0
 
+        tot = sum(imputations.values())
+        if tot > 0:
+            for k in l1:
+                imputations[k] += round(imputations[k] / tot * activities['tot_formation'])
+            
+        """
+        Split EDE périods in EDEpe and EDEps columns, in proportion
+        """
+        ede = courses.filter(imputation = 'EDE').aggregate(models.Sum('period'))['period__sum'] or 0
+        if ede > 0:
+            pe = imputations['EDEpe']
+            ps = imputations['EDEps']
+            pe_percent = pe / (pe + ps)
+            pe_plus = pe * pe_percent
+            imputations['EDEpe'] += pe_plus
+            imputations['EDEps'] += ede-pe_plus
+                   
+        return (self.calc_activity(), imputations)
+    
+    
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
