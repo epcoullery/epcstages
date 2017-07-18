@@ -196,6 +196,7 @@ class Student(models.Model):
 
 class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
+    ext_id_old = models.IntegerField(null=True, blank=True, verbose_name='ID externe (ancien)')
     name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
@@ -223,6 +224,7 @@ class Corporation(models.Model):
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
+    ext_id_old = models.IntegerField(null=True, blank=True, verbose_name='ID externe (ancien)')
     is_main = models.BooleanField(default=False, verbose_name='Contact principal')
     always_cc = models.BooleanField(default=False, verbose_name='Toujours en copie')
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
