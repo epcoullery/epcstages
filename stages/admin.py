@@ -210,13 +210,18 @@ class TrainingAdmin(admin.ModelAdmin):
     raw_id_fields = ('availability',)
 
 
+class CourseAdmin(admin.ModelAdmin):
+    list_display = ('teacher', 'public', 'subject', 'period', 'imputation')
+    
+    
+    
 admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Referent, ReferentAdmin)
 admin.site.register(Teacher, TeacherAdmin)
-admin.site.register(Course)
+admin.site.register(Course, CourseAdmin)
 admin.site.register(Corporation, CorporationAdmin)
 admin.site.register(CorpContact, CorpContactAdmin)
 admin.site.register(Domain)
