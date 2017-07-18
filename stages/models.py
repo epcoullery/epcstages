@@ -377,9 +377,8 @@ class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
         verbose_name="Enseignant-e", on_delete=models.SET_NULL)
-    klass = models.CharField("Classe(s)", max_length=40, default='')
+    public = models.CharField("Classe(s)", max_length=40, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
-    section = models.CharField("Section", max_length=10, default='')
     period = models.IntegerField("Nb de périodes", default=0)
     # Imputation comptable: compte dans lequel les frais du cours seront imputés
     imputation = models.CharField("Imputation", max_length=10, choices=IMPUTATION_CHOICES)

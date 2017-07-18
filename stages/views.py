@@ -356,7 +356,7 @@ class HPImportView(ImportViewBase):
     mapping = {
         'NOMPERSO_ENS': 'teacher',
         'LIBELLE_MAT': 'subject',
-        'NOMPERSO_DIP': 'klass',
+        'NOMPERSO_DIP': 'public',
         'TOTAL': 'period',
     }
     # Mapping between klass field and imputation
@@ -392,20 +392,20 @@ class HPImportView(ImportViewBase):
             defaults = {
                 'teacher': profs[line['NOMPERSO_ENS']],
                 'subject': line['LIBELLE_MAT'],
-                'klass': line['NOMPERSO_DIP'],
+                'public': line['NOMPERSO_DIP'],
             }
 
             obj, created = Course.objects.get_or_create(
                 teacher = defaults['teacher'],
                 subject = defaults['subject'],
-                klass = defaults['klass'])
+                public = defaults['public'])
 
             period = int(float(line['TOTAL']))
             if created:
                 obj.period = period
                 obj_created += 1
                 for k, v in self.account_categories.items():
-                    if k in obj.klass:
+                    if k in obj.public:
                         obj.imputation = v
                         break
             else:

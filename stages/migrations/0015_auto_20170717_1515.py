@@ -21,9 +21,4 @@ class Migration(migrations.Migration):
             model_name='course',
             name='section',
         ),
-        migrations.AlterField(
-            model_name='course',
-            name='imputation',
-            field=models.CharField(blank=True, default='', max_length=10, verbose_name='Imputation'),
-        ),
     ]
