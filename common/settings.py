@@ -153,4 +153,7 @@ INSTRUCTOR_IMPORT_MAPPING = {
 
 CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2017-2018"
 
-from .local_settings import *
+if 'TRAVIS' in os.environ:
+    SECRET_KEY = 'secretkeyfortravistests'
+else:
+    from .local_settings import *
