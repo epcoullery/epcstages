@@ -356,24 +356,8 @@ class HPImportView(ImportViewBase):
     mapping = {
         'NOMPERSO_ENS': 'teacher',
         'LIBELLE_MAT': 'subject',
-        'NOMPERSO_DIP': 'klass',
+        'NOMPERSO_DIP': 'public',
         'TOTAL': 'period',
-    }
-    # Mapping between klass field and imputation
-    account_categories = {
-        'ASAFE': 'ASA',
-        'ASEFE': 'ASE',
-        'ASSCFE': 'ASSC',
-        'MP': 'LEP',
-        'EDEpe': 'EDEpe',
-        'EDEps': 'EDEps',
-        'EDE': 'EDE',
-        'EDS': 'EDS',
-        'CAS-FPP': 'CAS-FPP',
-        'Mandat_ASSC': 'ASSC',
-        'Mandat_ASE': 'ASE',
-        'Mandat_EDE': 'EDE',
-        'Mandat_EDS': 'EDA',
     }
 
     def import_data(self, up_file):
@@ -398,15 +382,15 @@ class HPImportView(ImportViewBase):
             obj, created = Course.objects.get_or_create(
                 teacher = defaults['teacher'],
                 subject = defaults['subject'],
-                klass = defaults['klass'])
+                public = defaults['public'])
 
             period = int(float(line['TOTAL']))
             if created:
                 obj.period = period
                 obj_created += 1
-                for k, v in self.account_categories.items():
-                    if k in obj.klass:
-                        obj.imputation = v
+                for k in ['ASAFE', 'ASEFE', 'ASSCFE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP']:
+                    if k in obj.public:
+                        obj.imputation = k
                         break
             else:
                 obj.period += period
@@ -441,6 +425,13 @@ EXPORT_FIELDS = [
     ('Courriel contact', 'availability__contact__email'),
     ('Courriel contact - copie', None),
 ]
+
+IMPUTATIONS_EXPORT_FIELDS = [
+    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline', \
+    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur', \
+    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'   
+]
+
 
 NON_ATTR_EXPORT_FIELDS = [
     ('Filière', 'period__section__name'),
@@ -542,3 +533,50 @@ def stages_export(request, scope=None):
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
     return response
+
+
+def imputations_export(request):
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, Style
+    from openpyxl.writer.excel import save_virtual_workbook
+    
+    wb = Workbook()
+    ws = wb.get_active_sheet()
+    ws.title = 'Stages'
+    bold = Style(font=Font(bold=True))
+    for col_idx, header in enumerate(IMPUTATIONS_EXPORT_FIELDS, start=1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value = header
+        cell.style = bold
+    
+    for row_idx, teacher in enumerate(Teacher.objects.all(), start=2):
+        activities, imputations = teacher.calc_imputations()
+        ws.cell(row=row_idx, column=1).value = teacher.last_name
+        ws.cell(row=row_idx, column=2).value = teacher.first_name
+        ws.cell(row=row_idx, column=3).value = teacher.previous_report
+        ws.cell(row=row_idx, column=4).value = activities['tot_ens']
+        ws.cell(row=row_idx, column=5).value = 'Ens. prof.'
+        ws.cell(row=row_idx, column=6).value = activities['tot_mandats'] + activities['tot_formation']
+        ws.cell(row=row_idx, column=7).value = 'Accompagnement'
+        ws.cell(row=row_idx, column=8).value = activities['tot_paye']
+        ws.cell(row=row_idx, column=9).value = 'Charge globale'
+        ws.cell(row=row_idx, column=10).value = '{0:.2f}'.format(activities['tot_paye']/21.50)
+        ws.cell(row=row_idx, column=11).value = teacher.next_report
+        col_idx=12
+        for k, v in imputations.items():
+            ws.cell(row=row_idx, column=col_idx).value = v
+            col_idx+=1
+       
+    response = HttpResponse(
+        save_virtual_workbook(wb),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
+          'Imputations_export', date.strftime(date.today(), '%Y-%m-%d'))
+    return response   
+        
+        
+        
+    
+    
+    
