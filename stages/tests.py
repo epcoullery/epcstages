@@ -176,7 +176,7 @@ class ImportTests(TestCase):
         User.objects.create_user('me', 'me@example.org', 'mepassword')
 
     def test_import_gan(self):
-        path = os.path.join(os.path.dirname(__file__), 'test_files', 'EXPORT_GAN.xls')
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'EXPORT_GAN.xlsx')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
@@ -201,7 +201,7 @@ class ImportTests(TestCase):
         teacher = Teacher.objects.create(
             first_name='Laurie', last_name='Bernasconi', birth_date='1974-08-08'
         )
-        path = os.path.join(os.path.dirname(__file__), 'test_files', 'HYPERPLANNING.csv')
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'HYPERPLANNING.txt')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp'), {'upload': fh}, follow=True)
