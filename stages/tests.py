@@ -9,7 +9,7 @@ from django.utils.html import escape
 
 from .models import (
     Level, Domain, Section, Klass, Period, Student, Corporation, Availability,
-    CorpContact, Referent, Teacher, Training,
+    CorpContact, Teacher, Training,
 )
 from .utils import school_year
 
@@ -38,7 +38,7 @@ class StagesTest(TestCase):
             Student(first_name="André", last_name="Allemand", birth_date="1994-10-11",
                     pcode="2314", city="La Sagne", klass=klass2),
         ])
-        ref1 = Referent.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
+        ref1 = Teacher.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
         corp = Corporation.objects.create(
             name="Centre pédagogique XY", typ="Institution", street="Rue des champs 12",
             city="Moulineaux", pcode="2500",

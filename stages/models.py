@@ -194,23 +194,6 @@ class Student(models.Model):
         return student_values
 
 
-class Referent(models.Model):
-    first_name = models.CharField(max_length=40, verbose_name='Prénom')
-    last_name = models.CharField(max_length=40, verbose_name='Nom')
-    abrev = models.CharField(max_length=10, blank=True, verbose_name='Initiales')
-    email = models.EmailField(blank=True, verbose_name='Courriel')
-    archived = models.BooleanField(default=False, verbose_name='Archivé')
-
-    support_tabimport = True
-
-    class Meta:
-        verbose_name = "Référent"
-        ordering = ('last_name', 'first_name')
-
-    def __str__(self):
-        return '%s %s' % (self.last_name, self.first_name)
-
-
 class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
@@ -337,8 +320,6 @@ class Training(models.Model):
     """ Stages """
     student = models.ForeignKey(Student, verbose_name='Étudiant', on_delete=models.CASCADE)
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité', on_delete=models.CASCADE)
-    referent_old = models.ForeignKey(Referent, null=True, blank=True, verbose_name='Référent',
-        on_delete=models.SET_NULL)
     referent = models.ForeignKey(Teacher, null=True, blank=True, verbose_name='Référent',
         on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, verbose_name='Remarques')

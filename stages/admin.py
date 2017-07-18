@@ -8,7 +8,7 @@ from django.db import models
 from django.http import HttpResponse
 
 from stages.models import (
-    Teacher, Student, Section, Level, Klass, Referent, Corporation,
+    Teacher, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
 )
 from stages.pdf import ChargeSheetPDF
@@ -64,7 +64,7 @@ class KlassAdmin(admin.ModelAdmin):
 
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'abrev', 'email', 'archived')
-    list_filter = ('archived',)
+    list_filter = (('archived', ArchivedListFilter),)
     actions = [print_charge_sheet]
 
 
@@ -90,11 +90,6 @@ class StudentAdmin(admin.ModelAdmin):
         else:
             return self.readonly_fields
     '''
-
-
-class ReferentAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'abrev', 'email')
-    list_filter = (('archived', ArchivedListFilter),)
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -215,7 +210,6 @@ admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
 admin.site.register(Student, StudentAdmin)
-admin.site.register(Referent, ReferentAdmin)
 admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(Course)
 admin.site.register(Corporation, CorporationAdmin)

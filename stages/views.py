@@ -17,7 +17,7 @@ from django.views.generic import DetailView, FormView, TemplateView, ListView
 from .forms import PeriodForm, StudentImportForm, UploadHPFileForm
 from .models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Course, Period,
-    Training, Referent, Availability,
+    Training, Availability,
 )
 
 
@@ -147,7 +147,7 @@ class AttributionView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super(AttributionView, self).get_context_data(**kwargs)
         # Need 2 queries, because referents with no training item would not appear in the second query
-        referents = Referent.objects.filter(archived=False).order_by('last_name', 'first_name')
+        referents = Teacher.objects.filter(archived=False).order_by('last_name', 'first_name')
 
         # Populate each referent with the number of referencies done during the current school year
         ref_counts = dict([(ref.id, ref.num_refs)
@@ -260,7 +260,7 @@ def new_training(request):
     ref_key = request.POST.get('referent')
     cont_key = request.POST.get('contact')
     try:
-        ref = Referent.objects.get(pk=ref_key) if ref_key else None
+        ref = Teacher.objects.get(pk=ref_key) if ref_key else None
         contact = CorpContact.objects.get(pk=cont_key) if cont_key else None
         avail = Availability.objects.get(pk=request.POST.get('avail'))
         training = Training.objects.create(
