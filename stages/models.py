@@ -2,7 +2,7 @@ from datetime import date, timedelta
 import json
 
 from django.db import models
-
+from collections import OrderedDict
 from . import utils
 
 
@@ -101,6 +101,40 @@ class Teacher(models.Model):
             'report': tot_trav - tot_paye,
         }
 
+    def calc_imputations(self):
+        """
+        Return a tupple for accountings charges
+        """
+        activities = self.calc_activity()
+        imputations = OrderedDict()
+        courses = self.course_set.all()
+        
+        l1 = ['ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction']
+        for k in l1:
+            imputations[k] = courses.filter(imputation__contains=k).aggregate(models.Sum('period'))['period__sum'] or 0
+
+        tot = sum(imputations.values())
+        if tot > 0:
+            for k in l1:
+                imputations[k] += round(imputations[k] / tot * activities['tot_formation'])
+            
+        """
+        Split EDE périods in EDEpe and EDEps columns, in proportion
+        """
+        ede = courses.filter(imputation = 'EDE').aggregate(models.Sum('period'))['period__sum'] or 0
+        if ede > 0:
+            pe = imputations['EDEpe']
+            ps = imputations['EDEps']
+            pe_percent = pe / (pe + ps)
+            pe_plus = pe * pe_percent
+            imputations['EDEpe'] += pe_plus
+            imputations['EDEps'] += ede-pe_plus
+        
+        
+        return (self.calc_activity(), imputations)
+        
+        
+        
 
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
@@ -362,33 +396,22 @@ class Training(models.Model):
         }
 
 
-IMPUTATION_CHOICES = (
-    ('ASAFE', 'ASAFE'),
-    ('ASEFE', 'ASEFE'),
-    ('ASSCFE','ASSCFE'),
-    ('EDEpe', 'EDEpe'),
-    ('EDEps', 'EDEps'),
-    ('EDE', 'EDE'),
-    ('EDS', 'EDS'),
-    ('CAS-FPP', 'CAS-FPP'),
-)
-
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
         verbose_name="Enseignant-e", on_delete=models.SET_NULL)
-    klass = models.CharField("Classe(s)", max_length=40, default='')
+    public = models.CharField("Classe(s)", max_length=40, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
-    section = models.CharField("Section", max_length=10, default='')
+    #section = models.CharField("Section", max_length=10, default='')
     period = models.IntegerField("Nb de périodes", default=0)
     # Imputation comptable: compte dans lequel les frais du cours seront imputés
-    imputation = models.CharField("Imputation", max_length=10, choices=IMPUTATION_CHOICES)
+    imputation = models.CharField("Imputation", max_length=10, default='', blank=True)
 
     class Meta:
         verbose_name = 'Cours'
         verbose_name_plural = 'Cours'
 
     def __str__(self):
-        return '{0} - {1} - {2} - {3} - {4}'.format(
-            self.teacher, self.klass, self.subject, self.period, self.section
+        return '{0} - {1} - {2} - {3}'.format(
+            self.teacher, self.public, self.subject, self.period
         )
