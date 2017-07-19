@@ -208,6 +208,14 @@ class TeacherTests(TestCase):
         self.assertEqual(result[1]['ASSC'], 9)
         self.assertEqual(result[1]['EDEpe'], 5)
 
+    def test_export_imputations(self):
+        self.client.login(username='me', password='mepassword')
+        response = self.client.get(reverse('imputations_export'))
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename=Imputations_export%s.xlsx' % date.strftime(date.today(), '%Y-%m-%d')
+        )
+
 
 class ImportTests(TestCase):
     def setUp(self):

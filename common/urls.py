@@ -19,6 +19,8 @@ urlpatterns = [
     url(r'^classes/$', views.KlassListView.as_view(), name='classes'),
     url(r'^classes/(?P<pk>\d+)/$', views.KlassView.as_view(), name='class'),
 
+    url(r'^imputations/export/$', views.imputations_export, name='imputations_export'),
+
     # AJAX/JSON urls
     url(r'^section/(?P<pk>\d+)/periods/', views.section_periods, name='section_periods'),
     url(r'^section/(?P<pk>\d+)/classes/', views.section_classes, name='section_classes'),

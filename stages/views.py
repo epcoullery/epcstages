@@ -3,6 +3,10 @@ from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
 from tabimport import CSVImportedFile, FileFactory
+from openpyxl import Workbook
+from openpyxl.cell import get_column_letter
+from openpyxl.styles import Font, Style
+from openpyxl.writer.excel import save_virtual_workbook
 
 from django.conf import settings
 from django.contrib import messages
@@ -86,11 +90,6 @@ class KlassView(DetailView):
     def render_to_response(self, context, **response_kwargs):
         if self.request.GET.get('format') != 'xls':
             return super().render_to_response(context, **response_kwargs)
-
-        from openpyxl import Workbook
-        from openpyxl.cell import get_column_letter
-        from openpyxl.styles import Font, Style
-        from openpyxl.writer.excel import save_virtual_workbook
 
         wb = Workbook()
         ws = wb.get_active_sheet()
@@ -507,10 +506,6 @@ NON_ATTR_EXPORT_FIELDS = [
 ]
 
 def stages_export(request, scope=None):
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, Style
-    from openpyxl.writer.excel import save_virtual_workbook
-
     period_filter = request.GET.get('period')
     non_attributed = bool(int(request.GET.get('non_attr', 0)))
 
@@ -586,4 +581,47 @@ def stages_export(request, scope=None):
     )
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
+
+
+IMPUTATIONS_EXPORT_FIELDS = [
+    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
+    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
+    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'
+]
+
+def imputations_export(request):
+    wb = Workbook()
+    ws = wb.get_active_sheet()
+    ws.title = 'Imputations'
+    bold = Style(font=Font(bold=True))
+    for col_idx, header in enumerate(IMPUTATIONS_EXPORT_FIELDS, start=1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value = header
+        cell.style = bold
+
+    for row_idx, teacher in enumerate(Teacher.objects.all(), start=2):
+        activities, imputations = teacher.calc_imputations()
+        ws.cell(row=row_idx, column=1).value = teacher.last_name
+        ws.cell(row=row_idx, column=2).value = teacher.first_name
+        ws.cell(row=row_idx, column=3).value = teacher.previous_report
+        ws.cell(row=row_idx, column=4).value = activities['tot_ens']
+        ws.cell(row=row_idx, column=5).value = 'Ens. prof.'
+        ws.cell(row=row_idx, column=6).value = activities['tot_mandats'] + activities['tot_formation']
+        ws.cell(row=row_idx, column=7).value = 'Accompagnement'
+        ws.cell(row=row_idx, column=8).value = activities['tot_paye']
+        ws.cell(row=row_idx, column=9).value = 'Charge globale'
+        ws.cell(row=row_idx, column=10).value = '{0:.2f}'.format(activities['tot_paye']/21.50)
+        ws.cell(row=row_idx, column=11).value = teacher.next_report
+        col_idx=12
+        for k, v in imputations.items():
+            ws.cell(row=row_idx, column=col_idx).value = v
+            col_idx+=1
+
+    response = HttpResponse(
+        save_virtual_workbook(wb),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
+          'Imputations_export', date.strftime(date.today(), '%Y-%m-%d'))
     return response
