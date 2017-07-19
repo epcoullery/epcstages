@@ -122,7 +122,7 @@ class ContactInline(admin.StackedInline):
 
 
 class CorporationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'short_name', 'pcode', 'city')
+    list_display = ('name', 'short_name', 'pcode', 'city', 'ext_id')
     list_editable = ('short_name',)  # Temporarily?
     list_filter = (('archived', ArchivedListFilter),)
     search_fields = ('name', 'pcode', 'city')

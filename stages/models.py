@@ -1,10 +1,10 @@
-from datetime import date, timedelta
 import json
 
+from datetime import date, timedelta, datetime
 from django.db import models
+from collections import OrderedDict
 
 from . import utils
-
 
 def is_int(s):
     try:
@@ -102,6 +102,36 @@ class Teacher(models.Model):
             'report': tot_trav - tot_paye,
         }
 
+        
+    def calc_imputations(self):
+        """
+        Return a tuple for accountings charges
+        """
+        activities = self.calc_activity()
+        imputations = OrderedDict()
+        courses = self.course_set.all()
+
+        l1 = ['ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction']
+        for k in l1:
+            imputations[k] = courses.filter(imputation__contains=k).aggregate(models.Sum('period'))['period__sum'] or 0
+
+        tot = sum(imputations.values())
+        if tot > 0:
+            for k in l1:
+                imputations[k] += round(imputations[k] / tot * activities['tot_formation'])
+
+        #Split EDE périods in EDEpe and EDEps columns, in proportion
+        ede = courses.filter(imputation='EDE').aggregate(models.Sum('period'))['period__sum'] or 0
+        if ede > 0:
+            pe = imputations['EDEpe']
+            ps = imputations['EDEps']
+            pe_percent = pe / (pe + ps)
+            pe_plus = pe * pe_percent
+            imputations['EDEpe'] += pe_plus
+            imputations['EDEps'] += ede-pe_plus
+
+        return (self.calc_activity(), imputations)
+
 
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
@@ -158,6 +188,11 @@ class Student(models.Model):
     @classmethod
     def prepare_import(cls, student_values, corp_values, inst_values):
         ''' Hook for tabimport, before new object get created '''
+
+        if 'birth_date' in student_values:
+            date_object = datetime.strptime(student_values['birth_date'], '%d.%m.%Y')
+            student_values['birth_date'] = date_object
+        
         if 'klass' in student_values:
             try:
                 k = Klass.objects.get(name=student_values['klass'])
@@ -196,7 +231,7 @@ class Student(models.Model):
 
 class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
-    name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
+    name = models.CharField(max_length=100, verbose_name='Nom')
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
     parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
@@ -214,6 +249,7 @@ class Corporation(models.Model):
     class Meta:
         verbose_name = "Institution"
         ordering = ('name',)
+        unique_together=(('name','city'),)
 
     def __str__(self):
         sect = ' (%s)' % self.sector if self.sector else ''
