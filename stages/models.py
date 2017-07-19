@@ -1,5 +1,6 @@
-from datetime import date, timedelta
 import json
+from collections import OrderedDict
+from datetime import date, timedelta
 
 from django.db import models
 
@@ -93,6 +94,37 @@ class Teacher(models.Model):
             'tot_paye': tot_paye,
             'report': tot_trav - tot_paye,
         }
+
+    def calc_imputations(self):
+        """
+        Return a tuple for accountings charges
+        """
+        activities = self.calc_activity()
+        imputations = OrderedDict(
+            [('ASA', 0), ('ASSC', 0), ('ASE', 0), ('MP', 0), ('EDEpe', 0), ('EDEps', 0),
+             ('EDS', 0), ('CAS-FPP', 0), ('Direction', 0)]
+        )
+        courses = self.course_set.all()
+
+        for key in imputations:
+            imputations[key] = courses.filter(imputation__contains=key).aggregate(models.Sum('period'))['period__sum'] or 0
+
+        tot = sum(imputations.values())
+        if tot > 0:
+            for key in imputations:
+                imputations[key] += round(imputations[key] / tot * activities['tot_formation'])
+
+        # Split EDE périods in EDEpe and EDEps columns, in proportion
+        ede = courses.filter(imputation='EDE').aggregate(models.Sum('period'))['period__sum'] or 0
+        if ede > 0:
+            pe = imputations['EDEpe']
+            ps = imputations['EDEps']
+            pe_percent = pe / (pe + ps)
+            pe_plus = pe * pe_percent
+            imputations['EDEpe'] += pe_plus
+            imputations['EDEps'] += ede - pe_plus
+
+        return (self.calc_activity(), imputations)
 
 
 class Student(models.Model):
@@ -343,6 +375,6 @@ class Course(models.Model):
         verbose_name_plural = 'Cours'
 
     def __str__(self):
-        return '{0} - {1} - {2} - {3} - {4}'.format(
-            self.teacher, self.klass, self.subject, self.period, self.section
+        return '{0} - {1} - {2} - {3}'.format(
+            self.teacher, self.public, self.subject, self.period
         )

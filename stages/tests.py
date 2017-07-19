@@ -9,15 +9,14 @@ from django.utils.html import escape
 
 from .models import (
     Level, Domain, Section, Klass, Period, Student, Corporation, Availability,
-    CorpContact, Teacher, Training,
+    CorpContact, Teacher, Training, Course,
 )
 from .utils import school_year
 
 
 class StagesTest(TestCase):
     @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
+    def setUpTestData(cls):
         Section.objects.bulk_create([
             Section(name='ASE'), Section(name='ASSC'), Section(name='EDE')
         ])
@@ -159,13 +158,20 @@ class PeriodTest(TestCase):
 
 
 class TeacherTests(TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpTestData(cls):
         User.objects.create_superuser('me', 'me@example.org', 'mepassword')
+        cls.teacher = Teacher.objects.create(
+            first_name='Jeanne', last_name='Dubois', birth_date='1974-08-08'
+        )
+        Course.objects.create(
+            teacher=cls.teacher, period=8, subject='#ASE Colloque', imputation='ASSCFE',
+        )
+        Course.objects.create(
+            teacher=cls.teacher, period=4, subject='Sém. enfance 2', imputation='EDEpe',
+        )
 
     def test_export_charge_sheet(self):
-        Teacher.objects.create(
-            first_name='Laurie', last_name='Bernasconi', birth_date='1974-08-08'
-        )
         change_url = reverse('admin:stages_teacher_changelist')
         self.client.login(username='me', password='mepassword')
         response = self.client.post(change_url, {
@@ -178,6 +184,29 @@ class TeacherTests(TestCase):
         )
         self.assertEqual(response['Content-Type'], 'application/zip')
         self.assertGreater(len(response.content), 200)
+
+    def test_calc_activity(self):
+        expected = {
+            'tot_mandats': 8,
+            'tot_ens': 4,
+            'tot_formation': 2,
+            'tot_trav': 14,
+            'tot_paye': 14,
+            'report': 0,
+        }
+        effective = self.teacher.calc_activity()
+        self.assertEqual(list(effective['mandats']), list(Course.objects.filter(subject__startswith='#')))
+        del effective['mandats']
+        self.assertEqual(effective, expected)
+        # Second time for equivalence test
+        effective = self.teacher.calc_activity()
+        del effective['mandats']
+        self.assertEqual(effective, expected)
+
+    def test_calc_imputations(self):
+        result = self.teacher.calc_imputations()
+        self.assertEqual(result[1]['ASSC'], 9)
+        self.assertEqual(result[1]['EDEpe'], 5)
 
 
 class ImportTests(TestCase):
