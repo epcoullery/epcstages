@@ -19,6 +19,7 @@ from .models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
+from .utils import is_int
 
 
 def school_year_start():
@@ -319,32 +320,76 @@ class StudentImportView(ImportViewBase):
         corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
         instructor_mapping = settings.INSTRUCTOR_IMPORT_MAPPING
 
+        def strip(val):
+            return val.strip() if isinstance(val, str) else val
+
         obj_created = obj_modified = 0
+        seen_students_ids = set()
         for line in up_file:
             student_defaults = {
-                val: line[key] for key, val in student_mapping.items() if val != 'ext_id'
+                val: strip(line[key]) for key, val in student_mapping.items()
             }
-            corporation_defaults = {
-                val: line[key] for key, val in corporation_mapping.items()
-            }
-            instructor_defaults = {
-                val: line[key] for key, val in instructor_mapping.items()
-            }
+            if student_defaults['ext_id'] in seen_students_ids:
+                # Second line for student, ignore it
+                continue
+            seen_students_ids.add(student_defaults['ext_id'])
+            if isinstance(student_defaults['birth_date'], str):
+                student_defaults['birth_date'] = datetime.strptime(student_defaults['birth_date'], '%d.%m.%Y').date()
 
-            defaults = Student.prepare_import(
-                student_defaults, corporation_defaults, instructor_defaults
-            )
-            obj, created = Student.objects.get_or_create(
-                ext_id=line[student_rev_mapping['ext_id']], defaults=defaults)
-            if not created:
+            corporation_defaults = {
+                val: strip(line[key]) for key, val in corporation_mapping.items()
+            }
+            student_defaults['corporation'] = self.get_corporation(corporation_defaults)
+
+            instructor_defaults = {
+                val: strip(line[key]) for key, val in instructor_mapping.items()
+            }
+            student_defaults['instructor'] = self.get_instructor(student_defaults['corporation'], instructor_defaults)
+
+            defaults = Student.prepare_import(student_defaults)
+            try:
+                student = Student.objects.get(ext_id=student_defaults['ext_id'])
+                modified = False
                 for key, val in defaults.items():
-                    setattr(obj, key, val)
-                    obj.save()
-                obj_modified += 1
-            else:
+                    if getattr(student, key) != val:
+                        setattr(student, key, val)
+                        modified = True
+                if modified:
+                    student.save()
+                    obj_modified += 1
+            except Student.DoesNotExist:
+                student = Student.objects.create(**defaults)
                 obj_created += 1
         #FIXME: implement arch_staled
         return obj_created, obj_modified
+
+    def get_corporation(self, corp_values):
+        if corp_values['ext_id'] == '':
+            return None
+        if 'city' in corp_values and is_int(corp_values['city'][:4]):
+            corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
+        corp, created = Corporation.objects.get_or_create(
+            ext_id=corp_values['ext_id'],
+            defaults=corp_values
+        )
+        return corp
+
+    def get_instructor(self, corp, inst_values):
+        if inst_values['ext_id'] == '':
+            return None
+        try:
+            inst = CorpContact.objects.get(ext_id=inst_values['ext_id'])
+        except CorpContact.DoesNotExist:
+            try:
+                inst = corp.corpcontact_set.get(
+                    first_name__iexact=inst_values['first_name'], last_name__iexact=inst_values['last_name']
+                )
+                inst.ext_id = inst_values['ext_id']
+                inst.save()
+            except CorpContact.DoesNotExist:
+                inst_values['corporation'] = corp
+                inst = CorpContact.objects.create(**inst_values)
+        return inst
 
 
 class HPImportView(ImportViewBase):

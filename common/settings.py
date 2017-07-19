@@ -118,7 +118,7 @@ ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 
 # Mapping between column names of a tabular file and Student field names
 STUDENT_IMPORT_MAPPING = {
-    'NO_CLOEE': 'ext_id',
+    'NOCLOEE': 'ext_id',
     'NOM': 'last_name',
     'PRENOM': 'first_name',
     'RUE': 'street',
@@ -129,8 +129,6 @@ STUDENT_IMPORT_MAPPING = {
     'DATENAI': 'birth_date',
     'NAVS13': 'avs',
     'SEXE': 'gender',
-    'NO_EMPLOYEUR' : 'corporation',
-    'NO_FORMATEUR' : 'instructor',
     'CLASSE_ACTUELLE': 'klass',
 }
 

@@ -6,14 +6,6 @@ from django.db import models
 from . import utils
 
 
-def is_int(s):
-    try:
-        int(s)
-        return True
-    except ValueError:
-        return False
-
-
 class Section(models.Model):
     """ Filières """
     name = models.CharField(max_length=20, verbose_name='Nom')
@@ -156,7 +148,7 @@ class Student(models.Model):
         return '%d ans%s' % (age_y, ' %d m.' % age_m if age_m > 0 else '')
 
     @classmethod
-    def prepare_import(cls, student_values, corp_values, inst_values):
+    def prepare_import(cls, student_values):
         ''' Hook for tabimport, before new object get created '''
         if 'klass' in student_values:
             try:
@@ -165,30 +157,8 @@ class Student(models.Model):
                 raise Exception("La classe '%s' n'existe pas encore" % student_values['klass'])
             student_values['klass'] = k
 
-        if 'corporation' in student_values:
-            if 'city' in corp_values and is_int(corp_values['city'][:4]):
-                corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
-            if student_values['corporation'] != '':
-                obj, created = Corporation.objects.get_or_create(
-                    ext_id=student_values['corporation'],
-                    defaults = corp_values
-                )
-                inst_values['corporation'] = obj
-                student_values['corporation'] = obj
-            else:
-                student_values['corporation'] = None
-
-        if 'instructor' in student_values:
-            if student_values['instructor'] != '':
-                obj, created = CorpContact.objects.get_or_create(
-                    ext_id=student_values['instructor'],
-                    defaults = inst_values
-                )
-                student_values['instructor'] = obj
-            else:
-                student_values['instructor'] = None
         # See if postal code included in city, and split them
-        if 'city' in student_values and is_int(student_values['city'][:4]):
+        if 'city' in student_values and utils.is_int(student_values['city'][:4]):
             student_values['pcode'], _, student_values['city'] = student_values['city'].partition(' ')
         student_values['archived'] = False
         return student_values

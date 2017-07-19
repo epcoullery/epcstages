@@ -12,3 +12,11 @@ def school_year(date, as_tuple=False):
         return (start_year, start_year + 1)
     else:
         return "%d — %d" % (start_year, start_year + 1)
+
+
+def is_int(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False

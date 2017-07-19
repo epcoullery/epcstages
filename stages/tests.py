@@ -3,7 +3,7 @@ import os
 from datetime import date
 
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.html import escape
 
@@ -180,7 +180,8 @@ class ImportTests(TestCase):
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
-        self.assertContains(response, escape("La classe '1ASEFEa' n'existe pas encore"))
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertIn("La classe '1ASEFEa' n'existe pas encore", msg)
 
         lev1 = Level.objects.create(name='1')
         Klass.objects.create(
@@ -193,9 +194,10 @@ class ImportTests(TestCase):
             section=Section.objects.create(name='EDE'),
             level=lev1,
         )
-        with open(path, 'rb') as fh:
+        with open(path, 'rb') as fh:  # , override_settings(DEBUG=True):
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
-        self.assertContains(response, "Created objects: 2")
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertIn("Created objects: 2", msg)
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(
