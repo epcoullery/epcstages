@@ -45,7 +45,7 @@ class Level(models.Model):
 
 
 class Klass(models.Model):
-    name = models.CharField(max_length=10, verbose_name='Nom')
+    name = models.CharField(max_length=10, verbose_name='Nom', unique=True)
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     teacher = models.ForeignKey('Teacher', blank=True, null=True,
@@ -125,7 +125,7 @@ class Student(models.Model):
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
-        on_delete=models.SET_NULL)
+        on_delete=models.PROTECT)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
 
