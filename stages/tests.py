@@ -89,6 +89,15 @@ class StagesTest(TestCase):
         response3 = self.client.get(reverse('stages_export'), {'period': '1', 'non_attr': '1'})
         self.assertEqual(response2.status_code, 200)
 
+    def test_attribution_view(self):
+        response = self.client.get(reverse('attribution'))
+        # Section select
+        self.assertContains(response,
+            '<option value="%d">ASE</option>' % Section.objects.get(name='ASE').pk)
+        # Referent select
+        self.assertContains(response,
+            '<option value="%d">Caux Julie (0)</option>' % Teacher.objects.get(abrev="JCA").pk)
+
     def test_new_training(self):
         student = Student.objects.get(last_name='Varrin')
         avail = Availability.objects.get(pk=2)

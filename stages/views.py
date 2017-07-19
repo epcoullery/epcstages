@@ -152,7 +152,7 @@ class AttributionView(TemplateView):
 
         # Populate each referent with the number of referencies done during the current school year
         ref_counts = dict([(ref.id, ref.num_refs)
-                for ref in Referent.objects.filter(archived=False, training__availability__period__end_date__gte=school_year_start()
+                for ref in Teacher.objects.filter(archived=False, training__availability__period__end_date__gte=school_year_start()
                 ).annotate(num_refs=Count('training'))])
         for ref in referents:
             ref.num_refs = ref_counts.get(ref.id, 0)
