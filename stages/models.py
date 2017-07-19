@@ -166,7 +166,7 @@ class Student(models.Model):
 
 class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
-    name = models.CharField(max_length=100, verbose_name='Nom', unique=True)
+    name = models.CharField(max_length=100, verbose_name='Nom')
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
     parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
@@ -184,6 +184,7 @@ class Corporation(models.Model):
     class Meta:
         verbose_name = "Institution"
         ordering = ('name',)
+        unique_together=(('name', 'city'),)
 
     def __str__(self):
         sect = ' (%s)' % self.sector if self.sector else ''
