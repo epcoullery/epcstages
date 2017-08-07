@@ -41,8 +41,8 @@ class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom', unique=True)
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
-    teacher = models.ForeignKey('Teacher', blank=True, null=True,
-        on_delete=models.SET_NULL, verbose_name='Maître de classe')
+    teacher = models.ForeignKey('Teacher', blank=True, null=True, on_delete=models.SET_NULL,
+                                verbose_name='Maître de classe')
 
     class Meta:
         verbose_name = "Classe"
@@ -145,11 +145,11 @@ class Student(models.Model):
     dispense_eps = models.BooleanField(default=False)
     soutien_dys = models.BooleanField(default=False)
     corporation = models.ForeignKey('Corporation', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='Employeur')
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
-        on_delete=models.PROTECT)
+                              on_delete=models.PROTECT)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
 
@@ -195,6 +195,18 @@ class Student(models.Model):
         student_values['archived'] = False
         return student_values
 
+    @property
+    def civility(self):
+        return 'Monsieur' if self.gender == 'M' else 'Madame'
+
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
+
 
 class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
@@ -202,7 +214,7 @@ class Corporation(models.Model):
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
     parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
-        on_delete=models.SET_NULL)
+                               on_delete=models.SET_NULL)
     sector = models.CharField(max_length=40, blank=True, verbose_name='Secteur')
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
@@ -216,11 +228,14 @@ class Corporation(models.Model):
     class Meta:
         verbose_name = "Institution"
         ordering = ('name',)
-        unique_together=(('name', 'city'),)
+        unique_together = (('name', 'city'),)
 
     def __str__(self):
         sect = ' (%s)' % self.sector if self.sector else ''
         return "%s%s, %s %s" % (self.name, sect, self.pcode, self.city)
+
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
 
 
 class CorpContact(models.Model):
@@ -299,8 +314,8 @@ class Availability(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
     period = models.ForeignKey(Period, verbose_name='Période', on_delete=models.CASCADE)
     domain = models.ForeignKey(Domain, verbose_name='Domaine', on_delete=models.CASCADE)
-    contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution',
-        on_delete=models.SET_NULL)
+    contact = models.ForeignKey(CorpContact, null=True, blank=True,
+                                verbose_name='Contact institution', on_delete=models.SET_NULL)
     priority = models.BooleanField('Prioritaire', default=False)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
@@ -323,8 +338,7 @@ class Training(models.Model):
     """ Stages """
     student = models.ForeignKey(Student, verbose_name='Étudiant', on_delete=models.CASCADE)
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité', on_delete=models.CASCADE)
-    referent = models.ForeignKey(Teacher, null=True, blank=True, verbose_name='Référent',
-        on_delete=models.SET_NULL)
+    referent = models.ForeignKey(Teacher, null=True, blank=True, verbose_name='Référent', on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
@@ -352,7 +366,7 @@ class Training(models.Model):
 IMPUTATION_CHOICES = (
     ('ASAFE', 'ASAFE'),
     ('ASEFE', 'ASEFE'),
-    ('ASSCFE','ASSCFE'),
+    ('ASSCFE', 'ASSCFE'),
     ('EDEpe', 'EDEpe'),
     ('EDEps', 'EDEps'),
     ('EDE', 'EDE'),
@@ -360,10 +374,11 @@ IMPUTATION_CHOICES = (
     ('CAS-FPP', 'CAS-FPP'),
 )
 
+
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
-        verbose_name="Enseignant-e", on_delete=models.SET_NULL)
+                                verbose_name="Enseignant-e", on_delete=models.SET_NULL)
     public = models.CharField("Classe(s)", max_length=40, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
