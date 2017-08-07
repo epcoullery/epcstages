@@ -1,4 +1,8 @@
 import json
+import os
+import tempfile
+import zipfile
+
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
@@ -23,6 +27,8 @@ from .models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
+from .pdf import (UpdateDataFormPDF)
+
 from .utils import is_int
 
 
@@ -423,7 +429,7 @@ class HPImportView(ImportViewBase):
     def import_data(self, up_file):
         obj_created = obj_modified = 0
 
-        #Pour accélérer la recherche
+        # Pour accélérer la recherche
         profs = {}
         for t in Teacher.objects.all():
             profs[t.__str__()] = t
@@ -440,9 +446,9 @@ class HPImportView(ImportViewBase):
             }
 
             obj, created = Course.objects.get_or_create(
-                teacher = defaults['teacher'],
-                subject = defaults['subject'],
-                public = defaults['public'])
+                teacher=defaults['teacher'],
+                subject=defaults['subject'],
+                public=defaults['public'])
 
             period = int(float(line['TOTAL']))
             if created:
@@ -486,6 +492,7 @@ EXPORT_FIELDS = [
     ('Courriel contact - copie', None),
 ]
 
+
 NON_ATTR_EXPORT_FIELDS = [
     ('Filière', 'period__section__name'),
     ('Nom du stage', 'period__title'),
@@ -504,6 +511,7 @@ NON_ATTR_EXPORT_FIELDS = [
     ('Courriel contact', 'contact__email'),
     ('Courriel contact - copie', None),
 ]
+
 
 def stages_export(request, scope=None):
     period_filter = request.GET.get('period')
@@ -590,6 +598,7 @@ IMPUTATIONS_EXPORT_FIELDS = [
     'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'
 ]
 
+
 def imputations_export(request):
     wb = Workbook()
     ws = wb.get_active_sheet()
@@ -613,10 +622,10 @@ def imputations_export(request):
         ws.cell(row=row_idx, column=9).value = 'Charge globale'
         ws.cell(row=row_idx, column=10).value = '{0:.2f}'.format(activities['tot_paye']/21.50)
         ws.cell(row=row_idx, column=11).value = teacher.next_report
-        col_idx=12
+        col_idx = 12
         for k, v in imputations.items():
             ws.cell(row=row_idx, column=col_idx).value = v
-            col_idx+=1
+            col_idx += 1
 
     response = HttpResponse(
         save_virtual_workbook(wb),
@@ -624,4 +633,22 @@ def imputations_export(request):
     )
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'Imputations_export', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
+
+
+def print_update_form(request):
+    """
+    PDF form to update personal data
+    """
+    zipfilename = '/tmp/modification.zip' 
+
+    with zipfile.ZipFile(zipfilename, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+        for klass in Klass.objects.filter(level__gte=2).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
+            path = os.path.join(tempfile.gettempdir(), '{0}.pdf'.format(klass.name))        
+            pdf = UpdateDataFormPDF(path)
+            pdf.produce(klass)
+            filezip.write(pdf.filename)
+    with open(filezip.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(zipfilename)
     return response
