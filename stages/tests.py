@@ -18,15 +18,24 @@ class StagesTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         Section.objects.bulk_create([
-            Section(name='ASE'), Section(name='ASSC'), Section(name='EDE')
+            Section(name='ASE'), Section(name='ASSC'), Section(name='EDE'), Section(name='EDS')
         ])
         sect_ase = Section.objects.get(name='ASE')
         lev1 = Level.objects.create(name='1')
         lev2 = Level.objects.create(name='2')
         klass1 = Klass.objects.create(name="1ASE3", section=sect_ase, level=lev1)
         klass2 = Klass.objects.create(name="2ASE3", section=sect_ase, level=lev2)
+        klass3 = Klass.objects.create(name="2EDS", section=Section.objects.get(name='EDS'), level=lev2)
         dom_hand = Domain.objects.create(name="handicap")
         dom_pe = Domain.objects.create(name="petite enfance")
+        corp = Corporation.objects.create(
+            name="Centre pédagogique XY", typ="Institution", street="Rue des champs 12",
+            city="Moulineaux", pcode="2500",
+        )
+        contact = CorpContact.objects.create(
+            corporation=corp, title="Monsieur", first_name="Jean", last_name="Horner",
+            is_main=True, role="Responsable formation",
+        )
         Student.objects.bulk_create([
             Student(first_name="Albin", last_name="Dupond", birth_date="1994-05-12",
                     pcode="2300", city="La Chaux-de-Fonds", klass=klass1),
@@ -36,16 +45,10 @@ class StagesTest(TestCase):
                     pcode="2053", city="Cernier", klass=klass1),
             Student(first_name="André", last_name="Allemand", birth_date="1994-10-11",
                     pcode="2314", city="La Sagne", klass=klass2),
+            Student(first_name="Gil", last_name="Schmid", birth_date="1996-02-14",
+                    pcode="2000", city="Neuchâtel", klass=klass3, corporation=corp),
         ])
         ref1 = Teacher.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
-        corp = Corporation.objects.create(
-            name="Centre pédagogique XY", typ="Institution", street="Rue des champs 12",
-            city="Moulineaux", pcode="2500",
-        )
-        contact = CorpContact.objects.create(
-            corporation=corp, title="Monsieur", first_name="Jean", last_name="Horner",
-            is_main=True, role="Responsable formation",
-        )
         cls.p1 = Period.objects.create(
             title="Stage de pré-sensibilisation", start_date="2012-11-26", end_date="2012-12-07",
             section=sect_ase, level=lev1,
@@ -129,6 +132,14 @@ class StagesTest(TestCase):
         decoded = json.loads(response.content.decode('utf-8'))
         self.assertEqual(len(decoded), 2)
         self.assertEqual([item['priority'] for item in decoded], [True, False])
+
+    def test_export_update_forms(self):
+        self.client.login(username='me', password='mepassword')
+        response = self.client.get(reverse('print_update_form'))
+        self.assertEqual(
+            response['Content-Disposition'], 'attachment; filename="modification.zip"'
+        )
+        self.assertGreater(int(response['Content-Length']), 10)
 
 
 class PeriodTest(TestCase):

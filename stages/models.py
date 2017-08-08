@@ -161,6 +161,18 @@ class Student(models.Model):
     def __str__(self):
         return '%s %s' % (self.last_name, self.first_name)
 
+    @property
+    def civility(self):
+        return 'Monsieur' if self.gender == 'M' else 'Madame'
+
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
+
     def save(self, **kwargs):
         if self.archived and not self.archived_text:
             # Fill archived_text with training data, JSON-formatted
@@ -221,6 +233,10 @@ class Corporation(models.Model):
     def __str__(self):
         sect = ' (%s)' % self.sector if self.sector else ''
         return "%s%s, %s %s" % (self.name, sect, self.pcode, self.city)
+
+    @property
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
 
 
 class CorpContact(models.Model):

@@ -1,4 +1,7 @@
 import json
+import os
+import tempfile
+import zipfile
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
@@ -23,6 +26,7 @@ from .models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
+from .pdf import UpdateDataFormPDF
 from .utils import is_int
 
 
@@ -627,4 +631,23 @@ def imputations_export(request):
     )
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'Imputations_export', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
+
+
+def print_update_form(request):
+    """
+    PDF form to update personal data
+    """
+    tmp_file = tempfile.NamedTemporaryFile()
+    with zipfile.ZipFile(tmp_file, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+        for klass in Klass.objects.filter(level__gte=2).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
+            path = os.path.join(tempfile.gettempdir(), '{0}.pdf'.format(klass.name))
+            pdf = UpdateDataFormPDF(path)
+            pdf.produce(klass)
+            filezip.write(pdf.filename)
+            break
+
+    with open(filezip.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/zip')
+    response['Content-Disposition'] = 'attachment; filename="modification.zip"'
     return response

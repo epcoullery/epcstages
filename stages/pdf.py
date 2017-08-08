@@ -71,3 +71,109 @@ class ChargeSheetPDF(SimpleDocTemplate):
         self.story.append(Paragraph('la direction', style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
+
+
+class UpdateDataFormPDF(SimpleDocTemplate):
+    """
+    Génération des formulaires PDF de mise à jour des données.
+    """
+    def __init__(self, path):
+        super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
+        self.text = (
+            "Afin de mettre à jour nos bases de données, nous vous serions reconnaissant "
+            "de contrôler les données ci-dessous qui vous concernent selon votre filière "
+            "et de retourner le présent document corrigé et complété à votre maître de classe jusqu'au "
+            "vendredi 9 septembre prochain.<br/><br/>"
+            "Nous vous remercions de votre précieuse collaboration.<br/><br/>"
+            "Le secrétariat"
+        )
+        self.underline = '__________________________________'
+
+    def produce(self, klass):
+        self.story = []
+        for student in klass.student_set.all():
+            self.story.append(Image(find('img/header.gif'), width=520, height=75))
+            self.story.append(Spacer(0, 2*cm))
+            destinataire = '{0}<br/>{1}<br/>{2}'.format(student.civility, student.full_name, student.klass)
+            self.story.append(Paragraph(destinataire, style_adress))
+            self.story.append(Spacer(0, 2*cm))
+            self.story.append(Paragraph('{0},<br/>'.format(student.civility), style_normal))
+            self.story.append(Paragraph(self.text, style_normal))
+            self.story.append(Spacer(0, 2*cm))
+
+            data = [['Données enregistrées', 'Données corrigées et/ou complétées']]
+            t = Table(data, colWidths=[8*cm, 8*cm])
+            t.setStyle(TableStyle([
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('FONT', (0, 0), (-1, -1), 'Helvetica-Bold'),
+            ]))
+            t.hAlign = TA_CENTER
+            self.story.append(t)
+
+            # Personal data
+            data = [
+                ['NOM', student.last_name, self.underline],
+                ['PRENOM', student.first_name, self.underline],
+                ['ADRESSE', student.street, self.underline],
+                ['LOCALITE', student.pcode_city, self.underline],
+                ['MOBILE', student.mobile, self.underline],
+                ['CLASSE', student.klass, self.underline],
+                ['', '', ''],
+            ]
+
+            # Corporation data
+            if self.is_corp_required(student.klass.name):
+                if student.corporation is None:
+                    data.extend([
+                        ["Données de l'Employeur", '', ''],
+                        ['NOM', '', self.underline],
+                        ['ADRESSE', '', self.underline],
+                        ['LOCALITE', '', self.underline],
+                        ['', '', '']
+                    ])
+                else:
+                    data.extend([
+                        ["Données de l'Employeur", '', ''],
+                        ['NOM', student.corporation.name, self.underline],
+                        ['ADRESSE', student.corporation.street, self.underline],
+                        ['LOCALITE', student.corporation.pcode_city, self.underline],
+                        ['', '', '']
+                    ])
+
+            # Instructor data
+            if self.is_instr_required(student.klass.name):
+                if student.instructor is None:
+                    data.extend([
+                        ['Données du FEE/FPP (personne de contact pour les informations)', '', ''],
+                        ['NOM', '', self.underline],
+                        ['PRENOM', '', self.underline],
+                        ['TELEPHONE', '', self.underline],
+                        ['E-MAIL', '', self.underline],
+                    ])
+                else:
+                    data.extend([
+                        ['Données du FEE/FPP (personne de contact pour les informations)', '', ''],
+                        ['NOM', student.instructor.last_name, self.underline],
+                        ['PRENOM', student.instructor.first_name, self.underline],
+                        ['TELEPHONE', student.instructor.tel, self.underline],
+                        ['E-MAIL', student.instructor.email, self.underline],
+                    ])
+
+            t = Table(data, colWidths=[3*cm, 5*cm, 8*cm])
+            t.setStyle(TableStyle([
+                ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                ('FONT', (0, 0), (0, -1), 'Helvetica-Bold'),
+            ]))
+            t.hAlign = TA_CENTER
+            self.story.append(t)
+            self.story.append(PageBreak())
+        if len(self.story) == 0:
+            self.story.append(Paragraph("Pas d'élèves dans cette classe", style_normal))
+
+        self.build(self.story)
+
+    def is_corp_required(self, klass_name):
+        return any(el in klass_name for el in ['FE', 'EDS', 'EDEpe'])
+
+    def is_instr_required(self, klass_name):
+        return any(el in klass_name for el in ['FE', 'EDS'])
