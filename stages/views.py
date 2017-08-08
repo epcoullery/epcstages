@@ -324,6 +324,11 @@ class StudentImportView(ImportViewBase):
 
         obj_created = obj_modified = 0
         seen_students_ids = set()
+
+        for student in Student.objects.all():
+            student.import_updated = False
+            student.save()
+
         for line in up_file:
             student_defaults = {
                 val: strip(line[key]) for key, val in student_mapping.items()
@@ -486,6 +491,7 @@ EXPORT_FIELDS = [
     ('Courriel contact - copie', None),
 ]
 
+
 NON_ATTR_EXPORT_FIELDS = [
     ('Filière', 'period__section__name'),
     ('Nom du stage', 'period__title'),
@@ -589,6 +595,7 @@ IMPUTATIONS_EXPORT_FIELDS = [
     'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
     'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'
 ]
+
 
 def imputations_export(request):
     wb = Workbook()
