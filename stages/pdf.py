@@ -13,9 +13,7 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle as PS
 
-style_8_c = PS(name='CORPS', fontName='Helvetica', fontSize=6, alignment = TA_CENTER)
 style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_LEFT)
-style_mandat = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_LEFT, leftIndent=30)
 style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment = TA_LEFT)
 style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment = TA_LEFT, spaceBefore=2*cm)
 style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=10, alignment = TA_LEFT, leftIndent=280)
@@ -43,37 +41,29 @@ class ChargeSheetPDF(SimpleDocTemplate):
 
         data = [[settings.CHARGE_SHEET_TITLE]]
 
-        data.append(["Report de l'année précédente",
-                     '{0:3d} pér.'.format(self.teacher.previous_report) ])
-        data.append(['Mandats',
-                     '{0:3d} pér.'.format(activities['tot_mandats'])])
+        data.append(["Report de l'année précédente", '{0:3d} pér.'.format(self.teacher.previous_report)])
+        data.append(['Mandats', '{0:3d} pér.'.format(activities['tot_mandats'])])
 
         for act in activities['mandats']:
             data.append(['    * {0} ({1} pér.)'.format(act.subject, act.period)])
 
-        data.append(['Enseignement (coef.2)',
-                     '{0:3d} pér.'.format(activities['tot_ens'])])
-        data.append(['Formation continue et autres tâches',
-                     '{0:3d} pér.'.format(activities['tot_formation'])])
-        data.append(['Total des heures travaillées',
-                     '{0:3d} pér.'.format(activities['tot_trav']),
+        data.append(['Enseignement (coef.2)', '{0:3d} pér.'.format(activities['tot_ens'])])
+        data.append(['Formation continue et autres tâches', '{0:3d} pér.'.format(activities['tot_formation'])])
+        data.append(['Total des heures travaillées', '{0:3d} pér.'.format(activities['tot_trav']),
                      '{0:4.1f} %'.format(activities['tot_trav']/21.50)])
-        data.append(['Total des heures payées',
-                     '{0:3d} pér.'.format(activities['tot_paye']),
+        data.append(['Total des heures payées', '{0:3d} pér.'.format(activities['tot_paye']),
                      '{0:4.1f} %'.format(activities['tot_paye']/21.50)])
-        data.append(["Report à l'année prochaine",
-                     '{0:3d} pér.'.format(activities['report'])])
+        data.append(["Report à l'année prochaine", '{0:3d} pér.'.format(activities['report'])])
 
-        t = Table(data, colWidths=[12*cm, 2*cm, 2*cm] )
-        t.setStyle(TableStyle([('ALIGN',(1,0),(-1,-1),'RIGHT'),
-                               ('FONT', (0,0),(-1,0), 'Helvetica-Bold'),
-                               ('LINEBELOW', (0,0),(-1,0), 0.5, colors.black),
-                               ('LINEABOVE', (0,-3) ,(-1,-1), 0.5, colors.black),
-                               ('FONT', (0,-2),(-1,-2), 'Helvetica-Bold'),
+        t = Table(data, colWidths=[12*cm, 2*cm, 2*cm])
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+                               ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                               ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.black),
+                               ('LINEABOVE', (0, -3) ,(-1, -1), 0.5, colors.black),
+                               ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
                                ]))
         t.hAlign = TA_CENTER
         self.story.append(t)
-
         self.story.append(Spacer(0, 2*cm))
         d = 'La Chaux-de-Fonds, le {0}'.format(date.today().strftime('%d.%m.%y'))
         self.story.append(Paragraph(d, style_normal))

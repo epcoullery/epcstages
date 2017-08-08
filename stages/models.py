@@ -216,7 +216,7 @@ class Corporation(models.Model):
     class Meta:
         verbose_name = "Institution"
         ordering = ('name',)
-        unique_together=(('name', 'city'),)
+        unique_together = (('name', 'city'),)
 
     def __str__(self):
         sect = ' (%s)' % self.sector if self.sector else ''
@@ -352,13 +352,14 @@ class Training(models.Model):
 IMPUTATION_CHOICES = (
     ('ASAFE', 'ASAFE'),
     ('ASEFE', 'ASEFE'),
-    ('ASSCFE','ASSCFE'),
+    ('ASSCFE', 'ASSCFE'),
     ('EDEpe', 'EDEpe'),
     ('EDEps', 'EDEps'),
     ('EDE', 'EDE'),
     ('EDS', 'EDS'),
     ('CAS-FPP', 'CAS-FPP'),
 )
+
 
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""

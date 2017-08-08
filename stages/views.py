@@ -423,7 +423,7 @@ class HPImportView(ImportViewBase):
     def import_data(self, up_file):
         obj_created = obj_modified = 0
 
-        #Pour accélérer la recherche
+        # Pour accélérer la recherche
         profs = {}
         for t in Teacher.objects.all():
             profs[t.__str__()] = t
@@ -440,9 +440,9 @@ class HPImportView(ImportViewBase):
             }
 
             obj, created = Course.objects.get_or_create(
-                teacher = defaults['teacher'],
-                subject = defaults['subject'],
-                public = defaults['public'])
+                teacher=defaults['teacher'],
+                subject=defaults['subject'],
+                public=defaults['public'])
 
             period = int(float(line['TOTAL']))
             if created:
@@ -486,6 +486,7 @@ EXPORT_FIELDS = [
     ('Courriel contact - copie', None),
 ]
 
+
 NON_ATTR_EXPORT_FIELDS = [
     ('Filière', 'period__section__name'),
     ('Nom du stage', 'period__title'),
@@ -504,6 +505,7 @@ NON_ATTR_EXPORT_FIELDS = [
     ('Courriel contact', 'contact__email'),
     ('Courriel contact - copie', None),
 ]
+
 
 def stages_export(request, scope=None):
     period_filter = request.GET.get('period')
@@ -590,6 +592,7 @@ IMPUTATIONS_EXPORT_FIELDS = [
     'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'
 ]
 
+
 def imputations_export(request):
     wb = Workbook()
     ws = wb.get_active_sheet()
@@ -613,10 +616,10 @@ def imputations_export(request):
         ws.cell(row=row_idx, column=9).value = 'Charge globale'
         ws.cell(row=row_idx, column=10).value = '{0:.2f}'.format(activities['tot_paye']/21.50)
         ws.cell(row=row_idx, column=11).value = teacher.next_report
-        col_idx=12
+        col_idx = 12
         for k, v in imputations.items():
             ws.cell(row=row_idx, column=col_idx).value = v
-            col_idx+=1
+            col_idx += 1
 
     response = HttpResponse(
         save_virtual_workbook(wb),
