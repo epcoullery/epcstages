@@ -553,6 +553,10 @@ def stages_export(request, scope=None):
                 default_contacts[contact.corporation.name][section.name] = contact
             if contact.always_cc:
                 always_ccs[contact.corporation.name][section.name].append(contact)
+        if contact.is_main:
+            for sname in section_names:
+                if not default_contacts[contact.corporation.name][sname]:
+                    default_contacts[contact.corporation.name][sname] = contact
 
     wb = Workbook()
     ws = wb.get_active_sheet()
@@ -572,10 +576,13 @@ def stages_export(request, scope=None):
             # Use default contact
             contact = default_contacts.get(tr[corp_name_field], {}).get(tr[export_fields['Filière']])
             if contact:
-                ws.cell(row=row_idx, column=col_idx-3).value = contact.title
-                ws.cell(row=row_idx, column=col_idx-2).value = contact.first_name
-                ws.cell(row=row_idx, column=col_idx-1).value = contact.last_name
-                ws.cell(row=row_idx, column=col_idx).value = contact.email
+                contact_col_idx = list(export_fields.keys()).index('Civilité contact') + 1
+                ws.cell(row=row_idx, column=contact_col_idx).value = contact.title
+                ws.cell(row=row_idx, column=contact_col_idx + 1).value = contact.first_name
+                ws.cell(row=row_idx, column=contact_col_idx + 2).value = contact.last_name
+                ws.cell(row=row_idx, column=contact_col_idx + 3).value = contact.ext_id
+                ws.cell(row=row_idx, column=contact_col_idx + 4).value = contact.tel
+                ws.cell(row=row_idx, column=contact_col_idx + 5).value = contact.email
         if always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']]):
             ws.cell(row=row_idx, column=col_idx+1).value = "; ".join(
                 [c.email for c in always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']])]
