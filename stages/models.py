@@ -114,12 +114,12 @@ class Teacher(models.Model):
             for key in imputations:
                 imputations[key] += round(imputations[key] / tot * activities['tot_formation'])
 
-        # Split EDE périods in EDEpe and EDEps columns, in proportion
+        # Split EDE periods in EDEpe and EDEps columns, in proportion
         ede = courses.filter(imputation='EDE').aggregate(models.Sum('period'))['period__sum'] or 0
         if ede > 0:
             pe = imputations['EDEpe']
             ps = imputations['EDEps']
-            pe_percent = pe / (pe + ps)
+            pe_percent = pe / (pe + ps) if pe + ps > 0 else 0
             pe_plus = pe * pe_percent
             imputations['EDEpe'] += pe_plus
             imputations['EDEps'] += ede - pe_plus
