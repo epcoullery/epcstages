@@ -4,6 +4,7 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.staticfiles.finders import find
+from django.utils.text import slugify
 
 from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
                                 PageBreak, Table, TableStyle, Image)
@@ -27,7 +28,7 @@ class ChargeSheetPDF(SimpleDocTemplate):
 
     def __init__(self, teacher):
         self.teacher = teacher
-        filename = '{0}_{1}.pdf'.format(teacher.last_name, teacher.first_name)
+        filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
         path = os.path.join(tempfile.gettempdir(), filename)
         super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
 
