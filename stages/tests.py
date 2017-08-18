@@ -218,6 +218,16 @@ class TeacherTests(TestCase):
         result = self.teacher.calc_imputations()
         self.assertEqual(result[1]['ASSC'], 9)
         self.assertEqual(result[1]['EDEpe'], 5)
+        # Test with only EDE data
+        t2 = Teacher.objects.create(
+            first_name='Isidore', last_name='Gluck', birth_date='1986-01-01'
+        )
+        Course.objects.create(
+            teacher=t2, period=5, subject='Cours EDE', imputation='EDE',
+        )
+        result = t2.calc_imputations()
+        self.assertEqual(result[1]['EDEpe'], 2)
+        self.assertEqual(result[1]['EDEps'], 3)
 
     def test_export_imputations(self):
         self.client.login(username='me', password='mepassword')
