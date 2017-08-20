@@ -35,4 +35,6 @@ urlpatterns = [
     url(r'^student/(?P<pk>\d+)/summary/', views.StudentSummaryView.as_view()),
     url(r'^availability/(?P<pk>\d+)/summary/', views.AvailabilitySummaryView.as_view()),
     url(r'^corporation/(?P<pk>\d+)/contacts/', views.CorpContactJSONView.as_view()),
+
+    url(r'^import_teacher_json/$', views.import_json_teacher, name='import-teacher'),
 ]

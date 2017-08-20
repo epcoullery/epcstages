@@ -83,8 +83,16 @@ class Teacher(models.Model):
         tot_formation = int(round((tot_mandats + tot_ens) / 1900 * 250))
         tot_trav = self.previous_report + tot_mandats + tot_ens + tot_formation
         tot_paye = tot_trav
-        if self.rate == 100 and tot_paye != 100:
+        if self.rate == 100 and tot_paye < 2150:
             tot_paye = 2150
+            self.next_report = tot_trav - tot_paye
+        if tot_paye > 2150:
+            tot_paye = 2150
+            self.next_report = tot_paye - tot_trav
+
+
+        self.save()
+
         return {
             'mandats': mandats,
             'tot_mandats': tot_mandats,
@@ -92,7 +100,7 @@ class Teacher(models.Model):
             'tot_formation': tot_formation,
             'tot_trav': tot_trav,
             'tot_paye': tot_paye,
-            'report': tot_trav - tot_paye,
+            'report': self.next_report,
         }
 
     def calc_imputations(self):
@@ -102,7 +110,7 @@ class Teacher(models.Model):
         activities = self.calc_activity()
         imputations = OrderedDict(
             [('ASA', 0), ('ASSC', 0), ('ASE', 0), ('MP', 0), ('EDEpe', 0), ('EDEps', 0),
-             ('EDS', 0), ('CAS-FPP', 0), ('Direction', 0)]
+             ('EDS', 0), ('CAS_FPP', 0), ('Direction', 0)]
         )
         courses = self.course_set.all()
 
@@ -119,8 +127,8 @@ class Teacher(models.Model):
         if ede > 0:
             pe = imputations['EDEpe']
             ps = imputations['EDEps']
-            pe_percent = pe / (pe + ps)
-            pe_plus = pe * pe_percent
+            pe_percent = (pe / (pe + ps)) if (pe+ps) > 0 else 0.5
+            pe_plus = round(ede * pe_percent)
             imputations['EDEpe'] += pe_plus
             imputations['EDEps'] += ede - pe_plus
 
@@ -369,11 +377,12 @@ IMPUTATION_CHOICES = (
     ('ASAFE', 'ASAFE'),
     ('ASEFE', 'ASEFE'),
     ('ASSCFE', 'ASSCFE'),
+    ('MP', 'MP'),
     ('EDEpe', 'EDEpe'),
     ('EDEps', 'EDEps'),
     ('EDE', 'EDE'),
     ('EDS', 'EDS'),
-    ('CAS-FPP', 'CAS-FPP'),
+    ('CAS_FPP', 'CAS_FPP'),
 )
 
 
