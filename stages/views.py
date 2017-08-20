@@ -24,7 +24,7 @@ from django.views.generic import DetailView, FormView, TemplateView, ListView
 from .forms import PeriodForm, StudentImportForm, UploadHPFileForm
 from .models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Course, Period,
-    Training, Availability,
+    Training, Availability, Level
 )
 from .pdf import UpdateDataFormPDF
 from .utils import is_int
@@ -409,19 +409,20 @@ class HPImportView(ImportViewBase):
     }
     # Mapping between klass field and imputation
     account_categories = {
-        'ASAFE': 'ASA',
-        'ASEFE': 'ASE',
-        'ASSCFE': 'ASSC',
-        'MP': 'LEP',
+        'ASAFE': 'ASAFE',
+        'ASEFE': 'ASEFE',
+        'ASSCFE': 'ASSCFE',
+        'MP': 'MP',
         'EDEpe': 'EDEpe',
         'EDEps': 'EDEps',
         'EDE': 'EDE',
         'EDS': 'EDS',
-        'CAS-FPP': 'CAS-FPP',
-        'Mandat_ASSC': 'ASSC',
-        'Mandat_ASE': 'ASE',
+        'CAS_FPP': 'CAS_FPP',
+        'Mandat_ASA': 'ASAFE',
+        'Mandat_ASSC': 'ASSCFE',
+        'Mandat_ASE': 'ASEFE',
         'Mandat_EDE': 'EDE',
-        'Mandat_EDS': 'EDA',
+        'Mandat_EDS': 'EDS',
     }
 
     def import_data(self, up_file):
@@ -440,13 +441,14 @@ class HPImportView(ImportViewBase):
             defaults = {
                 'teacher': profs[line['NOMPERSO_ENS']],
                 'subject': line['LIBELLE_MAT'],
-                'public': line['NOMPERSO_DIP'],
+                'public': line['NOMPERSO_DIP']
             }
 
             obj, created = Course.objects.get_or_create(
                 teacher=defaults['teacher'],
                 subject=defaults['subject'],
-                public=defaults['public'])
+                public=defaults['public'],
+                defaults=defaults)
 
             period = int(float(line['TOTAL']))
             if created:
@@ -600,7 +602,7 @@ def stages_export(request, scope=None):
 IMPUTATIONS_EXPORT_FIELDS = [
     'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
     'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'
+    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
 ]
 
 
