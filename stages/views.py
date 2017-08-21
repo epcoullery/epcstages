@@ -328,6 +328,11 @@ class StudentImportView(ImportViewBase):
 
         obj_created = obj_modified = 0
         seen_students_ids = set()
+
+        for student in Student.objects.all():
+            student.import_updated = False
+            student.save()
+
         for line in up_file:
             student_defaults = {
                 val: strip(line[key]) for key, val in student_mapping.items()

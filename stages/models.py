@@ -41,8 +41,8 @@ class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom', unique=True)
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
-    teacher = models.ForeignKey('Teacher', blank=True, null=True,
-        on_delete=models.SET_NULL, verbose_name='Maître de classe')
+    teacher = models.ForeignKey('Teacher', blank=True, null=True, on_delete=models.SET_NULL,
+                                verbose_name='Maître de classe')
 
     class Meta:
         verbose_name = "Classe"
@@ -66,7 +66,7 @@ class Teacher(models.Model):
     archived = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name='Enseignant'
+        verbose_name = 'Enseignant'
         ordering = ('last_name', 'first_name')
 
     def __str__(self):
@@ -145,13 +145,13 @@ class Student(models.Model):
     dispense_eps = models.BooleanField(default=False)
     soutien_dys = models.BooleanField(default=False)
     corporation = models.ForeignKey('Corporation', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='Employeur')
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='FEE/FPP')
-    klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
-        on_delete=models.PROTECT)
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+    klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True, on_delete=models.PROTECT)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
+    import_updated = models.BooleanField(default=False)
 
     support_tabimport = True
 
@@ -205,6 +205,7 @@ class Student(models.Model):
         if 'city' in student_values and utils.is_int(student_values['city'][:4]):
             student_values['pcode'], _, student_values['city'] = student_values['city'].partition(' ')
         student_values['archived'] = False
+        student_values['import_updated'] = True
         return student_values
 
 
@@ -214,7 +215,7 @@ class Corporation(models.Model):
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
     parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
-        on_delete=models.SET_NULL)
+                               on_delete=models.SET_NULL)
     sector = models.CharField(max_length=40, blank=True, verbose_name='Secteur')
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
@@ -316,7 +317,7 @@ class Availability(models.Model):
     period = models.ForeignKey(Period, verbose_name='Période', on_delete=models.CASCADE)
     domain = models.ForeignKey(Domain, verbose_name='Domaine', on_delete=models.CASCADE)
     contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution',
-        on_delete=models.SET_NULL)
+                                on_delete=models.SET_NULL)
     priority = models.BooleanField('Prioritaire', default=False)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
@@ -340,7 +341,7 @@ class Training(models.Model):
     student = models.ForeignKey(Student, verbose_name='Étudiant', on_delete=models.CASCADE)
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité', on_delete=models.CASCADE)
     referent = models.ForeignKey(Teacher, null=True, blank=True, verbose_name='Référent',
-        on_delete=models.SET_NULL)
+                                 on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
