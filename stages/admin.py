@@ -81,7 +81,10 @@ class StudentAdmin(admin.ModelAdmin):
     actions = ['archive']
 
     def archive(self, request, queryset):
-        queryset.update(archived=True)
+        for student in queryset:
+            # Save each item individually to allow for custom save() logic.
+            student.archived = True
+            student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
     '''def get_readonly_fields(self, request, obj=None):
