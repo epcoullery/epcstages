@@ -5,6 +5,7 @@ import zipfile
 from django import forms
 from django.contrib import admin
 from django.db import models
+from django.db.models import Case, Count, When
 from django.http import HttpResponse
 
 from stages.models import (
@@ -56,6 +57,15 @@ class ArchivedListFilter(admin.BooleanFieldListFilter):
         return super().queryset(request, queryset)
 
 
+class KlassRelatedListFilter(admin.RelatedFieldListFilter):
+    def field_choices(self, field, request, model_admin):
+        return [
+            (k.pk, k.name) for k in Klass.objects.annotate(
+                num_students=Count(Case(When(student__archived=False, then=1)))
+            ).filter(num_students__gt=0).order_by('name')
+        ]
+
+
 class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section')
     ordering = ('name',)
@@ -71,7 +81,7 @@ class TeacherAdmin(admin.ModelAdmin):
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
-    list_filter = (('archived', ArchivedListFilter), 'klass')
+    list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
               ('email', 'tel', 'mobile'), ('avs', 'birth_date'),
