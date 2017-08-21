@@ -285,7 +285,8 @@ class Domain(models.Model):
 class Period(models.Model):
     """ Périodes de stages """
     title = models.CharField(max_length=150, verbose_name='Titre')
-    section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
+    section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT,
+        limit_choices_to={'name__startswith': 'MP'})
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')

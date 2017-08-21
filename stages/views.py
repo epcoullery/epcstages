@@ -162,7 +162,7 @@ class AttributionView(TemplateView):
 
         context.update({
             #'period_form': PeriodForm(),
-            'sections': Section.objects.all(),
+            'sections': Section.objects.filter(name__startswith='MP'),
             'referents': referents,
         })
         return context

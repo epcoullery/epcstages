@@ -18,9 +18,9 @@ class StagesTest(TestCase):
     @classmethod
     def setUpTestData(cls):
         Section.objects.bulk_create([
-            Section(name='ASE'), Section(name='ASSC'), Section(name='EDE'), Section(name='EDS')
+            Section(name='MP_ASE'), Section(name='MP_ASSC'), Section(name='EDE'), Section(name='EDS')
         ])
-        sect_ase = Section.objects.get(name='ASE')
+        sect_ase = Section.objects.get(name='MP_ASE')
         lev1 = Level.objects.create(name='1')
         lev2 = Level.objects.create(name='2')
         klass1 = Klass.objects.create(name="1ASE3", section=sect_ase, level=lev1)
@@ -95,7 +95,7 @@ class StagesTest(TestCase):
         response = self.client.get(reverse('attribution'))
         # Section select
         self.assertContains(response,
-            '<option value="%d">ASE</option>' % Section.objects.get(name='ASE').pk)
+            '<option value="%d">MP_ASE</option>' % Section.objects.get(name='MP_ASE').pk)
         # Referent select
         self.assertContains(response,
             '<option value="%d">Caux Julie (0)</option>' % Teacher.objects.get(abrev="JCA").pk)
@@ -144,7 +144,7 @@ class StagesTest(TestCase):
 
 class PeriodTest(TestCase):
     def setUp(self):
-        self.section = Section.objects.create(name="ASE")
+        self.section = Section.objects.create(name="MP_ASE")
         self.level1 = Level.objects.create(name='1')
         self.level2 = Level.objects.create(name='2')
 
