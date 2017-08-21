@@ -102,7 +102,7 @@ class Teacher(models.Model):
         activities = self.calc_activity()
         imputations = OrderedDict(
             [('ASA', 0), ('ASSC', 0), ('ASE', 0), ('MP', 0), ('EDEpe', 0), ('EDEps', 0),
-             ('EDS', 0), ('CAS-FPP', 0), ('Direction', 0)]
+             ('EDS', 0), ('CAS_FPP', 0), ('Direction', 0)]
         )
         courses = self.course_set.all()
 
@@ -369,11 +369,12 @@ IMPUTATION_CHOICES = (
     ('ASAFE', 'ASAFE'),
     ('ASEFE', 'ASEFE'),
     ('ASSCFE', 'ASSCFE'),
+    ('MP', 'MP'),
     ('EDEpe', 'EDEpe'),
     ('EDEps', 'EDEps'),
     ('EDE', 'EDE'),
     ('EDS', 'EDS'),
-    ('CAS-FPP', 'CAS-FPP'),
+    ('CAS_FPP', 'CAS_FPP'),
 )
 
 

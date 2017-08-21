@@ -409,19 +409,20 @@ class HPImportView(ImportViewBase):
     }
     # Mapping between klass field and imputation
     account_categories = {
-        'ASAFE': 'ASA',
-        'ASEFE': 'ASE',
-        'ASSCFE': 'ASSC',
-        'MP': 'LEP',
+        'ASAFE': 'ASAFE',
+        'ASEFE': 'ASEFE',
+        'ASSCFE': 'ASSCFE',
+        'MP': 'MP',
         'EDEpe': 'EDEpe',
         'EDEps': 'EDEps',
         'EDE': 'EDE',
         'EDS': 'EDS',
-        'CAS-FPP': 'CAS-FPP',
-        'Mandat_ASSC': 'ASSC',
-        'Mandat_ASE': 'ASE',
+        'CAS_FPP': 'CAS_FPP',
+        'Mandat_ASA': 'ASAFE',
+        'Mandat_ASSC': 'ASSCFE',
+        'Mandat_ASE': 'ASEFE',
         'Mandat_EDE': 'EDE',
-        'Mandat_EDS': 'EDA',
+        'Mandat_EDS': 'EDS',
     }
 
     def import_data(self, up_file):
@@ -600,7 +601,7 @@ def stages_export(request, scope=None):
 IMPUTATIONS_EXPORT_FIELDS = [
     'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
     'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'
+    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
 ]
 
 

@@ -73,7 +73,7 @@ class Migration(migrations.Migration):
                 ('public', models.CharField(default='', max_length=200, verbose_name='Classe(s)')),
                 ('subject', models.CharField(default='', max_length=100, verbose_name='Sujet')),
                 ('period', models.IntegerField(default=0, verbose_name='Nb de périodes')),
-                ('imputation', models.CharField(choices=[('ASAFE', 'ASAFE'), ('ASEFE', 'ASEFE'), ('ASSCFE', 'ASSCFE'), ('EDEpe', 'EDEpe'), ('EDEps', 'EDEps'), ('EDE', 'EDE'), ('EDS', 'EDS'), ('CAS-FPP', 'CAS-FPP')], max_length=10, verbose_name='Imputation')),
+                ('imputation', models.CharField(choices=[('ASAFE', 'ASAFE'), ('ASEFE', 'ASEFE'), ('ASSCFE', 'ASSCFE'), ('MP', 'MP'), ('EDEpe', 'EDEpe'), ('EDEps', 'EDEps'), ('EDE', 'EDE'), ('EDS', 'EDS'), ('CAS_FPP', 'CAS_FPP')], max_length=10, verbose_name='Imputation')),
             ],
             options={
                 'verbose_name_plural': 'Cours',
