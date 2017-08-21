@@ -65,6 +65,9 @@ class Teacher(models.Model):
     next_report = models.IntegerField(default=0, verbose_name='Report suivant')
     archived = models.BooleanField(default=False)
 
+    MAX_ENS_PERIODS = 1900
+    MAX_FORMATION = 250
+
     class Meta:
         verbose_name='Enseignant'
         ordering = ('last_name', 'first_name')
@@ -80,11 +83,19 @@ class Teacher(models.Model):
         ens = self.course_set.exclude(subject__startswith='#')
         tot_mandats = mandats.aggregate(models.Sum('period'))['period__sum'] or 0
         tot_ens = ens.aggregate(models.Sum('period'))['period__sum'] or 0
-        tot_formation = int(round((tot_mandats + tot_ens) / 1900 * 250))
+        # formation periods calculated at pro-rata of total charge
+        tot_formation = int(round((tot_mandats + tot_ens) / self.MAX_ENS_PERIODS * self.MAX_FORMATION))
         tot_trav = self.previous_report + tot_mandats + tot_ens + tot_formation
         tot_paye = tot_trav
-        if self.rate == 100 and tot_paye != 100:
-            tot_paye = 2150
+        max_periods = self.MAX_ENS_PERIODS + self.MAX_FORMATION
+        # Special situations triggering reporting (positive or negative) hours for next year:
+        #  - full-time teacher with a total charge under 100%
+        #  - teachers with a total charge over 100%
+        if (self.rate == 100 and tot_paye < max_periods) or (tot_paye > max_periods):
+            tot_paye = max_periods
+            self.next_report = tot_paye - tot_trav
+            self.save()
+
         return {
             'mandats': mandats,
             'tot_mandats': tot_mandats,
@@ -92,7 +103,7 @@ class Teacher(models.Model):
             'tot_formation': tot_formation,
             'tot_trav': tot_trav,
             'tot_paye': tot_paye,
-            'report': tot_trav - tot_paye,
+            'report': self.next_report,
         }
 
     def calc_imputations(self):
