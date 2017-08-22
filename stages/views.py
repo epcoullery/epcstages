@@ -615,7 +615,7 @@ def imputations_export(request):
         cell.value = header
         cell.style = bold
 
-    for row_idx, teacher in enumerate(Teacher.objects.all(), start=2):
+    for row_idx, teacher in enumerate(Teacher.objects.filter(archived=False), start=2):
         activities, imputations = teacher.calc_imputations()
         ws.cell(row=row_idx, column=1).value = teacher.last_name
         ws.cell(row=row_idx, column=2).value = teacher.first_name
