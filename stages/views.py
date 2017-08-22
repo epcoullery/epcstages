@@ -413,6 +413,7 @@ class HPImportView(ImportViewBase):
         'ASEFE': 'ASEFE',
         'ASSCFE': 'ASSCFE',
         'MP': 'MP',
+        'CMS': 'MP',
         'EDEpe': 'EDEpe',
         'EDEps': 'EDEps',
         'EDE': 'EDE',
