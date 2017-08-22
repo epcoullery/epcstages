@@ -78,6 +78,7 @@ class Teacher(models.Model):
     def calc_activity(self):
         """
         Return a dictionary of calculations relative to teacher courses.
+        Store plus/minus periods to self.next_report.
         """
         mandats = self.course_set.filter(subject__startswith='#')
         ens = self.course_set.exclude(subject__startswith='#')
@@ -91,10 +92,11 @@ class Teacher(models.Model):
         # Special situations triggering reporting (positive or negative) hours for next year:
         #  - full-time teacher with a total charge under 100%
         #  - teachers with a total charge over 100%
+        self.next_report = 0
         if (self.rate == 100 and tot_paye < max_periods) or (tot_paye > max_periods):
             tot_paye = max_periods
-            self.next_report = tot_paye - tot_trav
-            self.save()
+            self.next_report = tot_trav - tot_paye
+        self.save()
 
         return {
             'mandats': mandats,

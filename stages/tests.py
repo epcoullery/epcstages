@@ -173,7 +173,8 @@ class TeacherTests(TestCase):
     def setUpTestData(cls):
         User.objects.create_superuser('me', 'me@example.org', 'mepassword')
         cls.teacher = Teacher.objects.create(
-            first_name='Jeanne', last_name='Dubois', birth_date='1974-08-08', rate=50.0
+            first_name='Jeanne', last_name='Dubois', birth_date='1974-08-08',
+            rate=50.0, next_report=1,
         )
         Course.objects.create(
             teacher=cls.teacher, period=8, subject='#ASE Colloque', imputation='ASSCFE',
@@ -213,6 +214,7 @@ class TeacherTests(TestCase):
         effective = self.teacher.calc_activity()
         del effective['mandats']
         self.assertEqual(effective, expected)
+        self.assertEqual(self.teacher.next_report, 0)
 
         # Test over max hours per year for a full time
         self.teacher.rate = 100.0
@@ -228,9 +230,9 @@ class TeacherTests(TestCase):
             'tot_formation': Teacher.MAX_FORMATION + 1,
             'tot_trav': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION + 1 + 8,
             'tot_paye': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION,
-            'report': -8 - 1,
+            'report': 8 + 1,
         })
-        self.assertEqual(self.teacher.next_report, -8 - 1)
+        self.assertEqual(self.teacher.next_report, 8 + 1)
 
         # Test below max hours per year for a full time
         crs.period = Teacher.MAX_ENS_PERIODS - 4 - 10
@@ -243,9 +245,9 @@ class TeacherTests(TestCase):
             'tot_formation': Teacher.MAX_FORMATION,
             'tot_trav': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION + 8 - 10,
             'tot_paye': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION,
-            'report': 2,
+            'report': -2,
         })
-        self.assertEqual(self.teacher.next_report, 2)
+        self.assertEqual(self.teacher.next_report, -2)
 
     def test_calc_imputations(self):
         result = self.teacher.calc_imputations()
