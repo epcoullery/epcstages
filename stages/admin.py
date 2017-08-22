@@ -221,6 +221,8 @@ class TrainingAdmin(admin.ModelAdmin):
 
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'public', 'subject', 'period', 'imputation')
+    list_filter = ('imputation', )
+    search_fields = ('teacher__last_name', 'public', 'subject')
 
 
 admin.site.register(Section)
