@@ -654,7 +654,6 @@ def print_update_form(request):
             pdf = UpdateDataFormPDF(path)
             pdf.produce(klass)
             filezip.write(pdf.filename)
-            break
 
     with open(filezip.filename, mode='rb') as fh:
         response = HttpResponse(fh.read(), content_type='application/zip')
