@@ -376,7 +376,7 @@ class StudentImportView(ImportViewBase):
             defaults=corp_values
         )
         return corp
-
+    """
     def get_instructor(self, corp, inst_values):
         if inst_values['ext_id'] == '':
             return None
@@ -393,6 +393,18 @@ class StudentImportView(ImportViewBase):
                 inst_values['corporation'] = corp
                 inst = CorpContact.objects.create(**inst_values)
         return inst
+    """
+
+    def get_instructor(self, corp, inst_values):
+        try:
+            inst = CorpContact.objects.get(
+                first_name__iexact=inst_values['first_name'], last_name__iexact=inst_values['last_name']
+            )
+        except CorpContact.DoesNotExist:
+            inst_values['corporation'] = corp
+            inst = CorpContact.objects.create(**inst_values)
+        return inst
+
 
 
 class HPImportView(ImportViewBase):
