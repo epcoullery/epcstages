@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^import_students/', views.StudentImportView.as_view(), name='import-students'),
     url(r'^import_hp/', views.HPImportView.as_view(), name='import-hp'),
+    url(r'^import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
 
     url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),
     url(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),

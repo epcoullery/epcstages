@@ -301,14 +301,19 @@ class ImportViewBase(FormView):
                 imp_file = CSVImportedFile(File(upfile))
             else:
                 imp_file = FileFactory(upfile)
-            created, modified = self.import_data(imp_file)
+            stats = self.import_data(imp_file)
         except Exception as e:
             if settings.DEBUG:
                 raise
             messages.error(self.request, _("The import failed. Error message: %s") % e)
         else:
-            messages.info(self.request, _("Created objects: %(cr)d, modified objects: %(mod)d") % {
-                'cr': created, 'mod': modified})
+            non_fatal_errors = stats.get('errors', [])
+            if 'created' in stats:
+                messages.info(self.request, "Objets créés : %d" % stats['created'])
+            if 'modified' in stats:
+                messages.info(self.request, "Objets modifiés : %d" % stats['modified'])
+            if non_fatal_errors:
+                messages.warning(self.request, "Erreurs rencontrées: %s" % "\n".join(non_fatal_errors))
         return HttpResponseRedirect(reverse('admin:index'))
 
 
@@ -344,11 +349,6 @@ class StudentImportView(ImportViewBase):
             }
             student_defaults['corporation'] = self.get_corporation(corporation_defaults)
 
-            instructor_defaults = {
-                val: strip(line[key]) for key, val in instructor_mapping.items()
-            }
-            student_defaults['instructor'] = self.get_instructor(student_defaults['corporation'], instructor_defaults)
-
             defaults = Student.prepare_import(student_defaults)
             try:
                 student = Student.objects.get(ext_id=student_defaults['ext_id'])
@@ -364,7 +364,7 @@ class StudentImportView(ImportViewBase):
                 student = Student.objects.create(**defaults)
                 obj_created += 1
         #FIXME: implement arch_staled
-        return obj_created, obj_modified
+        return {'created': obj_created, 'modified': obj_modified}
 
     def get_corporation(self, corp_values):
         if corp_values['ext_id'] == '':
@@ -376,23 +376,6 @@ class StudentImportView(ImportViewBase):
             defaults=corp_values
         )
         return corp
-
-    def get_instructor(self, corp, inst_values):
-        if inst_values['ext_id'] == '':
-            return None
-        try:
-            inst = CorpContact.objects.get(ext_id=inst_values['ext_id'])
-        except CorpContact.DoesNotExist:
-            try:
-                inst = corp.corpcontact_set.get(
-                    first_name__iexact=inst_values['first_name'], last_name__iexact=inst_values['last_name']
-                )
-                inst.ext_id = inst_values['ext_id']
-                inst.save()
-            except CorpContact.DoesNotExist:
-                inst_values['corporation'] = corp
-                inst = CorpContact.objects.create(**inst_values)
-        return inst
 
 
 class HPImportView(ImportViewBase):
@@ -462,7 +445,54 @@ class HPImportView(ImportViewBase):
                 obj.period += period
                 obj_modified += 1
             obj.save()
-        return obj_created, obj_modified
+        return {'created': obj_created, 'modified': obj_modified}
+
+
+class HPContactsImportView(ImportViewBase):
+    """
+    Importation du fichier Hyperplanning contenant les formateurs d'étudiants.
+    """
+    form_class = UploadHPFileForm
+
+    def import_data(self, up_file):
+        obj_modified = 0
+        errors = []
+        for line in up_file:
+            try:
+                student = Student.objects.get(ext_id=int(line['UID_ETU']))
+            except Student.DoesNotExist:
+                errors.append(
+                    "Impossible de trouver l'étudiant avec le numéro %s" % int(line['UID_ETU'])
+                )
+                continue
+            try:
+                corp = Corporation.objects.get(ext_id=int(line['NoSIRET']))
+            except Corporation.DoesNotExist:
+                errors.append(
+                    "Impossible de trouver l'institution avec le numéro %s" % int(line['NoSIRET'])
+                )
+                continue
+
+            # Check corporation matches
+            if student.corporation_id != corp.pk:
+                # This import has priority over the corporation set by StudentImportView
+                student.corporation = corp
+                student.save()
+
+            contact = corp.corpcontact_set.filter(
+                first_name__iexact=line['PRENOMMDS'].strip(),
+                last_name__iexact=line['NOMMDS'].strip()
+            ).first()
+            if contact is None:
+                contact = CorpContact.objects.create(
+                    corporation=corp, first_name=line['PRENOMMDS'].strip(),
+                    last_name=line['NOMMDS'].strip(), title=line['CIVMDS'], email=line['EMAILMDS']
+                )
+            if student.instructor != contact:
+                student.instructor = contact
+                student.save()
+                obj_modified += 1
+        return {'modified': obj_modified, 'errors': errors}
 
 
 EXPORT_FIELDS = [

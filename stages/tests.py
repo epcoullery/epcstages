@@ -299,7 +299,11 @@ class ImportTests(TestCase):
         with open(path, 'rb') as fh:  # , override_settings(DEBUG=True):
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
-        self.assertIn("Created objects: 2", msg)
+        self.assertIn("Objets créés : 2", msg)
+        student1 = Student.objects.get(last_name='Fellmann')
+        self.assertEqual(student1.corporation.name, "Crèche Les Mousaillons")
+        # Instructor not set through this import
+        self.assertIsNone(student1.instructor)
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(
@@ -309,5 +313,23 @@ class ImportTests(TestCase):
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp'), {'upload': fh}, follow=True)
-        self.assertContains(response, "Created objects: 13, modified objects: 10")
+        self.assertContains(response, "Objets créés : 13")
+        self.assertContains(response, "Objets modifiés : 10")
         self.assertEqual(teacher.course_set.count(), 13)
+
+    def test_import_hp_contacts(self):
+        # Those data should have been imported with the student main import file.
+        corp = Corporation.objects.create(
+            ext_id=44444, name="Crèche Les Mousaillons", typ="Institution", street="Rue des champs 12",
+            city="Moulineaux", pcode="2500"
+        )
+        st1 = Student.objects.create(
+            ext_id=164718, first_name='Margot', last_name='Fellmann', birth_date="1994-05-12",
+            pcode="2300", city="La Chaux-de-Fonds", corporation=corp)
+
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'Export_HP_Formateurs.xlsx')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-hp-contacts'), {'upload': fh}, follow=True)
+        st1.refresh_from_db()
+        self.assertEqual(st1.instructor.last_name, 'Geiser')
