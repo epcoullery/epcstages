@@ -87,7 +87,6 @@ class StudentAdmin(admin.ModelAdmin):
               ('email', 'tel', 'mobile'), ('avs', 'birth_date'),
               ('dispense_ecg', 'dispense_eps', 'soutien_dys'), ('klass', 'archived'),
               ('corporation', 'instructor'))
-    readonly_fields = ('ext_id',)
     actions = ['archive']
 
     def archive(self, request, queryset):
