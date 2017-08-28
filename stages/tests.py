@@ -326,10 +326,15 @@ class ImportTests(TestCase):
         st1 = Student.objects.create(
             ext_id=164718, first_name='Margot', last_name='Fellmann', birth_date="1994-05-12",
             pcode="2300", city="La Chaux-de-Fonds", corporation=corp)
+        Student.objects.create(
+            ext_id=53476, first_name='Jojo', last_name='Semaine', birth_date="1997-01-03",
+            pcode="2300", city="La Chaux-de-Fonds", corporation=None)
 
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'Export_HP_Formateurs.xlsx')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp-contacts'), {'upload': fh}, follow=True)
+        self.assertContains(response, "Impossible de trouver l&#39;étudiant avec le numéro 10")
+        self.assertContains(response, "NoSIRET est vide à ligne 4. Ligne ignorée")
         st1.refresh_from_db()
         self.assertEqual(st1.instructor.last_name, 'Geiser')

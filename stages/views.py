@@ -457,12 +457,17 @@ class HPContactsImportView(ImportViewBase):
     def import_data(self, up_file):
         obj_modified = 0
         errors = []
-        for line in up_file:
+        for idx, line in enumerate(up_file, start=2):
             try:
                 student = Student.objects.get(ext_id=int(line['UID_ETU']))
             except Student.DoesNotExist:
                 errors.append(
                     "Impossible de trouver l'étudiant avec le numéro %s" % int(line['UID_ETU'])
+                )
+                continue
+            if not line['NoSIRET']:
+                errors.append(
+                    "NoSIRET est vide à ligne %d. Ligne ignorée" % idx
                 )
                 continue
             try:
