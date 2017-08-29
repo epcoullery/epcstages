@@ -500,10 +500,19 @@ class HPContactsImportView(ImportViewBase):
 
 
 EXPORT_FIELDS = [
-    ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
+    # Student fields
     ('ID externe', 'student__ext_id'),
+    ('Prénom', 'student__first_name'), ('Nom', 'student__last_name'),
+    ('Titre', 'student__gender'),
     ('Classe', 'student__klass__name'),
     ('Filière', 'student__klass__section__name'),
+    ('Rue élève', 'student__street'),
+    ('Localité élève', 'student__city'),
+    ('Tél élève', 'student__tel'),
+    ('Email élève', 'student__email'),
+    ('Date de naissance', 'student__birth_date'),
+    ('No AVS', 'student__avs'),
+    # Stage fields
     ('Nom du stage', 'availability__period__title'),
     ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
     ('Remarques stage', 'comment'),
@@ -607,7 +616,10 @@ def stages_export(request, scope=None):
     query_keys = [f for f in export_fields.values() if f is not None]
     for row_idx, tr in enumerate(query.values(*query_keys), start=2):
         for col_idx, field in enumerate(query_keys, start=1):
-            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+            value = tr[field]
+            if 'gender' in field:
+                value = {'F': 'Madame', 'M': 'Monsieur', '': ''}[value]
+            ws.cell(row=row_idx, column=col_idx).value = value
         if tr[contact_test_field] is None:
             # Use default contact
             contact = default_contacts.get(tr[corp_name_field], {}).get(tr[export_fields['Filière']])
