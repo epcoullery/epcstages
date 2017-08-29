@@ -140,6 +140,13 @@ class Teacher(models.Model):
         return (self.calc_activity(), imputations)
 
 
+class Option(models.Model):
+    name = models.CharField("Nom", max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
@@ -154,6 +161,7 @@ class Student(models.Model):
     mobile = models.CharField(max_length=40, blank=True, verbose_name='Portable')
     email = models.EmailField(verbose_name='Courriel', blank=True)
     avs = models.CharField(max_length=15, blank=True, verbose_name='No AVS')
+    option_ase = models.ForeignKey(Option, null=True, blank=True, on_delete=models.SET_NULL)
     dispense_ecg = models.BooleanField(default=False)
     dispense_eps = models.BooleanField(default=False)
     soutien_dys = models.BooleanField(default=False)
