@@ -80,7 +80,7 @@ class StagesTest(TestCase):
     def setUp(self):
         self.client.login(username='me', password='mepassword')
 
-    def test_export(self):
+    def test_export_stages(self):
         response1 = self.client.get(reverse('stages_export', args=['all']))
         self.assertEqual(response1.status_code, 200)
 
@@ -90,6 +90,10 @@ class StagesTest(TestCase):
 
         response3 = self.client.get(reverse('stages_export'), {'period': '1', 'non_attr': '1'})
         self.assertEqual(response2.status_code, 200)
+
+    def test_export_students(self):
+        response = self.client.get(reverse('general-export'))
+        self.assertEqual(response.status_code, 200)
 
     def test_attribution_view(self):
         response = self.client.get(reverse('attribution'))

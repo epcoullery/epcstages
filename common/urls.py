@@ -22,6 +22,7 @@ urlpatterns = [
 
     url(r'^imputations/export/$', views.imputations_export, name='imputations_export'),
     url(r'^print/update_form/$', views.print_update_form, name='print_update_form'),
+    url(r'^general_export/$', views.general_export, name='general-export'),
 
     # AJAX/JSON urls
     url(r'^section/(?P<pk>\d+)/periods/', views.section_periods, name='section_periods'),
