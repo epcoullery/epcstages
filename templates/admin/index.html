@@ -73,13 +73,14 @@
     <div class="module" id="custom-actions-module">
     <h2>Importation/exportation</h2>
     <ul>
-      <li><a href="{% url 'import-students' %}">Importer un fichier d'étudiants</a></li>
-      <li><a href="{% url 'import-hp' %}">Importer le fichier HP</a></li>
-      <li><a href="{% url 'import-hp-contacts' %}">Importer les formateurs (fichier HP)</a></li>
-      <li style="margin-top: 1em;"><a href="{% url 'stages_export' %}">Exporter les données de stages</a> (récentes)</li>
-      <li><a href="{% url 'stages_export' 'all' %}">Exporter les données de stages</a> (toutes)</li>
-      <li><a href="{% url 'imputations_export' %}">Exporter les données comptables</a></li>
-      <li><a href="{% url 'print_update_form' %}">Imprimer les formulaires de MAJ</a></li>
+        <li><a href="{% url 'import-students' %}">Importer un fichier d'étudiants</a></li>
+        <li><a href="{% url 'import-hp' %}">Importer le fichier HP</a></li>
+        <li><a href="{% url 'import-hp-contacts' %}">Importer les formateurs (fichier HP)</a></li>
+        <li style="margin-top: 1em;"><a href="{% url 'stages_export' %}">Exporter les données de stages</a> (récentes)</li>
+        <li><a href="{% url 'stages_export' 'all' %}">Exporter les données de stages</a> (toutes)</li>
+        <li><a href="{% url 'imputations_export' %}">Exporter les données comptables</a></li>
+        <li><a href="{% url 'print_update_form' %}">Imprimer les formulaires de MAJ</a></li>
+        <li><a href="{% url 'general-export' %}">export général</a></li>
     </ul>
     </div>
 </div>

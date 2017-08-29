@@ -694,3 +694,75 @@ def print_update_form(request):
         response = HttpResponse(fh.read(), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="modification.zip"'
     return response
+
+
+GENERAL_EXPORT_FIELDS = [
+    ('Num_Ele', 'ext_id'),
+    ('Nom_Ele', 'last_name'),
+    ('Prenom_Ele', 'first_name'),
+    ('Genre_Ele', 'gender'),
+    ('Rue_Ele', 'street'),
+    ('NPA_Ele', 'pcode'),
+    ('Ville_Ele', 'city'),
+    ('DateNaissance_Ele', 'birth_date'),
+    ('NOAVS_Ele', 'avs'),
+    ('Canton_Ele', 'district'),
+    ('Email_Ele', 'email'),
+    ('Mobile_Ele', 'mobile'),
+    ('DispenseCG_Ele', 'dispense_ecg'),
+    ('DispenseEPS_Ele', 'dispense_eps'),
+    ('SoutienDYS_Ele', 'soutien_dys'),
+
+    ('Classe_Ele', 'klass__name'),
+    ('Filiere_Ele', 'klass__section__name'),
+    ('MaitreDeClasse_Ele', 'klass__teacher'),
+
+    ('Num_Emp', 'corporation__ext_id'),
+    ('Nom_Emp', 'corporation__name'),
+    ('Rue_Emp', 'corporation__street'),
+    ('NPA_Emp', 'corporation__pcode'),
+    ('Ville_Emp', 'corporation__city'),
+    ('Canton_Emp', 'corporation__district'),
+    ('Secteur_Emp', 'corporation__sector'),
+    ('Type_EMP', 'corporation__typ'),
+    ('Tel_Emp', 'corporation__tel'),
+
+    ('Num_Form', 'instructor__ext_id'),
+    ('Titre_Form', 'instructor__title'),
+    ('Prenom_Form', 'instructor__first_name'),
+    ('Nom_Form', 'instructor__last_name'),
+    ('Tel_Form', 'instructor__tel'),
+    ('Email_Form', 'instructor__email'),
+    ('EmailCopie_Form', None),
+]
+
+
+def general_export(request):
+    """
+    Export all current students data
+    """
+    export_fields = OrderedDict(GENERAL_EXPORT_FIELDS)
+    wb = Workbook()
+    ws = wb.get_active_sheet()
+    ws.title = 'Exportation'
+    bold = Style(font=Font(bold=True))
+    for col_idx, header in enumerate(export_fields.keys(), start=1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value = header
+        cell.style = bold
+    # Data
+    query_keys = [f for f in export_fields.values() if f is not None]
+    query = Student.objects.filter(archived=False).order_by('klass__name', 'last_name', 'first_name')
+    for row_idx, tr in enumerate(query.values(*query_keys), start=2):
+        for col_idx, field in enumerate(query_keys, start=1):
+            if field == 'gender':
+                tr[field] = ('Madame', 'Monsieur')[tr[field] == 'M']
+            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+
+    response = HttpResponse(
+        save_virtual_workbook(wb),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
+        'general_export_', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
