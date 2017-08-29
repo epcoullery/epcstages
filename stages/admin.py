@@ -9,7 +9,7 @@ from django.db.models import Case, Count, When
 from django.http import HttpResponse
 
 from stages.models import (
-    Teacher, Student, Section, Level, Klass, Corporation,
+    Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
 )
 from stages.pdf import ChargeSheetPDF
@@ -227,6 +227,7 @@ class CourseAdmin(admin.ModelAdmin):
 admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
+admin.site.register(Option)
 admin.site.register(Student, StudentAdmin)
 admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(Course, CourseAdmin)
