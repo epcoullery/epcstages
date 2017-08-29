@@ -85,7 +85,8 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
               ('email', 'tel', 'mobile'), ('avs', 'birth_date'),
-              ('dispense_ecg', 'dispense_eps', 'soutien_dys'), ('klass', 'archived'),
+              ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
+              ('klass', 'option_ase'),
               ('corporation', 'instructor'))
     actions = ['archive']
 
