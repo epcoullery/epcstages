@@ -29,6 +29,8 @@ from .models import (
 from .pdf import UpdateDataFormPDF
 from .utils import is_int
 
+openxml_contenttype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+
 
 def school_year_start():
     """ Return first official day of current school year """
@@ -124,10 +126,7 @@ class KlassView(DetailView):
                 ws.cell(row=row_idx, column=col_idx + 1).value = training.availability.domain.name
                 col_idx += 2
 
-        response = HttpResponse(
-            save_virtual_workbook(wb),
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        )
+        response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
         response['Content-Disposition'] = 'attachment; filename=%s_export_%s.xlsx' % (
               self.object.name.replace(' ', '_'), date.strftime(date.today(), '%Y-%m-%d'))
         return response
@@ -625,10 +624,7 @@ def stages_export(request, scope=None):
                 [c.email for c in always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']])]
             )
 
-    response = HttpResponse(
-        save_virtual_workbook(wb),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
     return response
@@ -669,10 +665,7 @@ def imputations_export(request):
             ws.cell(row=row_idx, column=col_idx).value = v
             col_idx += 1
 
-    response = HttpResponse(
-        save_virtual_workbook(wb),
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
+    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
           'Imputations_export', date.strftime(date.today(), '%Y-%m-%d'))
     return response
