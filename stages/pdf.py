@@ -92,7 +92,7 @@ class UpdateDataFormPDF(SimpleDocTemplate):
 
     def produce(self, klass):
         self.story = []
-        for student in klass.student_set.all():
+        for student in klass.student_set.filter(archived=False):
             self.story.append(Image(find('img/header.gif'), width=520, height=75))
             self.story.append(Spacer(0, 2*cm))
             destinataire = '{0}<br/>{1}<br/>{2}'.format(student.civility, student.full_name, student.klass)
