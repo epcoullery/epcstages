@@ -492,6 +492,13 @@ class HPContactsImportView(ImportViewBase):
                     corporation=corp, first_name=line['PRENOMMDS'].strip(),
                     last_name=line['NOMMDS'].strip(), title=line['CIVMDS'], email=line['EMAILMDS']
                 )
+            else:
+                if line['CIVMDS'] and contact.title != line['CIVMDS']:
+                    contact.title = line['CIVMDS']
+                    contact.save()
+                if line['EMAILMDS'] and contact.email != line['EMAILMDS']:
+                    contact.email = line['EMAILMDS']
+                    contact.save()
             if student.instructor != contact:
                 student.instructor = contact
                 student.save()
