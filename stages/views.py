@@ -720,7 +720,9 @@ GENERAL_EXPORT_FIELDS = [
 
     ('Classe_Ele', 'klass__name'),
     ('Filiere_Ele', 'klass__section__name'),
-    ('MaitreDeClasse_Ele', 'klass__teacher'),
+    ('MaitreDeClasseNom_Ele', 'klass__teacher__last_name'),
+    ('MaitreDeClassePrenom_Ele', 'klass__teacher__first_name'),
+    ('OptionASE_Ele', 'option_ase__name'),
 
     ('Num_Emp', 'corporation__ext_id'),
     ('Nom_Emp', 'corporation__name'),
@@ -762,6 +764,12 @@ def general_export(request):
         for col_idx, field in enumerate(query_keys, start=1):
             if field == 'gender':
                 tr[field] = ('Madame', 'Monsieur')[tr[field] == 'M']
+            if field == 'dispense_ecg':
+                tr[field] = ('', 'Oui')[tr[field]==1]
+            if field == 'dispense_eps':
+                tr[field] = ('', 'Oui')[tr[field]==1]
+            if field == 'soutien_dys':
+                tr[field] = ('', 'Oui')[tr[field]==1]
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
 
     response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
