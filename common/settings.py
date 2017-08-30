@@ -160,3 +160,5 @@ if 'TRAVIS' in os.environ:
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 else:
     from .local_settings import *
+
+MAX_PERIODS = 2150

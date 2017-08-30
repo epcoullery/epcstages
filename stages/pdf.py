@@ -70,6 +70,13 @@ class ChargeSheetPDF(SimpleDocTemplate):
         self.story.append(Paragraph(d, style_normal))
         self.story.append(Spacer(0, 0.5*cm))
         self.story.append(Paragraph('la direction', style_normal))
+        if activities['tot_paye'] == settings.MAX_PERIODS and activities['tot_paye'] != activities['tot_trav']:
+            self.story.append(Spacer(0, 1 * cm))
+            d = 'Je soussigné-e déclare accepter les conditions ci-dessus pour la régularisation de mon salaire.'
+            self.story.append(Paragraph(d, style_normal))
+            self.story.append(Spacer(0, 1 * cm))
+            d = 'Lieu, date et signature: ___________________________________________________________________________'
+            self.story.append(Paragraph(d, style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
 
