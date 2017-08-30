@@ -98,7 +98,7 @@ class KlassView(DetailView):
             return super().render_to_response(context, **response_kwargs)
 
         wb = Workbook()
-        ws = wb.get_active_sheet()
+        ws = wb.active
         ws.title = self.object.name
         bold = Style(font=Font(bold=True))
         headers = [
@@ -604,7 +604,7 @@ def stages_export(request, scope=None):
                     default_contacts[contact.corporation.name][sname] = contact
 
     wb = Workbook()
-    ws = wb.get_active_sheet()
+    ws = wb.active
     ws.title = 'Stages'
     bold = Style(font=Font(bold=True))
     # Headers
@@ -651,7 +651,7 @@ IMPUTATIONS_EXPORT_FIELDS = [
 
 def imputations_export(request):
     wb = Workbook()
-    ws = wb.get_active_sheet()
+    ws = wb.active
     ws.title = 'Imputations'
     bold = Style(font=Font(bold=True))
     for col_idx, header in enumerate(IMPUTATIONS_EXPORT_FIELDS, start=1):
@@ -750,7 +750,7 @@ def general_export(request):
     """
     export_fields = OrderedDict(GENERAL_EXPORT_FIELDS)
     wb = Workbook()
-    ws = wb.get_active_sheet()
+    ws = wb.active
     ws.title = 'Exportation'
     bold = Style(font=Font(bold=True))
     for col_idx, header in enumerate(export_fields.keys(), start=1):
