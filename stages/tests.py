@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.html import escape
 
 from .models import (
-    Level, Domain, Section, Klass, Period, Student, Corporation, Availability,
+    Level, Domain, Section, Klass, Option, Period, Student, Corporation, Availability,
     CorpContact, Teacher, Training, Course,
 )
 from .utils import school_year
@@ -282,7 +282,10 @@ class ImportTests(TestCase):
     def setUp(self):
         User.objects.create_user('me', 'me@example.org', 'mepassword')
 
-    def test_import_gan(self):
+    def test_import_students(self):
+        """
+        Import of the main students file.
+        """
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'EXPORT_GAN.xlsx')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
@@ -301,12 +304,14 @@ class ImportTests(TestCase):
             section=Section.objects.create(name='EDE'),
             level=lev1,
         )
+        Option.objects.create(name='Accompagnement des enfants')
         with open(path, 'rb') as fh:  # , override_settings(DEBUG=True):
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
         self.assertIn("Objets créés : 2", msg)
         student1 = Student.objects.get(last_name='Fellmann')
         self.assertEqual(student1.corporation.name, "Crèche Les Mousaillons")
+        self.assertEqual(student1.option_ase.name, "Accompagnement des enfants")
         # Instructor not set through this import
         self.assertIsNone(student1.instructor)
 

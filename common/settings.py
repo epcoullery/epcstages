@@ -130,6 +130,7 @@ STUDENT_IMPORT_MAPPING = {
     'NAVS13': 'avs',
     'SEXE': 'gender',
     'CLASSE_ACTUELLE': 'klass',
+    'LIB_BRANCHE_OPTION': 'option_ase',
 }
 
 CORPORATION_IMPORT_MAPPING = {
