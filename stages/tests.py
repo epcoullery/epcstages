@@ -2,6 +2,7 @@ import json
 import os
 from datetime import date
 
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -224,31 +225,31 @@ class TeacherTests(TestCase):
         self.teacher.rate = 100.0
         self.teacher.save()
         crs = Course.objects.create(
-            teacher=self.teacher, period=Teacher.MAX_ENS_PERIODS - 4, subject='Cours principal', imputation='ASSCFE',
+            teacher=self.teacher, period=settings.MAX_ENS_PERIODS - 4, subject='Cours principal', imputation='ASSCFE',
         )
         effective = self.teacher.calc_activity()
         del effective['mandats']
         self.assertEqual(effective, {
             'tot_mandats': 8,
-            'tot_ens': Teacher.MAX_ENS_PERIODS,
-            'tot_formation': Teacher.MAX_FORMATION + 1,
-            'tot_trav': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION + 1 + 8,
-            'tot_paye': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION,
+            'tot_ens': settings.MAX_ENS_PERIODS,
+            'tot_formation': settings.MAX_ENS_FORMATION + 1,
+            'tot_trav': settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION + 1 + 8,
+            'tot_paye': settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION,
             'report': 8 + 1,
         })
         self.assertEqual(self.teacher.next_report, 8 + 1)
 
         # Test below max hours per year for a full time
-        crs.period = Teacher.MAX_ENS_PERIODS - 4 - 10
+        crs.period = settings.MAX_ENS_PERIODS - 4 - 10
         crs.save()
         effective = self.teacher.calc_activity()
         del effective['mandats']
         self.assertEqual(effective, {
             'tot_mandats': 8,
-            'tot_ens': Teacher.MAX_ENS_PERIODS - 10,
-            'tot_formation': Teacher.MAX_FORMATION,
-            'tot_trav': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION + 8 - 10,
-            'tot_paye': Teacher.MAX_ENS_PERIODS + Teacher.MAX_FORMATION,
+            'tot_ens': settings.MAX_ENS_PERIODS - 10,
+            'tot_formation': settings.MAX_ENS_FORMATION,
+            'tot_trav': settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION + 8 - 10,
+            'tot_paye': settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION,
             'report': -2,
         })
         self.assertEqual(self.teacher.next_report, -2)

@@ -151,6 +151,10 @@ INSTRUCTOR_IMPORT_MAPPING = {
 
 CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2017-2018"
 
+# Maximum numbers of periods per teacher per year
+MAX_ENS_PERIODS = 1900
+MAX_ENS_FORMATION = 250
+
 if 'TRAVIS' in os.environ:
     SECRET_KEY = 'secretkeyfortravistests'
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'

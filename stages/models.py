@@ -2,6 +2,7 @@ import json
 from collections import OrderedDict
 from datetime import date, timedelta
 
+from django.conf import settings
 from django.db import models
 
 from . import utils
@@ -65,9 +66,6 @@ class Teacher(models.Model):
     next_report = models.IntegerField(default=0, verbose_name='Report suivant')
     archived = models.BooleanField(default=False)
 
-    MAX_ENS_PERIODS = 1900
-    MAX_FORMATION = 250
-
     class Meta:
         verbose_name='Enseignant'
         ordering = ('last_name', 'first_name')
@@ -85,10 +83,12 @@ class Teacher(models.Model):
         tot_mandats = mandats.aggregate(models.Sum('period'))['period__sum'] or 0
         tot_ens = ens.aggregate(models.Sum('period'))['period__sum'] or 0
         # formation periods calculated at pro-rata of total charge
-        tot_formation = int(round((tot_mandats + tot_ens) / self.MAX_ENS_PERIODS * self.MAX_FORMATION))
+        tot_formation = int(round(
+            (tot_mandats + tot_ens) / settings.MAX_ENS_PERIODS * settings.MAX_ENS_FORMATION
+        ))
         tot_trav = self.previous_report + tot_mandats + tot_ens + tot_formation
         tot_paye = tot_trav
-        max_periods = self.MAX_ENS_PERIODS + self.MAX_FORMATION
+        max_periods = settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION
         # Special situations triggering reporting (positive or negative) hours for next year:
         #  - full-time teacher with a total charge under 100%
         #  - teachers with a total charge over 100%
