@@ -84,7 +84,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     fields = (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
-              ('email', 'tel', 'mobile'), ('avs', 'birth_date'),
+              ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
               ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
               ('klass', 'option_ase'),
               ('corporation', 'instructor'))
