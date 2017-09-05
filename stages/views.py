@@ -14,7 +14,7 @@ from openpyxl.writer.excel import save_virtual_workbook
 from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
-from django.db.models import Case, Count, When
+from django.db.models import Case, Count, When, Q
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -788,4 +788,71 @@ def general_export(request):
     response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
         'general_export_', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
+
+
+ORTRA_EXPORT_FIELDS = [
+    ('Num_Ele', 'ext_id'),
+    ('Nom_Ele', 'last_name'),
+    ('Prenom_Ele', 'first_name'),
+    ('Genre_Ele', 'gender'),
+    ('Rue_Ele', 'street'),
+    ('NPA_Ele', 'pcode'),
+    ('Ville_Ele', 'city'),
+    ('DateNaissance_Ele', 'birth_date'),
+    ('Email_Ele', 'email'),
+    ('Mobile_Ele', 'mobile'),
+
+    ('Classe_Ele', 'klass__name'),
+    ('Filiere_Ele', 'klass__section__name'),
+    ('MaitreDeClasseNom_Ele', 'klass__teacher__last_name'),
+    ('MaitreDeClassePrenom_Ele', 'klass__teacher__first_name'),
+    ('OptionASE_Ele', 'option_ase__name'),
+
+    ('Num_Emp', 'corporation__ext_id'),
+    ('Nom_Emp', 'corporation__name'),
+    ('Rue_Emp', 'corporation__street'),
+    ('NPA_Emp', 'corporation__pcode'),
+    ('Ville_Emp', 'corporation__city'),
+    ('Tel_Emp', 'corporation__tel'),
+
+    ('Titre_Form', 'instructor__title'),
+    ('Prenom_Form', 'instructor__first_name'),
+    ('Nom_Form', 'instructor__last_name'),
+    ('Tel_Form', 'instructor__tel'),
+    ('Email_Form', 'instructor__email'),
+]
+
+
+def ortra_export(request):
+    """
+    Export students data from sections ASAFE, ASEFE and ASSCFE
+    """
+    export_fields = OrderedDict(ORTRA_EXPORT_FIELDS)
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Exportation'
+    bold = Style(font=Font(bold=True))
+    for col_idx, header in enumerate(export_fields.keys(), start=1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value = header
+        cell.style = bold
+    # Data
+    query_keys = [f for f in export_fields.values() if f is not None]
+    query = Student.objects.filter(Q(klass__name__contains='ASAFE') |
+                                   Q(klass__name__contains='ASEFE') |
+                                   Q(klass__name__contains='ASSCFE'),
+                                   archived=False).order_by('klass__name',
+                                                            'last_name',
+                                                            'first_name')
+
+    for row_idx, tr in enumerate(query.values(*query_keys), start=2):
+        for col_idx, field in enumerate(query_keys, start=1):
+            if field == 'gender':
+                tr[field] = ('Madame', 'Monsieur')[tr[field] == 'M']
+            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+
+    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
+    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
+        'ortra_export_', date.strftime(date.today(), '%Y-%m-%d'))
     return response
