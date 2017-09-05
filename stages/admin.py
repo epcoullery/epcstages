@@ -11,6 +11,8 @@ from django.http import HttpResponse
 from stages.models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
+    AsaCandidate, AseCandidate, EdePECandidate, EdePSCandidate, AsscCandidate,
+    EdsCandidate,
 )
 from stages.pdf import ChargeSheetPDF
 
@@ -238,3 +240,9 @@ admin.site.register(Domain)
 admin.site.register(Period, PeriodAdmin)
 admin.site.register(Availability, AvailabilityAdmin)
 admin.site.register(Training, TrainingAdmin)
+admin.site.register(AsaCandidate)
+admin.site.register(AseCandidate)
+admin.site.register(AsscCandidate)
+admin.site.register(EdePECandidate)
+admin.site.register(EdePSCandidate)
+admin.site.register(EdsCandidate)

@@ -1,4 +1,5 @@
 import json
+from django.utils import timezone
 from collections import OrderedDict
 from datetime import date, timedelta
 
@@ -67,7 +68,7 @@ class Teacher(models.Model):
     archived = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name='Enseignant'
+        verbose_name ='Enseignant'
         ordering = ('last_name', 'first_name')
 
     def __str__(self):
@@ -166,11 +167,11 @@ class Student(models.Model):
     dispense_eps = models.BooleanField(default=False)
     soutien_dys = models.BooleanField(default=False)
     corporation = models.ForeignKey('Corporation', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='Employeur')
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
-        on_delete=models.PROTECT)
+                              on_delete=models.PROTECT)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
 
@@ -235,7 +236,7 @@ class Corporation(models.Model):
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
     parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
-        on_delete=models.SET_NULL)
+                               on_delete=models.SET_NULL)
     sector = models.CharField(max_length=40, blank=True, verbose_name='Secteur')
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
@@ -296,7 +297,7 @@ class Period(models.Model):
     """ Périodes de stages """
     title = models.CharField(max_length=150, verbose_name='Titre')
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT,
-        limit_choices_to={'name__startswith': 'MP'})
+                                limit_choices_to={'name__startswith': 'MP'})
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')
@@ -338,7 +339,7 @@ class Availability(models.Model):
     period = models.ForeignKey(Period, verbose_name='Période', on_delete=models.CASCADE)
     domain = models.ForeignKey(Domain, verbose_name='Domaine', on_delete=models.CASCADE)
     contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution',
-        on_delete=models.SET_NULL)
+                                on_delete=models.SET_NULL)
     priority = models.BooleanField('Prioritaire', default=False)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
@@ -402,8 +403,8 @@ IMPUTATION_CHOICES = (
 
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
-    teacher = models.ForeignKey(Teacher, blank=True, null=True,
-        verbose_name="Enseignant-e", on_delete=models.SET_NULL)
+    teacher = models.ForeignKey(Teacher, blank=True, null=True, verbose_name="Enseignant-e",
+                                on_delete=models.SET_NULL)
     public = models.CharField("Classe(s)", max_length=200, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
@@ -415,6 +416,108 @@ class Course(models.Model):
         verbose_name_plural = 'Cours'
 
     def __str__(self):
-        return '{0} - {1} - {2} - {3}'.format(
-            self.teacher, self.public, self.subject, self.period
-        )
+        return '{0} - {1} - {2} - {3}'.format(self.teacher, self.public, self.subject, self.period)
+
+
+GENDER_CHOICES = (
+    ('M', 'Masculin'),
+    ('F', 'Féminin'),
+    ('I', 'Inconnu')
+)
+
+
+class District(models.Model):
+    abrev = models.CharField(max_length=10)
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.abrev, self.name)
+
+
+class Candidate(models.Model):
+    first_name = models.CharField(max_length=40, verbose_name='Prénom')
+    last_name = models.CharField(max_length=40, verbose_name='Nom')
+    gender = models.CharField(max_length=3, choices=GENDER_CHOICES, verbose_name='Genre')
+    birth_date = models.DateField(blank=True, verbose_name='Date de naissance')
+    street = models.CharField(max_length=150, blank=True, verbose_name='Rue')
+    pcode = models.CharField(max_length=4, verbose_name='Code postal')
+    city = models.CharField(max_length=40, verbose_name='Localité')
+    district = models.ForeignKey(District, default=None, null=True)
+    tel = models.CharField(max_length=40, blank=True, verbose_name='Téléphone')
+    mobile = models.CharField(max_length=40, blank=True, verbose_name='Portable')
+    email = models.EmailField(verbose_name='Courriel', blank=True)
+    avs = models.CharField(max_length=15, blank=True, verbose_name='No AVS')
+    handicap = models.BooleanField(default=False)
+
+    section = models.ForeignKey(Section, null=False)
+    option = models.ForeignKey(Option, null=True, blank=True, on_delete=models.SET_NULL)
+    exemption_ecg = models.BooleanField(default=False)
+
+    date_confirmation_mail = models.DateField(auto_now_add=True, verbose_name='Mail de confirmation')
+
+
+class AsaCandidate(Candidate):
+    corporation = models.ForeignKey('Corporation', null=True, blank=True,
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
+    instructor = models.ForeignKey('CorpContact', null=True, blank=True,
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+
+
+class AsscCandidate(Candidate):
+    corporation = models.ForeignKey('Corporation', null=True, blank=True,
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
+    instructor = models.ForeignKey('CorpContact', null=True, blank=True,
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+
+
+class AseCandidate(Candidate):
+
+    corporation = models.ForeignKey('Corporation', null=True, blank=True,
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
+    instructor = models.ForeignKey('CorpContact', null=True, blank=True,
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+
+
+class EdePECandidate(Candidate):
+    corporation = models.ForeignKey('Corporation', null=True, blank=True,
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
+    instructor = models.ForeignKey('CorpContact', null=True, blank=True,
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+
+    # Checking for registration file
+    registration_form = models.BooleanField(default=False)
+    certificate_of_payement = models.BooleanField(default=False)
+    police_record = models.BooleanField(default=False)
+    cv = models.BooleanField(default=False)
+    certif_of_cfc = models.BooleanField(default=False)
+    certif_of_800h = models.BooleanField(default=False)
+    reflexive_text = models.BooleanField(default=False)
+
+    proc_admin_ext = models.BooleanField(default=False)
+    work_certificate = models.BooleanField(default=False)
+    marks_certificate = models.BooleanField(default=False)
+    deposite_date = models.DateField(default=timezone.now, verbose_name='Date dépôt dossier')
+
+
+class EdePSCandidate(Candidate):
+
+    # Checking for registration file
+    registration_form = models.BooleanField(default=False)
+    certificate_of_payement = models.BooleanField(default=False)
+    police_record = models.BooleanField(default=False)
+    cv = models.BooleanField(default=False)
+    certif_of_cfc = models.BooleanField(default=False)
+    certif_of_800h = models.BooleanField(default=False)
+    reflexive_text = models.BooleanField(default=False)
+
+    proc_admin_ext = models.BooleanField(default=False)
+    work_certificate = models.BooleanField(default=False)
+    marks_certificate = models.BooleanField(default=False)
+    deposite_date = models.DateField(default=timezone.now, verbose_name='Date dépôt dossier')
+
+
+class EdsCandidate(Candidate):
+    corporation = models.ForeignKey('Corporation', null=True, blank=True,
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
+    instructor = models.ForeignKey('CorpContact', null=True, blank=True,
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
