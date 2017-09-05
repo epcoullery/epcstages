@@ -519,6 +519,7 @@ EXPORT_FIELDS = [
     ('Classe', 'student__klass__name'),
     ('Filière', 'student__klass__section__name'),
     ('Rue élève', 'student__street'),
+    ('NPA_élève', 'student__pcode'),
     ('Localité élève', 'student__city'),
     ('Tél élève', 'student__tel'),
     ('Email élève', 'student__email'),
