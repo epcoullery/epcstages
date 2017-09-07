@@ -2,19 +2,28 @@ import os
 import tempfile
 import zipfile
 
+from collections import OrderedDict
+from datetime import date, datetime
 from django import forms
 from django.contrib import admin
 from django.db import models
 from django.db.models import Case, Count, When
 from django.http import HttpResponse
+from django.core.mail import send_mail
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Style
+from openpyxl.writer.excel import save_virtual_workbook
 
 from stages.models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
-    AsaCandidate, AseCandidate, EdePECandidate, EdePSCandidate, AsscCandidate,
-    EdsCandidate,
+    Candidate, District, Config
 )
 from stages.pdf import ChargeSheetPDF
+
+
+openxml_contenttype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 
 def print_charge_sheet(modeladmin, request, queryset):
@@ -192,7 +201,7 @@ class AvailabilityInline(admin.StackedInline):
     ordering = ('corporation__name',)
     extra = 1
     formfield_overrides = {
-        models.TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':40})},
+        models.TextField: {'widget': forms.Textarea(attrs={'rows': 2, 'cols': 40})},
     }
 
 
@@ -227,6 +236,79 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ('teacher__last_name', 'public', 'subject')
 
 
+def send_confirmation_mail(modeladmin, request, queryset):
+    send_mail(
+        'Subject here',
+        'Here is the message.',
+        'alain.zosso@webzos.com',
+        ['azo@rpn.ch'],
+        fail_silently=False,
+    )
+send_confirmation_mail.short_description = "Envoyer email de confirmation"
+
+
+def export_candidates(modeladmin, request, queryset):
+    # Tous les champs du modèle
+    export_fields = OrderedDict([(f.verbose_name, f.name) for f in Candidate._meta.get_fields()])
+    export_fields['Canton'] = 'district__abrev'
+    export_fields['Employeur'] = 'corporation__name'
+    export_fields['FEE/FPP'] = 'instructor__last_name'
+    del export_fields['ID']
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Exportation'
+    bold = Style(font=Font(bold=True))
+    for col_idx, header in enumerate(export_fields.keys(), start=1):
+        cell = ws.cell(row=1, column=col_idx)
+        cell.value = header
+        cell.style = bold
+    query_keys = [f for f in export_fields.values() if f is not None]
+    for row_idx, tr in enumerate(queryset.values(*query_keys), start=2):
+        for col_idx, field in enumerate(query_keys, start=1):
+            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+
+    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
+    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
+        'candidats_export_', date.strftime(date.today(), '%Y-%m-%d'))
+    return response
+    export_candidates.short_description = "Exporter les candidats sélectionnés"
+
+
+class CandidateAdmin(admin.ModelAdmin):
+    list_display = ('last_name', 'first_name', 'section', 'confirm_email')
+    list_filter = ('section', 'option', )
+    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail', )
+    actions = [send_confirmation_mail, export_candidates]
+    fieldsets = (
+        (None, {
+            'fields': (('first_name', 'last_name', 'gender'),
+                       ('street', 'pcode', 'city', 'district'),
+                       ('mobile', 'email'),
+                       ('birth_date', 'avs', 'handicap', ),
+                       ('section', 'option'),
+                       ('corporation', 'instructor'),
+                       ('deposite_date', 'date_confirmation_mail')
+                       ),
+        }),
+        ("FE", {
+            'classes': ('collapse',),
+            'fields': ('exemption_ecg',),
+        }),
+        ("EDE/EDS", {
+            'classes': ('collapse',),
+            'fields': (('registration_form', 'certificate_of_payement', 'cv', 'certif_of_cfc',
+                        'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate', 'marks_certificate',
+                        'proc_admin_ext', 'promise', 'contract'),
+                       'comment',
+                       ('interview_date', 'interview_room'),
+                       ('examination_result', 'interview_result', 'file_result', 'total_result_points',
+                        'total_result_mark')
+                       ),
+        }),
+    )
+
+
 admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
@@ -240,9 +322,6 @@ admin.site.register(Domain)
 admin.site.register(Period, PeriodAdmin)
 admin.site.register(Availability, AvailabilityAdmin)
 admin.site.register(Training, TrainingAdmin)
-admin.site.register(AsaCandidate)
-admin.site.register(AseCandidate)
-admin.site.register(AsscCandidate)
-admin.site.register(EdePECandidate)
-admin.site.register(EdePSCandidate)
-admin.site.register(EdsCandidate)
+admin.site.register(Candidate, CandidateAdmin)
+admin.site.register(District)
+admin.site.register(Config)

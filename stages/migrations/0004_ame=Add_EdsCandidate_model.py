@@ -13,26 +13,4 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='AsscCandidate',
-            fields=[
-                ('candidate_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='stages.Candidate')),
-                ('corporation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='stages.Corporation', verbose_name='Employeur')),
-                ('instructor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='stages.CorpContact', verbose_name='FEE/FPP')),
-            ],
-            bases=('stages.candidate',),
-        ),
-        migrations.CreateModel(
-            name='EdsCandidate',
-            fields=[
-                ('candidate_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='stages.Candidate')),
-                ('corporation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='stages.Corporation', verbose_name='Employeur')),
-                ('instructor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='stages.CorpContact', verbose_name='FEE/FPP')),
-            ],
-            bases=('stages.candidate',),
-        ),
-        migrations.RenameModel(
-            old_name='AsaAsscCandidate',
-            new_name='AsaCandidate',
-        ),
     ]
