@@ -632,7 +632,13 @@ def stages_export(request, scope=None):
             value = tr[field]
             if 'gender' in field:
                 value = {'F': 'Madame', 'M': 'Monsieur', '': ''}[value]
-            ws.cell(row=row_idx, column=col_idx).value = value
+            try:
+                ws.cell(row=row_idx, column=col_idx).value = value
+            except KeyError:
+                # Ugly workaround for https://bugs.python.org/issue28969
+                from openpyxl.utils.datetime import to_excel
+                to_excel.cache_clear()
+                ws.cell(row=row_idx, column=col_idx).value = value
         if tr[contact_test_field] is None:
             # Use default contact
             contact = default_contacts.get(tr[corp_name_field], {}).get(tr[export_fields['Filière']])
@@ -783,7 +789,13 @@ def general_export(request):
                 tr[field] = ('', 'Oui')[tr[field]==1]
             if field == 'soutien_dys':
                 tr[field] = ('', 'Oui')[tr[field]==1]
-            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+            try:
+                ws.cell(row=row_idx, column=col_idx).value = tr[field]
+            except KeyError:
+                # Ugly workaround for https://bugs.python.org/issue28969
+                from openpyxl.utils.datetime import to_excel
+                to_excel.cache_clear()
+                ws.cell(row=row_idx, column=col_idx).value = tr[field]
 
     response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
