@@ -332,14 +332,11 @@ class CandidateAdmin(admin.ModelAdmin):
                        ('corporation', 'instructor'),
                        ('deposite_date', 'date_confirmation_mail', 'canceled_file', ),
                        'comment',
-                       ('deposite_date', 'date_confirmation_mail')
                        ),
         }),
         ("FE", {
             'classes': ('collapse',),
             'fields': (('exemption_ecg', 'integration_second_year', 'validation_sfpo'),),
-            'fields': ('exemption_ecg',),
-
         }),
         ("EDE/EDS", {
             'classes': ('collapse',),
