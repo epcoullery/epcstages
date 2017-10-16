@@ -1,4 +1,5 @@
 import json
+from django.utils import timezone
 from collections import OrderedDict
 from datetime import date, timedelta
 
@@ -67,7 +68,7 @@ class Teacher(models.Model):
     archived = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name='Enseignant'
+        verbose_name ='Enseignant'
         ordering = ('last_name', 'first_name')
 
     def __str__(self):
@@ -404,6 +405,7 @@ class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
                                 verbose_name="Enseignant-e", on_delete=models.SET_NULL)
+
     public = models.CharField("Classe(s)", max_length=200, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
@@ -418,6 +420,7 @@ class Course(models.Model):
         return '{0} - {1} - {2} - {3}'.format(
             self.teacher, self.public, self.subject, self.period
         )
+
 
 GENDER_CHOICES = (
     ('M', 'Masculin'),
@@ -481,6 +484,7 @@ class Candidate(models.Model):
     email = models.EmailField(verbose_name='Courriel', blank=True)
     avs = models.CharField(max_length=15, blank=True, verbose_name='No AVS')
     handicap = models.BooleanField(default=False)
+
     section = models.CharField(max_length=10, choices=SECTION_CHOICES, null=False, verbose_name='Filière')
     option = models.CharField(max_length=20, choices=OPTION_CHOICES, null=True, blank=True)
     exemption_ecg = models.BooleanField(default=False)
@@ -489,6 +493,7 @@ class Candidate(models.Model):
     date_confirmation_mail = models.DateField(default=None, blank=True, null=True, verbose_name='Mail de confirmation')
     canceled_file = models.BooleanField(default=False, verbose_name='Dossier retiré')
     photo = models.BooleanField(default=False)
+
     corporation = models.ForeignKey('Corporation', null=True, blank=True,
                                     on_delete=models.SET_NULL, verbose_name='Employeur')
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
@@ -517,6 +522,7 @@ class Candidate(models.Model):
     file_result = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Points dossier')
     total_result_points = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Total points')
     total_result_mark = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Note finale')
+
     accepted = models.BooleanField(default=False, verbose_name='Admis')
     interview_resp = models.ForeignKey(Teacher, default=None, null=True, blank=True, verbose_name='Exp. entretien')
     file_resp = models.ForeignKey(Teacher, default=None, related_name='rel_file_exp', null=True,

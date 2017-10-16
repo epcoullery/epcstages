@@ -3,13 +3,13 @@ import tempfile
 import zipfile
 
 from collections import OrderedDict
+from datetime import date, datetime
 from django import forms
 from django.contrib import admin
 from django.db import models
 from django.db.models import Case, Count, When
 from django.http import HttpResponse
 from django.core.mail import send_mail
-from datetime import date, datetime
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, Style
@@ -18,7 +18,7 @@ from stages.models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
     District, Candidate, Config
-)
+    )
 from django.db.models import BooleanField
 from .forms import CandidateAdminForm
 from stages.pdf import ChargeSheetPDF
@@ -107,13 +107,6 @@ class StudentAdmin(admin.ModelAdmin):
             student.archived = True
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
-
-    '''def get_readonly_fields(self, request, obj=None):
-        if 'edit' not in request.GET:
-            return self.fields
-        else:
-            return self.readonly_fields
-    '''
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -270,6 +263,7 @@ def send_confirmation_mail(modeladmin, request, queryset):
             cand.date_confirmation_mail = datetime.now()
             cand.save()
     return
+
 send_confirmation_mail.short_description = "Envoyer email de confirmation"
 
 
@@ -282,6 +276,10 @@ def export_candidates(modeladmin, request, queryset):
     export_fields['Canton'] = 'district__abrev'
     export_fields['Employeur'] = 'corporation__name'
     export_fields['Employeur_localite'] = 'corporation__city'
+
+    export_fields = OrderedDict([(f.verbose_name, f.name) for f in Candidate._meta.get_fields()])
+    export_fields['Canton'] = 'district__abrev'
+    export_fields['Employeur'] = 'corporation__name'
     export_fields['FEE/FPP'] = 'instructor__last_name'
     del export_fields['ID']
 
@@ -315,6 +313,14 @@ class CandidateAdmin(admin.ModelAdmin):
     list_display = ('last_name', 'first_name', 'section', 'option', 'confirm_email')
     list_filter = ('section', 'option', )
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
+
+export_candidates.short_description = "Exporter les candidats sélectionnés"
+
+
+class CandidateAdmin(admin.ModelAdmin):
+    list_display = ('last_name', 'first_name', 'section', 'confirm_email')
+    list_filter = ('section', 'option', )
+    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail', )
     actions = [send_confirmation_mail, export_candidates]
     fieldsets = (
         (None, {
@@ -326,11 +332,14 @@ class CandidateAdmin(admin.ModelAdmin):
                        ('corporation', 'instructor'),
                        ('deposite_date', 'date_confirmation_mail', 'canceled_file', ),
                        'comment',
+                       ('deposite_date', 'date_confirmation_mail')
                        ),
         }),
         ("FE", {
             'classes': ('collapse',),
             'fields': (('exemption_ecg', 'integration_second_year', 'validation_sfpo'),),
+            'fields': ('exemption_ecg',),
+
         }),
         ("EDE/EDS", {
             'classes': ('collapse',),
@@ -338,6 +347,7 @@ class CandidateAdmin(admin.ModelAdmin):
                         'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate', 'marks_certificate',
                         'proc_admin_ext', 'promise', 'contract'),
 
+                       'comment',
                        ('interview_date', 'interview_room'),
                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
                         'total_result_mark')
