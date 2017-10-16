@@ -352,6 +352,7 @@ class CandidateAdmin(admin.ModelAdmin):
         }),
     )
 
+
 admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)

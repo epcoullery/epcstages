@@ -399,6 +399,7 @@ class HPImportView(ImportViewBase):
         'NOMPERSO_DIP': 'public',
         'TOTAL': 'period',
     }
+
     # Mapping between klass field and imputation
     account_categories = {
         'ASAFE': 'ASAFE',
@@ -438,14 +439,15 @@ class HPImportView(ImportViewBase):
             }
 
             obj, created = Course.objects.get_or_create(
-                teacher=defaults['teacher'],
-                subject=defaults['subject'],
-                public=defaults['public'])
+                teacher = defaults['teacher'],
+                subject = defaults['subject'],
+                public = defaults['public'])
 
             period = int(float(line['TOTAL']))
             if created:
                 obj.period = period
                 obj_created += 1
+
                 for k, v in self.account_categories.items():
                     if k in obj.public:
                         obj.imputation = v
@@ -551,6 +553,12 @@ EXPORT_FIELDS = [
     ('Tél contact', 'availability__contact__tel'),
     ('Courriel contact', 'availability__contact__email'),
     ('Courriel contact - copie', None),
+]
+
+IMPUTATIONS_EXPORT_FIELDS = [
+    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline', \
+    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur', \
+    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'   
 ]
 
 
@@ -660,13 +668,6 @@ def stages_export(request, scope=None):
     return response
 
 
-IMPUTATIONS_EXPORT_FIELDS = [
-    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
-    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
-]
-
-
 def imputations_export(request):
     wb = Workbook()
     ws = wb.active
@@ -690,6 +691,7 @@ def imputations_export(request):
         ws.cell(row=row_idx, column=9).value = 'Charge globale'
         ws.cell(row=row_idx, column=10).value = '{0:.2f}'.format(activities['tot_paye']/21.50)
         ws.cell(row=row_idx, column=11).value = teacher.next_report
+
         col_idx = 12
         for k, v in imputations.items():
             ws.cell(row=row_idx, column=col_idx).value = v
@@ -861,3 +863,4 @@ def ortra_export(request):
     response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
         'ortra_export_', date.strftime(date.today(), '%Y-%m-%d'))
     return response
+

@@ -2,4 +2,4 @@
 database.db
 common/local_settings.py
 scripts/epcstages.json
-.idea/*
+.idea/*.*

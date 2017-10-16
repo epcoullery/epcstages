@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 from django.conf import settings
 from django.db import models
-
+from collections import OrderedDict
 from . import utils
 
 
@@ -408,9 +408,10 @@ class Course(models.Model):
 
     public = models.CharField("Classe(s)", max_length=200, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
+
     period = models.IntegerField("Nb de périodes", default=0)
     # Imputation comptable: compte dans lequel les frais du cours seront imputés
-    imputation = models.CharField("Imputation", max_length=10, choices=IMPUTATION_CHOICES)
+    imputation = models.CharField("Imputation", max_length=10, default='', blank=True)
 
     class Meta:
         verbose_name = 'Cours'
