@@ -154,8 +154,9 @@ class AttributionView(TemplateView):
 
         # Populate each referent with the number of referencies done during the current school year
         ref_counts = dict([(ref.id, ref.num_refs)
-                for ref in Teacher.objects.filter(archived=False, training__availability__period__end_date__gte=school_year_start()
-                ).annotate(num_refs=Count('training'))])
+                for ref in Teacher.objects.filter(
+                    archived=False, training__availability__period__end_date__gte=school_year_start()
+                    ).annotate(num_refs=Count('training'))])
         for ref in referents:
             ref.num_refs = ref_counts.get(ref.id, 0)
 
@@ -224,6 +225,7 @@ def section_periods(request, pk):
                for p in section.period_set.filter(start_date__gt=two_years_ago).order_by('-start_date')]
     return HttpResponse(json.dumps(periods), content_type="application/json")
 
+
 def section_classes(request, pk):
     section = get_object_or_404(Section, pk=pk)
     classes = [(k.id, k.name) for k in section.klass_set.all()]
@@ -247,6 +249,7 @@ def period_students(request, pk):
         'klass': s.klass.name} for s in students]
     return HttpResponse(json.dumps(data), content_type="application/json")
 
+
 def period_availabilities(request, pk):
     """ Return all availabilities in the specified period """
     period = get_object_or_404(Period, pk=pk)
@@ -256,6 +259,7 @@ def period_availabilities(request, pk):
              for av in period.availability_set.select_related('corporation').all(
                                              ).order_by('-priority', 'corporation__name')]
     return HttpResponse(json.dumps(corps), content_type="application/json")
+
 
 def new_training(request):
     if request.method != 'POST':
@@ -277,6 +281,7 @@ def new_training(request):
     except Exception as exc:
         return HttpResponse(str(exc))
     return HttpResponse(b'OK')
+
 
 def del_training(request):
     """ Delete training and return the referent id """
@@ -778,11 +783,11 @@ def general_export(request):
             if field == 'gender':
                 tr[field] = ('Madame', 'Monsieur')[tr[field] == 'M']
             if field == 'dispense_ecg':
-                tr[field] = ('', 'Oui')[tr[field]==1]
+                tr[field] = ('', 'Oui')[tr[field] == 1]
             if field == 'dispense_eps':
-                tr[field] = ('', 'Oui')[tr[field]==1]
+                tr[field] = ('', 'Oui')[tr[field] == 1]
             if field == 'soutien_dys':
-                tr[field] = ('', 'Oui')[tr[field]==1]
+                tr[field] = ('', 'Oui')[tr[field] == 1]
             ws.cell(row=row_idx, column=col_idx).value = tr[field]
 
     response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)

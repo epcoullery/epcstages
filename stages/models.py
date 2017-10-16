@@ -166,11 +166,11 @@ class Student(models.Model):
     dispense_eps = models.BooleanField(default=False)
     soutien_dys = models.BooleanField(default=False)
     corporation = models.ForeignKey('Corporation', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='Employeur')
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
-        on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
-        on_delete=models.PROTECT)
+                              on_delete=models.PROTECT)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
 
@@ -214,7 +214,7 @@ class Student(models.Model):
 
     @classmethod
     def prepare_import(cls, student_values):
-        ''' Hook for tabimport, before new object get created '''
+        """ Hook for tabimport, before new object get created """
         if 'klass' in student_values:
             try:
                 k = Klass.objects.get(name=student_values['klass'])
@@ -235,7 +235,7 @@ class Corporation(models.Model):
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
     district = models.CharField(max_length=20, blank=True, verbose_name='Canton')
     parent = models.ForeignKey('self', null=True, blank=True, verbose_name='Institution mère',
-        on_delete=models.SET_NULL)
+                               on_delete=models.SET_NULL)
     sector = models.CharField(max_length=40, blank=True, verbose_name='Secteur')
     typ = models.CharField(max_length=40, blank=True, verbose_name='Type de structure')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
@@ -296,7 +296,7 @@ class Period(models.Model):
     """ Périodes de stages """
     title = models.CharField(max_length=150, verbose_name='Titre')
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT,
-        limit_choices_to={'name__startswith': 'MP'})
+                                limit_choices_to={'name__startswith': 'MP'})
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')
@@ -338,7 +338,7 @@ class Availability(models.Model):
     period = models.ForeignKey(Period, verbose_name='Période', on_delete=models.CASCADE)
     domain = models.ForeignKey(Domain, verbose_name='Domaine', on_delete=models.CASCADE)
     contact = models.ForeignKey(CorpContact, null=True, blank=True, verbose_name='Contact institution',
-        on_delete=models.SET_NULL)
+                                on_delete=models.SET_NULL)
     priority = models.BooleanField('Prioritaire', default=False)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
@@ -362,7 +362,7 @@ class Training(models.Model):
     student = models.ForeignKey(Student, verbose_name='Étudiant', on_delete=models.CASCADE)
     availability = models.OneToOneField(Availability, verbose_name='Disponibilité', on_delete=models.CASCADE)
     referent = models.ForeignKey(Teacher, null=True, blank=True, verbose_name='Référent',
-        on_delete=models.SET_NULL)
+                                 on_delete=models.SET_NULL)
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
@@ -403,7 +403,7 @@ IMPUTATION_CHOICES = (
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
-        verbose_name="Enseignant-e", on_delete=models.SET_NULL)
+                                verbose_name="Enseignant-e", on_delete=models.SET_NULL)
     public = models.CharField("Classe(s)", max_length=200, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
@@ -418,3 +418,126 @@ class Course(models.Model):
         return '{0} - {1} - {2} - {3}'.format(
             self.teacher, self.public, self.subject, self.period
         )
+
+GENDER_CHOICES = (
+    ('M', 'Masculin'),
+    ('F', 'Féminin'),
+    ('I', 'Inconnu')
+)
+
+SECTION_CHOICES = (
+    ('ASA', 'Aide en soin et accompagnement AFP'),
+    ('ASE', 'Assist. socio-éducatif-ve CFC'),
+    ('ASSC', 'Assist. en soin et santé communautaire CFC'),
+    ('EDE', 'Educ. de l\'enfance, dipl. ES'),
+    ('EDS', 'Educ. social-e, dipl. ES'),
+)
+
+
+OPTION_CHOICES = (
+    ('GEN', 'Généraliste'),
+    ('ENF', 'Enfance'),
+    ('PAG', 'Personnes âgées'),
+    ('HAN', 'Handicap'),
+    ('PE-5400h', 'Parcours Emploi 5400h.'),
+    ('PE-3600h', 'Parcours Emploi 3600h.'),
+    ('PS', 'Parcours stage'),
+)
+
+
+class Config(models.Model):
+    key = models.CharField(max_length=100)
+    value = models.TextField()
+    comment = models.TextField()
+
+    def __str__(self):
+        return '{0} : {1}'.format(self.key, self.value)
+
+
+class District(models.Model):
+    class Meta:
+        verbose_name = 'Canton'
+
+    abrev = models.CharField(max_length=10)
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return '{0} - {1}'.format(self.abrev, self.name)
+
+
+class Candidate(models.Model):
+    """
+    Inscriptions for new students
+    """
+    first_name = models.CharField(max_length=40, verbose_name='Prénom')
+    last_name = models.CharField(max_length=40, verbose_name='Nom')
+    gender = models.CharField(max_length=3, choices=GENDER_CHOICES, verbose_name='Genre')
+    birth_date = models.DateField(default=None, blank=True, null=True, verbose_name='Date de naissance')
+    street = models.CharField(max_length=150, blank=True, verbose_name='Rue')
+    pcode = models.CharField(max_length=4, verbose_name='Code postal')
+    city = models.CharField(max_length=40, verbose_name='Localité')
+    district = models.ForeignKey(District, default=None, null=True, verbose_name='Canton')
+    mobile = models.CharField(max_length=40, blank=True, verbose_name='Portable')
+    email = models.EmailField(verbose_name='Courriel', blank=True)
+    avs = models.CharField(max_length=15, blank=True, verbose_name='No AVS')
+    handicap = models.BooleanField(default=False)
+    section = models.CharField(max_length=10, choices=SECTION_CHOICES, null=False, verbose_name='Filière')
+    option = models.CharField(max_length=20, choices=OPTION_CHOICES, null=True, blank=True)
+    exemption_ecg = models.BooleanField(default=False)
+    validation_sfpo = models.DateField(default=None, blank=True, null=True, verbose_name='Confirmation SFPO')
+    integration_second_year = models.BooleanField(default=False, verbose_name='Intégration')
+    date_confirmation_mail = models.DateField(default=None, blank=True, null=True, verbose_name='Mail de confirmation')
+    canceled_file = models.BooleanField(default=False, verbose_name='Dossier retiré')
+    photo = models.BooleanField(default=False)
+    corporation = models.ForeignKey('Corporation', null=True, blank=True,
+                                    on_delete=models.SET_NULL, verbose_name='Employeur')
+    instructor = models.ForeignKey('CorpContact', null=True, blank=True,
+                                   on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+
+    # Checking for registration file
+    registration_form = models.BooleanField(default=False, verbose_name="Formulaire d'inscription")
+    certificate_of_payement = models.BooleanField(default=False, verbose_name="Attest. paiement")
+    police_record = models.BooleanField(default=False, verbose_name="Casier judic.")
+    cv = models.BooleanField(default=False, verbose_name="CV")
+    certif_of_cfc = models.BooleanField(default=False, verbose_name="CFC")
+    certif_of_800h = models.BooleanField(default=False, verbose_name="Attest. 800h.")
+    reflexive_text = models.BooleanField(default=False, verbose_name="Texte réflexif")
+    promise = models.BooleanField(default=False, verbose_name="Promesse d'eng.")
+    contract = models.BooleanField(default=False, verbose_name="Contrat valide")
+    comment = models.TextField(default='', blank=True, verbose_name='Remarques')
+
+    proc_admin_ext = models.BooleanField(default=False, verbose_name="Insc. autre école")
+    work_certificate = models.BooleanField(default=False, verbose_name="Certif. de travail")
+    marks_certificate = models.BooleanField(default=False, verbose_name="Bull. notes")
+    deposite_date = models.DateField(default=None, blank=True, null=True, verbose_name='Date dépôt dossier')
+    interview_date = models.DateTimeField(default=None, blank=True, null=True, verbose_name='Date entretien prof.')
+    interview_room = models.CharField(max_length=50, blank=True, verbose_name="Salle d'entretien prof.")
+    examination_result = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Points examen')
+    interview_result = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Points entretien prof.')
+    file_result = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Points dossier')
+    total_result_points = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Total points')
+    total_result_mark = models.PositiveSmallIntegerField(blank=True, default=0, verbose_name='Note finale')
+    accepted = models.BooleanField(default=False, verbose_name='Admis')
+    interview_resp = models.ForeignKey(Teacher, default=None, null=True, blank=True, verbose_name='Exp. entretien')
+    file_resp = models.ForeignKey(Teacher, default=None, related_name='rel_file_exp', null=True,
+                                  blank=True, verbose_name='Exp. dossier')
+
+    class Meta:
+        verbose_name = 'Candidat'
+
+    @property
+    def civility(self):
+        if self.gender == 'M':
+            return 'Monsieur'
+        if self.gender == 'F':
+            return 'Madame'
+        else:
+            return ''
+
+    def confirm_email(self):
+        if self.date_confirmation_mail is None:
+            return u'<img src="{0}" height="20px" width="20px" />'.format('/static/img/no_ok.jpg')
+        else:
+            return u'<img src="{0}" height="20px" width="20px" />'.format('/static/img/ok.jpeg')
+
+    confirm_email.allow_tags = True
