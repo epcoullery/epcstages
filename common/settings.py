@@ -108,6 +108,7 @@ INSTALLED_APPS = (
 
     'tabimport',
     'stages',
+    'candidats',
 )
 
 FILE_UPLOAD_HANDLERS = ["django.core.files.uploadhandler.TemporaryFileUploadHandler"]
