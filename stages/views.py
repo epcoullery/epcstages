@@ -6,10 +6,6 @@ from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
 from tabimport import CSVImportedFile, FileFactory
-from openpyxl import Workbook
-from openpyxl.cell import get_column_letter
-from openpyxl.styles import Font, Style
-from openpyxl.writer.excel import save_virtual_workbook
 
 from django.conf import settings
 from django.contrib import messages
@@ -21,6 +17,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext as _
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
+from .exports import OpenXMLExport
 from .forms import PeriodForm, StudentImportForm, UploadHPFileForm
 from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
@@ -28,8 +25,6 @@ from .models import (
 )
 from .pdf import UpdateDataFormPDF
 from .utils import is_int
-
-openxml_contenttype = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
 
 
 def school_year_start():
@@ -97,39 +92,26 @@ class KlassView(DetailView):
         if self.request.GET.get('format') != 'xls':
             return super().render_to_response(context, **response_kwargs)
 
-        wb = Workbook()
-        ws = wb.active
-        ws.title = self.object.name
-        bold = Style(font=Font(bold=True))
-        headers = [
+        export = OpenXMLExport(self.object.name)
+        # Headers
+        export.write_line([
             'Nom', 'Prénom', 'Domicile', 'Date de naissance',
             'Stage 1', 'Domaine 1', 'Stage 2', 'Domaine 2', 'Stage 3', 'Domaine 3',
-        ]
-        col_widths = [18, 15, 20, 14, 25, 12, 25, 12, 25, 12]
-        # Headers
-        for col_idx, header in enumerate(headers, start=1):
-            cell = ws.cell(row=1, column=col_idx)
-            cell.value = header
-            cell.style = bold
-            ws.column_dimensions[get_column_letter(col_idx)].width = col_widths[col_idx - 1]
+        ], bold=True, col_widths=[18, 15, 20, 14, 25, 12, 25, 12, 25, 12])
         # Data
-        for row_idx, student in enumerate(context['students'], start=2):
-            ws.cell(row=row_idx, column=1).value = student.last_name
-            ws.cell(row=row_idx, column=2).value = student.first_name
-            ws.cell(row=row_idx, column=3).value = " ".join([student.pcode, student.city])
-            ws.cell(row=row_idx, column=4).value = student.birth_date
-            col_idx = 5
+        for student in context['students']:
+            values = [
+                student.last_name, student.first_name,
+                " ".join([student.pcode, student.city]), student.birth_date,
+            ]
             for training in student.training_set.select_related(
                         'availability', 'availability__corporation', 'availability__domain'
                     ).all():
-                ws.cell(row=row_idx, column=col_idx).value = training.availability.corporation.name
-                ws.cell(row=row_idx, column=col_idx + 1).value = training.availability.domain.name
-                col_idx += 2
+                values.append(training.availability.corporation.name)
+                values.append(training.availability.domain.name)
+            export.write_line(values)
 
-        response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
-        response['Content-Disposition'] = 'attachment; filename=%s_export_%s.xlsx' % (
-              self.object.name.replace(' ', '_'), date.strftime(date.today(), '%Y-%m-%d'))
-        return response
+        return export.get_http_response('%s_export' % self.object.name.replace(' ', '_'))
 
 
 class AttributionView(TemplateView):
@@ -616,49 +598,32 @@ def stages_export(request, scope=None):
                 if not default_contacts[contact.corporation.name][sname]:
                     default_contacts[contact.corporation.name][sname] = contact
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = 'Stages'
-    bold = Style(font=Font(bold=True))
-    # Headers
-    for col_idx, header in enumerate(export_fields.keys(), start=1):
-        cell = ws.cell(row=1, column=col_idx)
-        cell.value = header
-        cell.style = bold
+    export = OpenXMLExport('Stages')
+    export.write_line(export_fields.keys(), bold=True)  # Headers
     # Data
     query_keys = [f for f in export_fields.values() if f is not None]
-    for row_idx, tr in enumerate(query.values(*query_keys), start=2):
-        for col_idx, field in enumerate(query_keys, start=1):
-            value = tr[field]
+    for line in query.values(*query_keys):
+        values = []
+        for field in query_keys:
+            value = line[field]
             if 'gender' in field:
                 value = {'F': 'Madame', 'M': 'Monsieur', '': ''}[value]
-            try:
-                ws.cell(row=row_idx, column=col_idx).value = value
-            except KeyError:
-                # Ugly workaround for https://bugs.python.org/issue28969
-                from openpyxl.utils.datetime import to_excel
-                to_excel.cache_clear()
-                ws.cell(row=row_idx, column=col_idx).value = value
-        if tr[contact_test_field] is None:
+            values.append(value)
+        if line[contact_test_field] is None:
             # Use default contact
-            contact = default_contacts.get(tr[corp_name_field], {}).get(tr[export_fields['Filière']])
+            contact = default_contacts.get(line[corp_name_field], {}).get(line[export_fields['Filière']])
             if contact:
-                contact_col_idx = list(export_fields.keys()).index('Civilité contact') + 1
-                ws.cell(row=row_idx, column=contact_col_idx).value = contact.title
-                ws.cell(row=row_idx, column=contact_col_idx + 1).value = contact.first_name
-                ws.cell(row=row_idx, column=contact_col_idx + 2).value = contact.last_name
-                ws.cell(row=row_idx, column=contact_col_idx + 3).value = contact.ext_id
-                ws.cell(row=row_idx, column=contact_col_idx + 4).value = contact.tel
-                ws.cell(row=row_idx, column=contact_col_idx + 5).value = contact.email
-        if always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']]):
-            ws.cell(row=row_idx, column=col_idx+1).value = "; ".join(
-                [c.email for c in always_ccs[tr[corp_name_field]].get(tr[export_fields['Filière']])]
-            )
+                values = values[:-6] + [
+                    contact.title, contact.first_name, contact.last_name, contact.ext_id,
+                    contact.tel, contact.email
+                ]
+        if always_ccs[line[corp_name_field]].get(line[export_fields['Filière']]):
+            values.append("; ".join(
+                [c.email for c in always_ccs[line[corp_name_field]].get(line[export_fields['Filière']])]
+            ))
+        export.write_line(values)
 
-    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
-    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
-          'stages_export_', date.strftime(date.today(), '%Y-%m-%d'))
-    return response
+    return export.get_http_response('stages_export')
 
 
 IMPUTATIONS_EXPORT_FIELDS = [
@@ -669,37 +634,22 @@ IMPUTATIONS_EXPORT_FIELDS = [
 
 
 def imputations_export(request):
-    wb = Workbook()
-    ws = wb.active
-    ws.title = 'Imputations'
-    bold = Style(font=Font(bold=True))
-    for col_idx, header in enumerate(IMPUTATIONS_EXPORT_FIELDS, start=1):
-        cell = ws.cell(row=1, column=col_idx)
-        cell.value = header
-        cell.style = bold
+    export = OpenXMLExport('Imputations')
+    export.write_line(IMPUTATIONS_EXPORT_FIELDS, bold=True)  # Headers
 
-    for row_idx, teacher in enumerate(Teacher.objects.filter(archived=False), start=2):
+    for teacher in Teacher.objects.filter(archived=False):
         activities, imputations = teacher.calc_imputations()
-        ws.cell(row=row_idx, column=1).value = teacher.last_name
-        ws.cell(row=row_idx, column=2).value = teacher.first_name
-        ws.cell(row=row_idx, column=3).value = teacher.previous_report
-        ws.cell(row=row_idx, column=4).value = activities['tot_ens']
-        ws.cell(row=row_idx, column=5).value = 'Ens. prof.'
-        ws.cell(row=row_idx, column=6).value = activities['tot_mandats'] + activities['tot_formation']
-        ws.cell(row=row_idx, column=7).value = 'Accompagnement'
-        ws.cell(row=row_idx, column=8).value = activities['tot_paye']
-        ws.cell(row=row_idx, column=9).value = 'Charge globale'
-        ws.cell(row=row_idx, column=10).value = '{0:.2f}'.format(activities['tot_paye']/21.50)
-        ws.cell(row=row_idx, column=11).value = teacher.next_report
-        col_idx = 12
-        for k, v in imputations.items():
-            ws.cell(row=row_idx, column=col_idx).value = v
-            col_idx += 1
+        values = [
+            teacher.last_name, teacher.first_name, teacher.previous_report,
+            activities['tot_ens'], 'Ens. prof.', activities['tot_mandats'] + activities['tot_formation'],
+            'Accompagnement', activities['tot_paye'], 'Charge globale',
+            '{0:.2f}'.format(activities['tot_paye']/21.50),
+            teacher.next_report,
+        ]
+        values.extend(imputations.values())
+        export.write_line(values)
 
-    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
-    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
-          'Imputations_export', date.strftime(date.today(), '%Y-%m-%d'))
-    return response
+    return export.get_http_response('Imputations_export')
 
 
 def print_update_form(request):
@@ -768,39 +718,23 @@ def general_export(request):
     Export all current students data
     """
     export_fields = OrderedDict(GENERAL_EXPORT_FIELDS)
-    wb = Workbook()
-    ws = wb.active
-    ws.title = 'Exportation'
-    bold = Style(font=Font(bold=True))
-    for col_idx, header in enumerate(export_fields.keys(), start=1):
-        cell = ws.cell(row=1, column=col_idx)
-        cell.value = header
-        cell.style = bold
+    export = OpenXMLExport('Exportation')
+    export.write_line(export_fields.keys(), bold=True)  # Headers
     # Data
     query_keys = [f for f in export_fields.values() if f is not None]
     query = Student.objects.filter(archived=False).order_by('klass__name', 'last_name', 'first_name')
-    for row_idx, tr in enumerate(query.values(*query_keys), start=2):
-        for col_idx, field in enumerate(query_keys, start=1):
+    for line in query.values(*query_keys):
+        values = []
+        for field in query_keys:
             if field == 'gender':
-                tr[field] = ('Madame', 'Monsieur')[tr[field] == 'M']
-            if field == 'dispense_ecg':
-                tr[field] = ('', 'Oui')[tr[field]==1]
-            if field == 'dispense_eps':
-                tr[field] = ('', 'Oui')[tr[field]==1]
-            if field == 'soutien_dys':
-                tr[field] = ('', 'Oui')[tr[field]==1]
-            try:
-                ws.cell(row=row_idx, column=col_idx).value = tr[field]
-            except KeyError:
-                # Ugly workaround for https://bugs.python.org/issue28969
-                from openpyxl.utils.datetime import to_excel
-                to_excel.cache_clear()
-                ws.cell(row=row_idx, column=col_idx).value = tr[field]
+                values.append(('Madame', 'Monsieur')[line[field] == 'M'])
+            elif field in ('dispense_ecg', 'dispense_eps', 'soutien_dys'):
+                values.append('Oui' if line[field] is True else '')
+            else:
+                values.append(line[field])
+            export.write_line(values)
 
-    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
-    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
-        'general_export_', date.strftime(date.today(), '%Y-%m-%d'))
-    return response
+    return export.get_http_response('general_export')
 
 
 ORTRA_EXPORT_FIELDS = [
@@ -841,14 +775,8 @@ def ortra_export(request):
     Export students data from sections ASAFE, ASEFE and ASSCFE
     """
     export_fields = OrderedDict(ORTRA_EXPORT_FIELDS)
-    wb = Workbook()
-    ws = wb.active
-    ws.title = 'Exportation'
-    bold = Style(font=Font(bold=True))
-    for col_idx, header in enumerate(export_fields.keys(), start=1):
-        cell = ws.cell(row=1, column=col_idx)
-        cell.value = header
-        cell.style = bold
+    export = OpenXMLExport('Exportation')
+    export.write_line(export_fields.keys(), bold=True)  # Headers
     # Data
     query_keys = [f for f in export_fields.values() if f is not None]
     query = Student.objects.filter(Q(klass__name__contains='ASAFE') |
@@ -858,13 +786,13 @@ def ortra_export(request):
                                                             'last_name',
                                                             'first_name')
 
-    for row_idx, tr in enumerate(query.values(*query_keys), start=2):
-        for col_idx, field in enumerate(query_keys, start=1):
+    for line in query.values(*query_keys):
+        values = []
+        for field in query_keys:
             if field == 'gender':
-                tr[field] = ('Madame', 'Monsieur')[tr[field] == 'M']
-            ws.cell(row=row_idx, column=col_idx).value = tr[field]
+                values.append(('Madame', 'Monsieur')[line[field] == 'M'])
+            else:
+                values.append(line[field])
+            export.write_line(values)
 
-    response = HttpResponse(save_virtual_workbook(wb), content_type=openxml_contenttype)
-    response['Content-Disposition'] = 'attachment; filename=%s%s.xlsx' % (
-        'ortra_export_', date.strftime(date.today(), '%Y-%m-%d'))
-    return response
+    return export.get_http_response('ortra_export')
