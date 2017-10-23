@@ -732,7 +732,7 @@ def general_export(request):
                 values.append('Oui' if line[field] is True else '')
             else:
                 values.append(line[field])
-            export.write_line(values)
+        export.write_line(values)
 
     return export.get_http_response('general_export')
 
@@ -793,6 +793,6 @@ def ortra_export(request):
                 values.append(('Madame', 'Monsieur')[line[field] == 'M'])
             else:
                 values.append(line[field])
-            export.write_line(values)
+        export.write_line(values)
 
     return export.get_http_response('ortra_export')
