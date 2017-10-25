@@ -143,7 +143,7 @@ class Migration(migrations.Migration):
                 ('ext_id', models.IntegerField(null=True, unique=True, verbose_name='ID externe')),
                 ('first_name', models.CharField(max_length=40, verbose_name='Prénom')),
                 ('last_name', models.CharField(max_length=40, verbose_name='Nom')),
-                ('gender', models.CharField(blank=True, max_length=3, verbose_name='Genre')),
+                ('gender', models.CharField(blank=True, choices=[('M', 'Masculin'), ('F', 'Féminin')], max_length=3, verbose_name='Genre')),
                 ('birth_date', models.DateField(blank=True, verbose_name='Date de naissance')),
                 ('street', models.CharField(blank=True, max_length=150, verbose_name='Rue')),
                 ('pcode', models.CharField(max_length=4, verbose_name='Code postal')),
