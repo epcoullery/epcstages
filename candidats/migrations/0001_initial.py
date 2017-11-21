@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 ('integration_second_year', models.BooleanField(default=False, verbose_name='Intégration')),
                 ('date_confirmation_mail', models.DateField(blank=True, null=True, verbose_name='Mail de confirmation')),
                 ('canceled_file', models.BooleanField(default=False, verbose_name='Dossier retiré')),
-                ('has_photo', models.BooleanField(default=False)),
+                ('has_photo', models.BooleanField(default=False, verbose_name='Photo')),
                 ('registration_form', models.BooleanField(default=False, verbose_name="Formulaire d'inscription")),
                 ('certificate_of_payement', models.BooleanField(default=False, verbose_name='Attest. paiement')),
                 ('police_record', models.BooleanField(default=False, verbose_name='Casier judic.')),

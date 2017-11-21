@@ -283,7 +283,7 @@ class CorpContact(models.Model):
         verbose_name = "Contact"
 
     def __str__(self):
-        return '%s %s' % (self.last_name, self.first_name)
+        return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation)
 
 
 class Domain(models.Model):

@@ -57,7 +57,7 @@ class CandidateAdmin(admin.ModelAdmin):
             'fields': (('first_name', 'last_name', 'gender'),
                        ('street', 'pcode', 'city', 'district'),
                        ('mobile', 'email'),
-                       ('birth_date', 'avs', 'handicap'),
+                       ('birth_date', 'avs', 'handicap', 'has_photo'),
                        ('section', 'option'),
                        ('corporation', 'instructor'),
                        ('deposite_date', 'date_confirmation_mail', 'canceled_file'),
@@ -73,7 +73,6 @@ class CandidateAdmin(admin.ModelAdmin):
             'fields': (('registration_form', 'certificate_of_payement', 'cv', 'certif_of_cfc',
                         'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate',
                         'marks_certificate', 'proc_admin_ext', 'promise', 'contract'),
-                       'comment',
                        ('interview_date', 'interview_room'),
                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
                         'total_result_mark')
