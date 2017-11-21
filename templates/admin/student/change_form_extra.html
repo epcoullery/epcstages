@@ -1,0 +1,7 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block submit_buttons_bottom %}
+    <a href="mailto: {{ original.email }}">Envoyer un mail à {{ original.email }}</a>
+    {{ block.super }}
+{% endblock %}

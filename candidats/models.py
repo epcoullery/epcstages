@@ -49,7 +49,7 @@ class Candidate(models.Model):
     integration_second_year = models.BooleanField('Intégration', default=False)
     date_confirmation_mail = models.DateField('Mail de confirmation', blank=True, null=True)
     canceled_file = models.BooleanField('Dossier retiré', default=False)
-    has_photo = models.BooleanField(default=False)
+    has_photo = models.BooleanField(default=False, verbose_name='photo')
 
     corporation = models.ForeignKey(
         'stages.Corporation', null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Employeur'
