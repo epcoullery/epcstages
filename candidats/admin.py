@@ -48,7 +48,7 @@ class CandidateAdminForm(forms.ModelForm):
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateAdminForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_email')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
     actions = [export_candidates]
@@ -80,8 +80,8 @@ class CandidateAdmin(admin.ModelAdmin):
         }),
     )
 
-    def confirm_email(self, obj):
+    def confirm_mail(self, obj):
         return obj.date_confirmation_mail is not None
-    confirm_email.boolean = True
+    confirm_mail.boolean = True
 
 admin.site.register(Candidate, CandidateAdmin)
