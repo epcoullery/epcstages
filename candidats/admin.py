@@ -1,8 +1,11 @@
 from collections import OrderedDict
+from datetime import date
 
 from django import forms
 from django.contrib import admin
+from django.core.mail import send_mail
 from django.db.models import BooleanField
+from django.template import loader
 
 from stages.exports import OpenXMLExport
 from .models import Candidate, GENDER_CHOICES
@@ -36,6 +39,36 @@ def export_candidates(modeladmin, request, queryset):
 export_candidates.short_description = "Exporter les candidats sélectionnés"
 
 
+def send_confirmation_mail(modeladmin, request, queryset):
+    from_email = request.user.email
+    subject = "Confirmation de votre inscription à l'Ecole Santé-social Pierre-Coullery"
+
+    for candidate in queryset.filter(
+            deposite_date__isnull=False, date_confirmation_mail__isnull=True, canceled_file=False):
+        to = [candidate.email]
+        if candidate.corporation and candidate.corporation.email:
+            to.append(candidate.corporation.email)
+        if candidate.instructor and candidate.instructor.email:
+            to.append(candidate.instructor.email)
+
+        context = {
+            'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
+            'section': candidate.section,
+            'sender_name': " ".join([request.user.first_name, request.user.last_name]),
+            'sender_email': from_email,
+        }
+        body = loader.render_to_string('email/candidate_confirm.txt', context)
+        try:
+            send_mail(subject, body, from_email, to, fail_silently=False)
+        except Exception as err:
+            self.message_user(request, "Échec d'envoi pour le candidat {0} ({1})".format(candidate, err))
+        else:
+            candidate.date_confirmation_mail = date.today()
+            candidate.save()
+
+send_confirmation_mail.short_description = "Envoyer email de confirmation"
+
+
 class CandidateAdminForm(forms.ModelForm):
     class Meta:
         model = Candidate
@@ -51,7 +84,7 @@ class CandidateAdmin(admin.ModelAdmin):
     list_display = ('last_name', 'first_name', 'section', 'confirm_mail')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
-    actions = [export_candidates]
+    actions = [export_candidates, send_confirmation_mail]
     fieldsets = (
         (None, {
             'fields': (('first_name', 'last_name', 'gender'),

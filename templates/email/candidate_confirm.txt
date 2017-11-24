@@ -1,0 +1,11 @@
+Madame, Monsieur,
+
+Nous vous confirmons la bonne réception de l'inscription de {{ candidate_name }} dans la filière {{ section }} pour l'année scolaire à venir.
+
+Nous nous tenons à votre disposition pour tout renseignement complémentaire et vous prions de recevoir, Madame, Monsieur, nos salutations les plus cordiales.
+
+Secrétariat de l'EPC
+tél. 032 886 33 00
+
+{{ sender_name }}
+{{ sender_email }}
