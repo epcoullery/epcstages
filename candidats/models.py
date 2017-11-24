@@ -84,10 +84,12 @@ class Candidate(models.Model):
 
     accepted = models.BooleanField('Admis', default=False)
     interview_resp = models.ForeignKey(
-        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. entretien'
+        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. entretien',
+        on_delete=models.SET_NULL
     )
     file_resp = models.ForeignKey(
-        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. dossier'
+        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. dossier',
+        on_delete=models.SET_NULL
     )
 
     class Meta:

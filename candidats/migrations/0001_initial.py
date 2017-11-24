@@ -58,9 +58,9 @@ class Migration(migrations.Migration):
                 ('total_result_mark', models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Note finale')),
                 ('accepted', models.BooleanField(default=False, verbose_name='Admis')),
                 ('corporation', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='stages.Corporation', verbose_name='Employeur')),
-                ('file_resp', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='stages.Teacher', verbose_name='Exp. dossier')),
+                ('file_resp', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='stages.Teacher', verbose_name='Exp. dossier')),
                 ('instructor', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='stages.CorpContact', verbose_name='FEE/FPP')),
-                ('interview_resp', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='stages.Teacher', verbose_name='Exp. entretien')),
+                ('interview_resp', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='stages.Teacher', verbose_name='Exp. entretien')),
             ],
             options={
                 'verbose_name': 'Candidat',
