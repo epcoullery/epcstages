@@ -57,3 +57,5 @@ Hans Schmid
 me@example.org
 """.format()
         )
+        # One was already set, 2 new.
+        self.assertEqual(Candidate.objects.filter(date_confirmation_mail__isnull=False).count(), 3)
