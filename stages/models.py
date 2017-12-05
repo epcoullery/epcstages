@@ -148,11 +148,16 @@ class Option(models.Model):
         return self.name
 
 
+GENDER_CHOICES = (
+    ('M', 'Masculin'),
+    ('F', 'Féminin'),
+)
+
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
-    gender = models.CharField(max_length=3, blank=True, verbose_name='Genre')
+    gender = models.CharField('Genre', max_length=3, blank=True, choices=GENDER_CHOICES)
     birth_date = models.DateField(blank=True, verbose_name='Date de naissance')
     street = models.CharField(max_length=150, blank=True, verbose_name='Rue')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
@@ -279,7 +284,7 @@ class CorpContact(models.Model):
         verbose_name = "Contact"
 
     def __str__(self):
-        return '%s %s' % (self.last_name, self.first_name)
+        return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation)
 
 
 class Domain(models.Model):

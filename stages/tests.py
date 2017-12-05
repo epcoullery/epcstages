@@ -274,7 +274,7 @@ class TeacherTests(TestCase):
         response = self.client.get(reverse('imputations_export'))
         self.assertEqual(
             response['Content-Disposition'],
-            'attachment; filename=Imputations_export%s.xlsx' % date.strftime(date.today(), '%Y-%m-%d')
+            'attachment; filename=Imputations_export_%s.xlsx' % date.strftime(date.today(), '%Y-%m-%d')
         )
 
 

@@ -34,7 +34,8 @@ class ChargeSheetPDF(SimpleDocTemplate):
 
     def produce(self, activities):
         self.story = []
-        self.story.append(Image(find('img/header.gif'), width=520, height=75))
+        header = open(find('img/header.gif'), 'rb')
+        self.story.append(Image(header, width=520, height=75))
         self.story.append(Spacer(0, 2*cm))
         destinataire = '{0}<br/>{1}'.format(self.teacher.civility, str(self.teacher))
         self.story.append(Paragraph(destinataire, style_adress))
@@ -80,6 +81,7 @@ class ChargeSheetPDF(SimpleDocTemplate):
              self.story.append(Paragraph(d, style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
+        header.close()
 
 
 class UpdateDataFormPDF(SimpleDocTemplate):
@@ -100,8 +102,9 @@ class UpdateDataFormPDF(SimpleDocTemplate):
 
     def produce(self, klass):
         self.story = []
+        header = open(find('img/header.gif'), 'rb')
         for student in klass.student_set.filter(archived=False):
-            self.story.append(Image(find('img/header.gif'), width=520, height=75))
+            self.story.append(Image(header, width=520, height=75))
             self.story.append(Spacer(0, 2*cm))
             destinataire = '{0}<br/>{1}<br/>{2}'.format(student.civility, student.full_name, student.klass)
             self.story.append(Paragraph(destinataire, style_adress))
@@ -180,6 +183,7 @@ class UpdateDataFormPDF(SimpleDocTemplate):
             self.story.append(Paragraph("Pas d'élèves dans cette classe", style_normal))
 
         self.build(self.story)
+        header.close()
 
     def is_corp_required(self, klass_name):
         return any(el in klass_name for el in ['FE', 'EDS', 'EDEpe'])
