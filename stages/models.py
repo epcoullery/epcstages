@@ -166,7 +166,7 @@ class Student(models.Model):
     mobile = models.CharField(max_length=40, blank=True, verbose_name='Portable')
     email = models.EmailField(verbose_name='Courriel', blank=True)
     avs = models.CharField(max_length=15, blank=True, verbose_name='No AVS')
-    option_ase = models.ForeignKey(Option, null=True, blank=True, on_delete=models.SET_NULL)
+    option_ase = models.ForeignKey(Option, null=True, blank=True, default=None, on_delete=models.SET_NULL)
     dispense_ecg = models.BooleanField(default=False)
     dispense_eps = models.BooleanField(default=False)
     soutien_dys = models.BooleanField(default=False)
