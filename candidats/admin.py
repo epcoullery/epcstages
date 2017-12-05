@@ -46,18 +46,24 @@ def send_confirmation_mail(modeladmin, request, queryset):
     for candidate in queryset.filter(
             deposite_date__isnull=False, date_confirmation_mail__isnull=True, canceled_file=False):
         to = [candidate.email]
+
         if candidate.corporation and candidate.corporation.email:
             to.append(candidate.corporation.email)
         if candidate.instructor and candidate.instructor.email:
             to.append(candidate.instructor.email)
 
         context = {
+            'candidate_civility': candidate.civility,
             'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
             'section': candidate.section,
             'sender_name': " ".join([request.user.first_name, request.user.last_name]),
             'sender_email': from_email,
         }
-        body = loader.render_to_string('email/candidate_confirm.txt', context)
+
+        if candidate.section == 'EDE':
+            body = loader.render_to_string('email/candidate_confirm_EDE.txt', context)
+        else:
+            body = loader.render_to_string('email/candidate_confirm_FE.txt', context)
         try:
             send_mail(subject, body, from_email, to, fail_silently=False)
         except Exception as err:
