@@ -1,8 +1,8 @@
 from datetime import date
 
 from openpyxl import Workbook
-from openpyxl.cell import get_column_letter
-from openpyxl.styles import Font, Style
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 from openpyxl.writer.excel import save_virtual_workbook
 
 from django.http import HttpResponse
@@ -15,7 +15,7 @@ class OpenXMLExport:
         self.wb = Workbook()
         self.ws = self.wb.active
         self.ws.title = sheet_title
-        self.bold = Style(font=Font(bold=True))
+        self.bold = Font(bold=True)
         self.row_idx = 1
 
     def write_line(self, values, bold=False, col_widths=()):
@@ -29,7 +29,7 @@ class OpenXMLExport:
                 to_excel.cache_clear()
                 cell.value = value
             if bold:
-                cell.style = self.bold
+                cell.font = self.bold
             if col_widths:
                 self.ws.column_dimensions[get_column_letter(col_idx)].width = col_widths[col_idx - 1]
         self.row_idx += 1
