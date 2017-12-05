@@ -329,6 +329,8 @@ class StudentImportView(ImportViewBase):
                     student_defaults['option_ase'] = Option.objects.get(name=student_defaults['option_ase'])
                 except Option.DoesNotExist:
                     del student_defaults['option_ase']
+            else:
+                del student_defaults['option_ase']
 
             corporation_defaults = {
                 val: strip(line[key]) for key, val in corporation_mapping.items()
