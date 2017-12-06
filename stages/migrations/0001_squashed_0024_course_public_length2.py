@@ -5,8 +5,6 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [('stages', '0001_initial'), ('stages', '0002_corpcontact_ext_id'), ('stages', '0003_add_corp_fields'), ('stages', '0004_corpcontact_sections'), ('stages', '0005_extended_contact_email'), ('stages', '0006_corporation_parent'), ('stages', '0007_corpcontact_archived'), ('stages', '0008_availability_priority'), ('stages', '0009_student_archived_text'), ('stages', '0010_nullable_student_klass'), ('stages', '0011_add_teacher_model'), ('stages', '0012_added_student_fields'), ('stages', '0013_course'), ('stages', '0014_teacher_birthdate_nullable'), ('stages', '0015_auto_20170717_1515'), ('stages', '0016_referent_to_teacher'), ('stages', '0017_migrate_referents'), ('stages', '0018_removed_referent_model'), ('stages', '0019_add_old_ext_id'), ('stages', '0020_remove_old_ext_id'), ('stages', '0021_klass_name_unique'), ('stages', '0022_corporation_unique_name_and_city'), ('stages', '0023_course_public_length'), ('stages', '0024_course_public_length2')]
-
     initial = True
 
     dependencies = []
