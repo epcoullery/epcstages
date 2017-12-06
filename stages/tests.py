@@ -308,7 +308,7 @@ class ImportTests(TestCase):
         with open(path, 'rb') as fh:  # , override_settings(DEBUG=True):
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
-        self.assertIn("Objets créés : 2", msg)
+        self.assertIn("Objets créés : 3", msg)
         student1 = Student.objects.get(last_name='Fellmann')
         self.assertEqual(student1.corporation.name, "Crèche Les Mousaillons")
         self.assertEqual(student1.option_ase.name, "Accompagnement des enfants")

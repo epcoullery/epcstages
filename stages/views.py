@@ -322,13 +322,17 @@ class StudentImportView(ImportViewBase):
                 # Second line for student, ignore it
                 continue
             seen_students_ids.add(student_defaults['ext_id'])
-            if isinstance(student_defaults['birth_date'], str):
+            if student_defaults['birth_date'] == '':
+                student_defaults['birth_date'] = None
+            elif isinstance(student_defaults['birth_date'], str):
                 student_defaults['birth_date'] = datetime.strptime(student_defaults['birth_date'], '%d.%m.%Y').date()
             if student_defaults['option_ase']:
                 try:
                     student_defaults['option_ase'] = Option.objects.get(name=student_defaults['option_ase'])
                 except Option.DoesNotExist:
                     del student_defaults['option_ase']
+            else:
+                del student_defaults['option_ase']
 
             corporation_defaults = {
                 val: strip(line[key]) for key, val in corporation_mapping.items()
