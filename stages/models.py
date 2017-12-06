@@ -157,7 +157,7 @@ class Student(models.Model):
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     gender = models.CharField('Genre', max_length=3, blank=True, choices=GENDER_CHOICES)
-    birth_date = models.DateField(blank=True, verbose_name='Date de naissance')
+    birth_date = models.DateField('Date de naissance', null=True, blank=True)
     street = models.CharField(max_length=150, blank=True, verbose_name='Rue')
     pcode = models.CharField(max_length=4, verbose_name='Code postal')
     city = models.CharField(max_length=40, verbose_name='Localité')
