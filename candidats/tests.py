@@ -1,4 +1,5 @@
 from datetime import date
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.core import mail
@@ -77,3 +78,19 @@ me@example.org
         )
         # One was already set, 2 new.
         self.assertEqual(Candidate.objects.filter(date_confirmation_mail__isnull=False).count(), 3)
+
+    def test_send_confirmation_error(self):
+        ede = Section.objects.create(name='EDE')
+        Candidate.objects.create(
+            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            email='henri@example.org', deposite_date=date.today()
+        )
+        change_url = reverse('admin:candidats_candidate_changelist')
+        self.client.login(username='me', password='mepassword')
+        with mock.patch('candidats.admin.send_mail') as mocked:
+            mocked.side_effect = Exception("Error sending mail")
+            response = self.client.post(change_url, {
+                'action': 'send_confirmation_mail',
+                '_selected_action': Candidate.objects.values_list('pk', flat=True)
+            }, follow=True)
+        self.assertContains(response, "Échec d’envoi pour le candidat Dupond Henri (Error sending mail)")

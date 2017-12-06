@@ -67,7 +67,7 @@ def send_confirmation_mail(modeladmin, request, queryset):
         try:
             send_mail(subject, body, from_email, to, fail_silently=False)
         except Exception as err:
-            self.message_user(request, "Échec d'envoi pour le candidat {0} ({1})".format(candidate, err))
+            modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
         else:
             candidate.date_confirmation_mail = date.today()
             candidate.save()
