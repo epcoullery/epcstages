@@ -136,8 +136,9 @@ class AttributionView(TemplateView):
 
         # Populate each referent with the number of referencies done during the current school year
         ref_counts = dict([(ref.id, ref.num_refs)
-                for ref in Teacher.objects.filter(archived=False, training__availability__period__end_date__gte=school_year_start()
-                ).annotate(num_refs=Count('training'))])
+                for ref in Teacher.objects.filter(
+                    archived=False, training__availability__period__end_date__gte=school_year_start()
+                    ).annotate(num_refs=Count('training'))])
         for ref in referents:
             ref.num_refs = ref_counts.get(ref.id, 0)
 
@@ -206,6 +207,7 @@ def section_periods(request, pk):
                for p in section.period_set.filter(start_date__gt=two_years_ago).order_by('-start_date')]
     return HttpResponse(json.dumps(periods), content_type="application/json")
 
+
 def section_classes(request, pk):
     section = get_object_or_404(Section, pk=pk)
     classes = [(k.id, k.name) for k in section.klass_set.all()]
@@ -229,6 +231,7 @@ def period_students(request, pk):
         'klass': s.klass.name} for s in students]
     return HttpResponse(json.dumps(data), content_type="application/json")
 
+
 def period_availabilities(request, pk):
     """ Return all availabilities in the specified period """
     period = get_object_or_404(Period, pk=pk)
@@ -238,6 +241,7 @@ def period_availabilities(request, pk):
              for av in period.availability_set.select_related('corporation').all(
                                              ).order_by('-priority', 'corporation__name')]
     return HttpResponse(json.dumps(corps), content_type="application/json")
+
 
 def new_training(request):
     if request.method != 'POST':
@@ -259,6 +263,7 @@ def new_training(request):
     except Exception as exc:
         return HttpResponse(str(exc))
     return HttpResponse(b'OK')
+
 
 def del_training(request):
     """ Delete training and return the referent id """
@@ -380,6 +385,7 @@ class HPImportView(ImportViewBase):
         'NOMPERSO_DIP': 'public',
         'TOTAL': 'period',
     }
+
     # Mapping between klass field and imputation
     account_categories = {
         'ASAFE': 'ASAFE',
@@ -419,14 +425,15 @@ class HPImportView(ImportViewBase):
             }
 
             obj, created = Course.objects.get_or_create(
-                teacher=defaults['teacher'],
-                subject=defaults['subject'],
-                public=defaults['public'])
+                teacher = defaults['teacher'],
+                subject = defaults['subject'],
+                public = defaults['public'])
 
             period = int(float(line['TOTAL']))
             if created:
                 obj.period = period
                 obj_created += 1
+
                 for k, v in self.account_categories.items():
                     if k in obj.public:
                         obj.imputation = v
@@ -534,6 +541,12 @@ EXPORT_FIELDS = [
     ('Courriel contact - copie', None),
 ]
 
+IMPUTATIONS_EXPORT_FIELDS = [
+    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline', \
+    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur', \
+    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS-FPP', 'Direction'   
+]
+
 
 NON_ATTR_EXPORT_FIELDS = [
     ('Filière', 'period__section__name'),
@@ -628,13 +641,6 @@ def stages_export(request, scope=None):
         export.write_line(values)
 
     return export.get_http_response('stages_export')
-
-
-IMPUTATIONS_EXPORT_FIELDS = [
-    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
-    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
-]
 
 
 def imputations_export(request):

@@ -3,7 +3,7 @@ from django.conf import settings
 
 from tabimport import FileFactory, UnsupportedFileFormat
 
-from .models import Section, Period
+from .models import Section, Period, Candidate
 
 
 class StudentImportForm(forms.Form):
@@ -34,3 +34,14 @@ class PeriodForm(forms.Form):
 
 class UploadHPFileForm(forms.Form):
     upload = forms.FileField(label='Fichier HyperPlanning')
+
+
+class CandidateAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = Candidate
+        widgets = {
+            'comment': forms.Textarea(attrs={'cols': 100, 'rows': 1}),
+            'pcode': forms.TextInput(attrs={'size': 10 }),
+        }
+        fields = ('__all__')

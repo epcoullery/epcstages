@@ -190,3 +190,4 @@ class UpdateDataFormPDF(SimpleDocTemplate):
 
     def is_instr_required(self, klass_name):
         return any(el in klass_name for el in ['FE', 'EDS'])
+
