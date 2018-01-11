@@ -9,5 +9,6 @@ addons:
 
 install:
   - pip install -r requirements.txt
+  - mkdir media
 
 script: python manage.py test
