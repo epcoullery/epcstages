@@ -1,3 +1,4 @@
+import os
 from django import forms
 from django.conf import settings
 
@@ -34,3 +35,9 @@ class PeriodForm(forms.Form):
 
 class UploadHPFileForm(forms.Form):
     upload = forms.FileField(label='Fichier HyperPlanning')
+
+
+class UploadBulletinForm(forms.Form):
+    upload = forms.FileField(label='Bulletins CLOEE (pdf)')
+
+

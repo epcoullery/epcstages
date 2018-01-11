@@ -57,6 +57,7 @@ def send_confirmation_mail(modeladmin, request, queryset):
             'sender_name': " ".join([request.user.first_name, request.user.last_name]),
             'sender_email': from_email,
         }
+
         body = loader.render_to_string('email/candidate_confirm.txt', context)
         try:
             send_mail(subject, body, from_email, to, fail_silently=False)

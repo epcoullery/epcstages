@@ -1,15 +1,23 @@
 import json
 import os
+import re
+import sys
+from subprocess import PIPE, Popen
+
 import tempfile
 import zipfile
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
 from tabimport import CSVImportedFile, FileFactory
+from slugify import slugify
 
+from django.core.mail import send_mail, EmailMessage
+from django.template import loader
 from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
+from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Case, Count, When, Q
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -18,7 +26,7 @@ from django.utils.translation import ugettext as _
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
 from .exports import OpenXMLExport
-from .forms import PeriodForm, StudentImportForm, UploadHPFileForm
+from .forms import PeriodForm, StudentImportForm, UploadHPFileForm, UploadBulletinForm
 from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
@@ -491,6 +499,106 @@ class HPContactsImportView(ImportViewBase):
                 student.save()
                 obj_modified += 1
         return {'modified': obj_modified, 'errors': errors}
+
+
+class ImportBulletinView(FormView):
+
+    template_name = 'file_import.html'
+    form_class = UploadBulletinForm
+
+    def form_valid(self, form):
+        upfile = form.cleaned_data['upload']
+        klass_name = upfile.name[:-4]
+        pdf_origin = os.path.join(settings.MEDIA_ROOT, upfile.name)
+
+        try:
+            klass = Klass.objects.get(name=klass_name)
+        except:
+            raise ObjectDoesNotExist
+
+        try:
+            with open(pdf_origin, 'wb+') as destination:
+                for chunk in upfile.chunks():
+                    destination.write(chunk)
+
+            dirname = os.path.dirname(pdf_origin)
+            path = os.path.abspath(pdf_origin)
+
+            res = os.system("pdftotext -v")
+            assert res == 0
+        except AssertionError as e:
+            messages.error(self.request, ("Unable to find pdftotext on your system. Try to install the poppler-utils package.") % e)
+        except Exception as err:
+            if settings.DEBUG:
+                raise
+            else:
+                messages.warning(self.request, err)
+                return HttpResponseRedirect(reverse('admin:index'))
+
+        try:
+            os.system("pdfseparate %s %s_%%d.pdf" % (path, path[:-4]))
+
+            for filename in os.listdir(dirname):
+                if filename == upfile.name:
+                    continue
+                p = Popen(['pdftotext', os.path.join(dirname, filename), '-'],
+                          shell=False, stdout=PIPE, stderr=PIPE)
+                output, errors = p.communicate()
+                m = re.search('Elève\s*:\s*([^\n]*)', output.decode('utf-8'))
+                if not m:
+                    print("Unable to find student name in %s" % filename)
+                    continue
+                # print("Elève: %s, Fichier: %s" % (m.groups()[0], filename))
+                os.rename(os.path.join(dirname, filename), "%s.pdf" % (os.path.join(dirname, slugify(m.groups()[0]))))
+
+        except Exception as err:
+            if settings.DEBUG:
+                raise
+            else:
+                messages.warning(self.request, err)
+                return HttpResponseRedirect(reverse('admin:index'))
+
+        counter = 0
+        list_pdf_file = [f for f in os.listdir(settings.MEDIA_ROOT)
+                         if os.path.isfile(os.path.join(settings.MEDIA_ROOT, f))]
+
+        for student in klass.student_set.exclude(archived=True)[:3]:
+            context = {
+                'student_name': " ".join([student.civility, student.first_name, student.last_name]),
+                'sender_name': " ".join([self.request.user.first_name, self.request.user.last_name]),
+                'sender_email': self.request.user.email,
+            }
+            student_filename = slugify('{0} {1}'.format(student.last_name, student.first_name))
+            student_filename = '{0}.pdf'.format(student_filename)
+            attach_idx = list_pdf_file.index(student_filename)
+
+            """ ***************
+            to = [student.email]
+            if student.instructor and student.instructor.email:
+                to.append(student.instructor.email)
+            ***************** """
+            email = EmailMessage(
+                subject='Bulletins scolaires',
+                body=loader.render_to_string('email/bulletins_scolaires.txt', context),
+                from_email=self.request.user.email,
+                to=['alzo@webzos.com'],
+                bcc=[self.request.user.email],
+            )
+            # PDF-file
+            pdf_file = os.path.join(settings.MEDIA_ROOT, list_pdf_file[attach_idx])
+            pdf_name = 'bulletin_scol_{0}'.format(student_filename)
+            pdf = open(pdf_file, 'rb')
+            email.attach(pdf_name, pdf.read(), 'application/pdf')
+
+            try:
+                email.send(fail_silently=False)
+                counter += 1
+            except Exception as err:
+                messages.error(self.request, "Échec d'envoi pour le candidat {0} ({1})".format(student, err))
+
+        messages.warning(self.request, '{0} messages sur {1} élèves ont été envoyés'
+                         .format(counter, len(list_pdf_file)))
+        return HttpResponseRedirect(reverse('admin:index'))
 
 
 EXPORT_FIELDS = [
