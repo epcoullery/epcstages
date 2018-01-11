@@ -189,7 +189,7 @@ class Student(models.Model):
 
     @property
     def civility(self):
-        return 'Monsieur' if self.gender == 'M' else 'Madame'
+        return {'M': 'Monsieur', 'F': 'Madame'}.get(self.gender, '')
 
     @property
     def full_name(self):

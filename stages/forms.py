@@ -34,3 +34,7 @@ class PeriodForm(forms.Form):
 
 class UploadHPFileForm(forms.Form):
     upload = forms.FileField(label='Fichier HyperPlanning')
+
+
+class UploadBulletinForm(forms.Form):
+    upload = forms.FileField(label='Bulletins CLOEE (pdf)')

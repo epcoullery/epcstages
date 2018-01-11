@@ -4,6 +4,7 @@ from datetime import date
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.core import mail
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.html import escape
@@ -348,3 +349,32 @@ class ImportTests(TestCase):
         self.assertContains(response, "NoSIRET est vide à ligne 4. Ligne ignorée")
         st1.refresh_from_db()
         self.assertEqual(st1.instructor.last_name, 'Geiser')
+
+    def test_import_and_send_bulletins(self):
+        lev1 = Level.objects.create(name='1')
+        klass1 = Klass.objects.create(
+            name='1ASEFEa',
+            section=Section.objects.create(name='ASE'),
+            level=lev1,
+        )
+        Student.objects.bulk_create([
+            Student(first_name="Albin", last_name="Dupond", birth_date="1994-05-12", gender='M',
+                    pcode="2300", city="La Chaux-de-Fonds", email="albin@example.org",
+                    klass=klass1),
+            Student(first_name="Justine", last_name="Varrin", birth_date="1994-07-12",
+                    pcode="2000", city="Neuchâtel", email="justine@example.org", klass=klass1),
+            Student(first_name="Elvire", last_name="Hickx", birth_date="1994-05-20",
+                    pcode="2053", city="Cernier", email="elvire@example.org", klass=klass1),
+        ])
+        path = os.path.join(os.path.dirname(__file__), 'test_files', '1ASEFEa.pdf')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-bulletins'), {'upload': fh}, follow=True)
+        messages = [str(msg) for msg in response.context['messages']]
+        self.assertIn("Impossible de trouver un fichier PDF pour l'étudiant Hickx Elvire", messages)
+        self.assertIn('2 messages sur 3 élèves ont été envoyés', messages)
+        self.assertEqual(len(mail.outbox), 2)
+        # Second email as bcc
+        self.assertEqual(mail.outbox[0].recipients(), ['albin@example.org', 'me@example.org'])
+        self.assertEqual(mail.outbox[1].recipients(), ['justine@example.org', 'me@example.org'])
+        self.assertIn("le bulletin scolaire de Monsieur Albin Dupond", mail.outbox[0].body)

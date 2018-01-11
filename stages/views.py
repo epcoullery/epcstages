@@ -1,5 +1,8 @@
 import json
 import os
+import re
+from subprocess import PIPE, Popen, call
+
 import tempfile
 import zipfile
 from collections import OrderedDict
@@ -10,15 +13,18 @@ from tabimport import CSVImportedFile, FileFactory
 from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
+from django.core.mail import EmailMessage
 from django.db.models import Case, Count, When, Q
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
+from django.template import loader
 from django.urls import reverse
 from django.utils.translation import ugettext as _
+from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
 from .exports import OpenXMLExport
-from .forms import PeriodForm, StudentImportForm, UploadHPFileForm
+from .forms import PeriodForm, StudentImportForm, UploadHPFileForm, UploadBulletinForm
 from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
@@ -495,6 +501,113 @@ class HPContactsImportView(ImportViewBase):
                 student.save()
                 obj_modified += 1
         return {'modified': obj_modified, 'errors': errors}
+
+
+class ImportBulletinView(FormView):
+    template_name = 'file_import.html'
+    form_class = UploadBulletinForm
+
+    def form_valid(self, form):
+        upfile = form.cleaned_data['upload']
+        klass_name = upfile.name[:-4]
+
+        try:
+            klass = Klass.objects.get(name=klass_name)
+        except Klass.DoesNotExist:
+            messages.error(self.request, "La classe %s n'existe pas !" % klass_name)
+            return HttpResponseRedirect(reverse('admin:index'))
+
+        # Check poppler-utils presence on server
+        res = call(['pdftotext', '-v'], stderr=PIPE)
+        if res != 0:
+            messages.error(self.request, "Unable to find pdftotext on your system. Try to install the poppler-utils package.")
+            return HttpResponseRedirect(reverse('admin:index'))
+
+        # Move the file to MEDIA directory
+        pdf_origin = os.path.join(settings.MEDIA_ROOT, upfile.name)
+        with open(pdf_origin, 'wb+') as destination:
+            for chunk in upfile.chunks():
+                destination.write(chunk)
+
+        try:
+            self.send_bulletins(klass, pdf_origin)
+        except Exception as err:
+            if settings.DEBUG:
+                raise
+            else:
+                messages.error(self.request, "Erreur durant l'envoi des bulletins PDF: %s" % err)
+        return HttpResponseRedirect(reverse('admin:index'))
+
+    def send_bulletins(self, klass, pdf_path):
+        path = os.path.abspath(pdf_path)
+        student_regex = '[E|É]lève\s*:\s*([^\n]*)'
+        # Directory automatically deleted when the variable is deleted
+        _temp_dir = tempfile.TemporaryDirectory()
+        temp_dir = _temp_dir.name
+
+        os.system("pdfseparate %s %s/%s_%%d.pdf" % (path, temp_dir, os.path.basename(path)[:-4]))
+
+        # Look for student names in each separated PDF and rename PDF with student name
+        for filename in os.listdir(temp_dir):
+            p = Popen(['pdftotext', os.path.join(temp_dir, filename), '-'],
+                      shell=False, stdout=PIPE, stderr=PIPE)
+            output, errors = p.communicate()
+            m = re.search(student_regex, output.decode('utf-8'))
+            if not m:
+                print("Unable to find student name in %s" % filename)
+                continue
+            student_name = m.groups()[0]
+            os.rename(
+                os.path.join(temp_dir, filename),
+                "%s.pdf" % (os.path.join(temp_dir, slugify(student_name)))
+            )
+
+        email_sent = 0
+        pdf_file_list = os.listdir(temp_dir)
+
+        students = klass.student_set.exclude(archived=True)
+        for student in students:
+            if not student.email:
+                messages.warning(self.request, "L'étudiant %s ne possède pas d'email." % student)
+                continue
+            context = {
+                'student_name': " ".join([student.civility, student.first_name, student.last_name]),
+                'sender_name': " ".join([self.request.user.first_name, self.request.user.last_name]),
+                'sender_email': self.request.user.email,
+            }
+            student_filename = slugify('{0} {1}'.format(student.last_name, student.first_name))
+            student_filename = '{0}.pdf'.format(student_filename)
+            try:
+                attach_idx = pdf_file_list.index(student_filename)
+            except ValueError:
+                messages.error(self.request,
+                               "Impossible de trouver un fichier PDF pour l'étudiant %s" % student)
+                continue
+
+            to = [student.email]
+            if student.instructor and student.instructor.email:
+                to.append(student.instructor.email)
+            email = EmailMessage(
+                subject='Bulletins scolaires',
+                body=loader.render_to_string('email/bulletins_scolaires.txt', context),
+                from_email=self.request.user.email,
+                to=to,
+                bcc=[self.request.user.email],
+            )
+            # Attach PDF file to email
+            pdf_file = os.path.join(temp_dir, pdf_file_list[attach_idx])
+            pdf_name = 'bulletin_scol_{0}'.format(student_filename)
+            with open(pdf_file, 'rb') as pdf:
+                email.attach(pdf_name, pdf.read(), 'application/pdf')
+
+            try:
+                email.send(fail_silently=False)
+                email_sent += 1
+            except Exception as err:
+                messages.error(self.request, "Échec d'envoi pour le candidat {0} ({1})".format(student, err))
+
+        messages.warning(self.request, '{0} messages sur {1} élèves ont été envoyés'
+                         .format(email_sent, students.count()))
 
 
 EXPORT_FIELDS = [
