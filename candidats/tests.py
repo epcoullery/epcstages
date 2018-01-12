@@ -21,16 +21,12 @@ class CandidateTests(TestCase):
         ede = Section.objects.create(name='EDE')
         ase = Section.objects.create(name='ASE')
         Candidate.objects.bulk_create([
-            # A mail should NOT be sent for those first 4 
-            Candidate(
-                first_name='Sara', last_name='Hitz', gender='F', section=ede,
-                deposite_date=None),
+            # A mail should NOT be sent for those first 2
             Candidate(
                 first_name='Jill', last_name='Simth', gender='F', section=ede,
-                date_confirmation_mail=date.today()),
+                deposite_date=date.today(), date_confirmation_mail=date.today()),
             Candidate(first_name='Hervé', last_name='Bern', gender='M', section=ede,
-                canceled_file=True),
-            Candidate(first_name='Frank', last_name='Pit', gender='M', section=ede, email=''),
+                deposite_date=date.today(), canceled_file=True),
             # Good
             Candidate(first_name='Joé', last_name='Glatz', gender='F', section=ase,
                 email='joe@example.org', deposite_date=date.today()),

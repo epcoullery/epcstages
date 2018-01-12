@@ -42,6 +42,7 @@ export_candidates.short_description = "Exporter les candidats sélectionnés"
 def send_confirmation_mail(modeladmin, request, queryset):
     from_email = request.user.email
     subject = "Confirmation de votre inscription à l'Ecole Santé-social Pierre-Coullery"
+    email_sent = 0
 
     for candidate in queryset.filter(
             deposite_date__isnull=False, date_confirmation_mail__isnull=True, canceled_file=False):
@@ -66,11 +67,13 @@ def send_confirmation_mail(modeladmin, request, queryset):
             body = loader.render_to_string('email/candidate_confirm_FE.txt', context)
         try:
             send_mail(subject, body, from_email, to, fail_silently=False)
+            email_sent += 1
         except Exception as err:
             modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
         else:
             candidate.date_confirmation_mail = date.today()
             candidate.save()
+        modeladmin.message_user(request, "%d messages de confirmation ont été envoyés." % email_sent)
 
 send_confirmation_mail.short_description = "Envoyer email de confirmation"
 
