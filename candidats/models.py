@@ -73,7 +73,7 @@ class Candidate(models.Model):
     proc_admin_ext = models.BooleanField("Insc. autre école", default=False)
     work_certificate = models.BooleanField("Certif. de travail", default=False)
     marks_certificate = models.BooleanField("Bull. notes", default=False)
-    deposite_date = models.DateField('Date dépôt dossier', blank=True, null=True)
+    deposite_date = models.DateField('Date dépôt dossier')
     interview_date = models.DateTimeField('Date entretien prof.', blank=True, null=True)
     interview_room = models.CharField("Salle d'entretien prof.", max_length=50, blank=True)
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
