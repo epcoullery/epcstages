@@ -1,0 +1,4 @@
+
+De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance
+de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
+ - {{ documents }}

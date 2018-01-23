@@ -1,5 +1,5 @@
 from django.db import models
-
+from stages.models import Corporation, CorpContact
 
 GENDER_CHOICES = (
     ('M', 'Masculin'),
@@ -25,6 +25,7 @@ OPTION_CHOICES = (
     ('PS', 'Parcours stage'),
 )
 
+
 class Candidate(models.Model):
     """
     Inscriptions for new students
@@ -49,21 +50,19 @@ class Candidate(models.Model):
     integration_second_year = models.BooleanField('Intégration', default=False)
     date_confirmation_mail = models.DateField('Mail de confirmation', blank=True, null=True)
     canceled_file = models.BooleanField('Dossier retiré', default=False)
-    has_photo = models.BooleanField(default=False, verbose_name='Photo')
-
+    has_photo = models.BooleanField(default=False, verbose_name='Photo passeport')
     corporation = models.ForeignKey(
-        'stages.Corporation', null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Employeur'
+        Corporation, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Employeur'
     )
     instructor = models.ForeignKey(
-        'stages.CorpContact', null=True, blank=True, on_delete=models.SET_NULL, verbose_name='FEE/FPP'
+        CorpContact, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='FEE/FPP'
     )
-
     # Checking for registration file
     registration_form = models.BooleanField("Formulaire d'inscription", default=False)
-    certificate_of_payement = models.BooleanField("Attest. paiement", default=False)
+    certificate_of_payement = models.BooleanField("Attest. de paiement", default=False)
     police_record = models.BooleanField("Casier judic.", default=False)
     cv = models.BooleanField("CV", default=False)
-    certif_of_cfc = models.BooleanField("CFC", default=False)
+    certif_of_cfc = models.BooleanField("Attest. CFC", default=False)
     certif_of_800h = models.BooleanField("Attest. 800h.", default=False)
     reflexive_text = models.BooleanField("Texte réflexif", default=False)
     promise = models.BooleanField("Promesse d'eng.", default=False)
@@ -72,25 +71,17 @@ class Candidate(models.Model):
 
     proc_admin_ext = models.BooleanField("Insc. autre école", default=False)
     work_certificate = models.BooleanField("Certif. de travail", default=False)
-    marks_certificate = models.BooleanField("Bull. notes", default=False)
+    marks_certificate = models.BooleanField("Bull. de notes", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
-    interview_date = models.DateTimeField('Date entretien prof.', blank=True, null=True)
-    interview_room = models.CharField("Salle d'entretien prof.", max_length=50, blank=True)
+    interview = models.ForeignKey('Interview', verbose_name="entretien",
+                                  null=True, blank=True, default=None, on_delete=models.PROTECT)
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
     interview_result = models.PositiveSmallIntegerField('Points entretien prof.', blank=True, null=True)
     file_result = models.PositiveSmallIntegerField('Points dossier', blank=True, null=True)
     total_result_points = models.PositiveSmallIntegerField('Total points', blank=True, null=True)
     total_result_mark = models.PositiveSmallIntegerField('Note finale', blank=True, null=True)
-
+    convocation_sended_email = models.DateTimeField(blank=True, default=None, null=True,)
     accepted = models.BooleanField('Admis', default=False)
-    interview_resp = models.ForeignKey(
-        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. entretien',
-        on_delete=models.SET_NULL
-    )
-    file_resp = models.ForeignKey(
-        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. dossier',
-        on_delete=models.SET_NULL
-    )
 
     class Meta:
         verbose_name = 'Candidat'
@@ -106,3 +97,25 @@ class Candidate(models.Model):
             return 'Madame'
         else:
             return ''
+
+
+class Interview(models.Model):
+    date = models.DateTimeField('date')
+    room = models.CharField('salle', max_length=20)
+    teacher_1 = models.CharField('Ens. entretien', max_length=10)
+    teacher_2 = models.CharField('Ens. dossier', max_length=10)
+    status = models.CharField('satut', max_length=1, choices=(('N', 'N'), ('R', 'R'), ('X', 'X')), default='N')
+
+    class Meta:
+        verbose_name = "Entretien d'admission"
+        verbose_name_plural = "Entretiens d'admission"
+        ordering = ('date',)
+
+    def __str__(self):
+        try:
+            cand = Candidate.objects.get(interview=self)
+        except:
+            cand = '???'
+        return '{0} : {1}/{2} - ({3}) -salle:{4}-{5}'.format(self.date.strftime("%A %e %B %Y à %Hh%M"),
+                                                             self.teacher_1, self.teacher_2, self.status,
+                                                             self.room, cand)
