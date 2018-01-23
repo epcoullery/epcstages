@@ -1,14 +1,14 @@
 from collections import OrderedDict
 from datetime import date
-
 from django import forms
+
 from django.contrib import admin
-from django.core.mail import send_mail
-from django.db.models import BooleanField
+from django.core.mail import EmailMessage
+from django.db.models import BooleanField, Q
 from django.template import loader
 
 from stages.exports import OpenXMLExport
-from .models import Candidate, GENDER_CHOICES
+from .models import Candidate, GENDER_CHOICES, Interview
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -65,14 +65,22 @@ def send_confirmation_mail(modeladmin, request, queryset):
             body = loader.render_to_string('email/candidate_confirm_EDE.txt', context)
         else:
             body = loader.render_to_string('email/candidate_confirm_FE.txt', context)
+
+        email = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email= request.user.email,
+            to=to,
+            bcc=[request.user.email]
+        )
+
         try:
-            send_mail(subject, body, from_email, to, fail_silently=False)
+            email.send()
             email_sent += 1
-        except Exception as err:
-            modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
-        else:
             candidate.date_confirmation_mail = date.today()
             candidate.save()
+        except Exception as err:
+            modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
         modeladmin.message_user(request, "%d messages de confirmation ont été envoyés." % email_sent)
 
 send_confirmation_mail.short_description = "Envoyer email de confirmation"
@@ -90,9 +98,9 @@ class CandidateAdminForm(forms.ModelForm):
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateAdminForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail')
+    list_display = ('last_name', 'first_name', 'section', 'option', 'confirm_mail', 'send_convocation')
     list_filter = ('section', 'option')
-    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
+    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail', 'convocation_sended_email')
     actions = [export_candidates, send_confirmation_mail]
     fieldsets = (
         (None, {
@@ -104,7 +112,7 @@ class CandidateAdmin(admin.ModelAdmin):
                        ('corporation', 'instructor'),
                        ('deposite_date', 'date_confirmation_mail', 'canceled_file'),
                        'comment',
-                      ),
+                       ),
         }),
         ("FE", {
             'classes': ('collapse',),
@@ -115,15 +123,58 @@ class CandidateAdmin(admin.ModelAdmin):
             'fields': (('registration_form', 'certificate_of_payement', 'cv', 'certif_of_cfc',
                         'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate',
                         'marks_certificate', 'proc_admin_ext', 'promise', 'contract'),
-                       ('interview_date', 'interview_room'),
+                       ('interview'),
                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
                         'total_result_mark')
                        ),
         }),
     )
 
+    def save_model(self, request, obj, form, change):
+        if obj.interview is None:
+            obj.convocation_sended_email = None
+        return super().save_model(request, obj, form, change)
+
+    def send_convocation(self, obj):
+        if obj.section == 'EDE':
+            if not obj.convocation_sended_email:
+                if obj.interview:
+                    return "<a href=\"/admin/{0}/convocation\">Envoyer convocation</a>".format(obj.id)
+                else:
+                    return 'en attente'
+            else:
+                return obj.interview
+        else:
+            return '---'
+
+    send_convocation.short_description = "Entretien d'admission"
+    send_convocation.allow_tags = True
+
     def confirm_mail(self, obj):
         return obj.date_confirmation_mail is not None
     confirm_mail.boolean = True
 
+
+def send_interviews_schedule(modeladmin, request, queryset):
+    """
+    Send schedule of interviews to teachers
+    """
+    teachers_concerned = []
+    for interview in Interview.objects.all():
+        if not interview.teacher_1 in teachers_concerned:
+            teachers_concerned.append(interview.teacher_1)
+        if not interview.teacher_2 in teachers_concerned:
+            teachers_concerned.append(interview.teacher_2)
+
+    for prof in teachers_concerned:
+        interviews = Interview.objects.filter(Q(teacher_1=prof) |
+                                              Q(teacher_2=prof))
+send_interviews_schedule.short_description = 'Email aux enseignants'
+
+
+class InterviewAdmin(admin.ModelAdmin):
+    actions = (send_interviews_schedule,)
+
+
 admin.site.register(Candidate, CandidateAdmin)
+admin.site.register(Interview, InterviewAdmin)

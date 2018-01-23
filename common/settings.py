@@ -1,5 +1,6 @@
 # Django settings for epcstages project.
 import os
+import locale
 
 PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -31,6 +32,8 @@ USE_L10N = True
 
 # If you set this to False, Django will not use timezone-aware datetimes.
 USE_TZ = False
+locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
+FORMATED_DATE_TIME = "%A %e %B %Y à %Hh%M"
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 MEDIA_ROOT = os.path.join(PROJECT_PATH, 'media')
@@ -54,6 +57,7 @@ MIDDLEWARE = [
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'common.middleware.LoginRequiredMiddleware',
+
 ]
 
 ROOT_URLCONF = 'common.urls'

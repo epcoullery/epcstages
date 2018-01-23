@@ -3,11 +3,13 @@ from django.contrib import admin
 from django.views.generic import RedirectView
 
 from stages import views
+from candidats import views as candidats_views
 
 urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
 
     url(r'^admin/', admin.site.urls),
+    url(r'^admin/(?P<pk>\d+)/convocation/', candidats_views.SendConvocationView.as_view(), name='send-convocation'),
     url(r'^import_students/', views.StudentImportView.as_view(), name='import-students'),
     url(r'^import_hp/', views.HPImportView.as_view(), name='import-hp'),
     url(r'^import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
