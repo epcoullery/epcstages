@@ -25,6 +25,7 @@ OPTION_CHOICES = (
     ('PS', 'Parcours stage'),
 )
 
+
 class Candidate(models.Model):
     """
     Inscriptions for new students
@@ -49,7 +50,7 @@ class Candidate(models.Model):
     integration_second_year = models.BooleanField('Intégration', default=False)
     date_confirmation_mail = models.DateField('Mail de confirmation', blank=True, null=True)
     canceled_file = models.BooleanField('Dossier retiré', default=False)
-    has_photo = models.BooleanField(default=False, verbose_name='Photo')
+    has_photo = models.BooleanField(default=False, verbose_name='Photo passeport')
 
     corporation = models.ForeignKey(
         'stages.Corporation', null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Employeur'
@@ -60,10 +61,10 @@ class Candidate(models.Model):
 
     # Checking for registration file
     registration_form = models.BooleanField("Formulaire d'inscription", default=False)
-    certificate_of_payement = models.BooleanField("Attest. paiement", default=False)
+    certificate_of_payement = models.BooleanField("Attest. de paiement", default=False)
     police_record = models.BooleanField("Casier judic.", default=False)
     cv = models.BooleanField("CV", default=False)
-    certif_of_cfc = models.BooleanField("CFC", default=False)
+    certif_of_cfc = models.BooleanField("Attest. CFC", default=False)
     certif_of_800h = models.BooleanField("Attest. 800h.", default=False)
     reflexive_text = models.BooleanField("Texte réflexif", default=False)
     promise = models.BooleanField("Promesse d'eng.", default=False)
@@ -72,7 +73,7 @@ class Candidate(models.Model):
 
     proc_admin_ext = models.BooleanField("Insc. autre école", default=False)
     work_certificate = models.BooleanField("Certif. de travail", default=False)
-    marks_certificate = models.BooleanField("Bull. notes", default=False)
+    marks_certificate = models.BooleanField("Bull. de notes", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
     interview_date = models.DateTimeField('Date entretien prof.', blank=True, null=True)
     interview_room = models.CharField("Salle d'entretien prof.", max_length=50, blank=True)
