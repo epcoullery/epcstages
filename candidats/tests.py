@@ -40,8 +40,9 @@ class CandidateTests(TestCase):
             '_selected_action': Candidate.objects.values_list('pk', flat=True)
         }, follow=True)
         self.assertEqual(len(mail.outbox), 2)
-        self.assertEqual(mail.outbox[0].recipients(), ['henri@example.org'])
-        self.assertEqual(mail.outbox[1].recipients(), ['joe@example.org'])
+        # Logged-in user also receives as Bcc
+        self.assertEqual(mail.outbox[0].recipients(), ['henri@example.org', 'me@example.org'])
+        self.assertEqual(mail.outbox[1].recipients(), ['joe@example.org', 'me@example.org'])
         # Mail content differ depending on the section
         self.assertEqual(mail.outbox[0].body, """Monsieur,
 
@@ -77,16 +78,18 @@ me@example.org
 
     def test_send_confirmation_error(self):
         ede = Section.objects.create(name='EDE')
-        Candidate.objects.create(
+        henri = Candidate.objects.create(
             first_name='Henri', last_name='Dupond', gender='M', section=ede,
             email='henri@example.org', deposite_date=date.today()
         )
         change_url = reverse('admin:candidats_candidate_changelist')
         self.client.login(username='me', password='mepassword')
-        with mock.patch('candidats.admin.send_mail') as mocked:
+        with mock.patch('django.core.mail.EmailMessage.send') as mocked:
             mocked.side_effect = Exception("Error sending mail")
             response = self.client.post(change_url, {
                 'action': 'send_confirmation_mail',
                 '_selected_action': Candidate.objects.values_list('pk', flat=True)
             }, follow=True)
         self.assertContains(response, "Échec d’envoi pour le candidat Dupond Henri (Error sending mail)")
+        henri.refresh_from_db()
+        self.assertIsNone(henri.date_confirmation_mail)

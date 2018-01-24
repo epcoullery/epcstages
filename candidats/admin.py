@@ -3,7 +3,7 @@ from datetime import date
 
 from django import forms
 from django.contrib import admin
-from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 from django.db.models import BooleanField
 from django.template import loader
 
@@ -65,8 +65,17 @@ def send_confirmation_mail(modeladmin, request, queryset):
             body = loader.render_to_string('email/candidate_confirm_EDE.txt', context)
         else:
             body = loader.render_to_string('email/candidate_confirm_FE.txt', context)
+
+        email = EmailMessage(
+            subject=subject,
+            body=body,
+            from_email=from_email,
+            to=to,
+            bcc=[from_email]
+        )
+
         try:
-            send_mail(subject, body, from_email, to, fail_silently=False)
+            email.send()
             email_sent += 1
         except Exception as err:
             modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
