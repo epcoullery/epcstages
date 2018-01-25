@@ -8,7 +8,7 @@ from django.db.models import BooleanField
 from django.template import loader
 
 from stages.exports import OpenXMLExport
-from .models import Candidate, GENDER_CHOICES
+from .models import Candidate, Interview, GENDER_CHOICES
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -88,6 +88,8 @@ send_confirmation_mail.short_description = "Envoyer email de confirmation"
 
 
 class CandidateAdminForm(forms.ModelForm):
+    interview = forms.ModelChoiceField(queryset=Interview.objects.all(), required=False)
+
     class Meta:
         model = Candidate
         widgets = {
@@ -95,6 +97,24 @@ class CandidateAdminForm(forms.ModelForm):
             'pcode': forms.TextInput(attrs={'size': 10}),
         }
         fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        try:
+            kwargs['initial'] = {'interview': kwargs['instance'].interview}
+        except Interview.DoesNotExist:
+            pass
+        return super().__init__(*args, **kwargs)
+
+    def save(self, **kwargs):
+        obj = super().save(**kwargs)
+        if 'interview' in self.changed_data:
+            if self.cleaned_data['interview'] is None:
+                self.initial['interview'].candidat = None
+                self.initial['interview'].save()
+            else:
+                self.cleaned_data['interview'].candidat = obj
+                self.cleaned_data['interview'].save()
+        return obj
 
 
 class CandidateAdmin(admin.ModelAdmin):
@@ -124,7 +144,7 @@ class CandidateAdmin(admin.ModelAdmin):
             'fields': (('registration_form', 'certificate_of_payement', 'cv', 'certif_of_cfc',
                         'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate',
                         'marks_certificate', 'proc_admin_ext', 'promise', 'contract'),
-                       ('interview_date', 'interview_room'),
+                       ('interview',),
                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
                         'total_result_mark')
                        ),
@@ -135,4 +155,10 @@ class CandidateAdmin(admin.ModelAdmin):
         return obj.date_confirmation_mail is not None
     confirm_mail.boolean = True
 
+
+class InterviewAdmin(admin.ModelAdmin):
+    pass
+
+
 admin.site.register(Candidate, CandidateAdmin)
+admin.site.register(Interview, InterviewAdmin)

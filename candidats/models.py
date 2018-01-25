@@ -1,5 +1,7 @@
 from django.db import models
+from django.utils.dateformat import format as django_format
 
+from stages.models import Corporation, CorpContact, Teacher
 
 GENDER_CHOICES = (
     ('M', 'Masculin'),
@@ -53,10 +55,10 @@ class Candidate(models.Model):
     has_photo = models.BooleanField(default=False, verbose_name='Photo passeport')
 
     corporation = models.ForeignKey(
-        'stages.Corporation', null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Employeur'
+        Corporation, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Employeur'
     )
     instructor = models.ForeignKey(
-        'stages.CorpContact', null=True, blank=True, on_delete=models.SET_NULL, verbose_name='FEE/FPP'
+        CorpContact, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='FEE/FPP'
     )
 
     # Checking for registration file
@@ -75,23 +77,12 @@ class Candidate(models.Model):
     work_certificate = models.BooleanField("Certif. de travail", default=False)
     marks_certificate = models.BooleanField("Bull. de notes", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
-    interview_date = models.DateTimeField('Date entretien prof.', blank=True, null=True)
-    interview_room = models.CharField("Salle d'entretien prof.", max_length=50, blank=True)
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
     interview_result = models.PositiveSmallIntegerField('Points entretien prof.', blank=True, null=True)
     file_result = models.PositiveSmallIntegerField('Points dossier', blank=True, null=True)
     total_result_points = models.PositiveSmallIntegerField('Total points', blank=True, null=True)
     total_result_mark = models.PositiveSmallIntegerField('Note finale', blank=True, null=True)
-
     accepted = models.BooleanField('Admis', default=False)
-    interview_resp = models.ForeignKey(
-        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. entretien',
-        on_delete=models.SET_NULL
-    )
-    file_resp = models.ForeignKey(
-        'stages.Teacher', null=True, blank=True, related_name='+', verbose_name='Exp. dossier',
-        on_delete=models.SET_NULL
-    )
 
     class Meta:
         verbose_name = 'Candidat'
@@ -107,3 +98,36 @@ class Candidate(models.Model):
             return 'Madame'
         else:
             return ''
+
+
+INTERVIEW_CHOICES = (
+    ('N', 'Normal'),
+    ('R', 'Réserve'),
+    ('X', 'Attente confirmation enseignants'),
+)
+
+class Interview(models.Model):
+    date = models.DateTimeField('Date')
+    room = models.CharField("Salle d'entretien", max_length=20)
+    candidat = models.OneToOneField(Candidate, null=True, blank=True, on_delete=models.SET_NULL)
+    teacher_int = models.ForeignKey(
+        Teacher, null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
+        verbose_name='Ens. entretien'
+    )
+    teacher_file = models.ForeignKey(
+        Teacher, null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
+        verbose_name='Ens. dossier'
+    )
+    status = models.CharField('Statut', max_length=1, choices=INTERVIEW_CHOICES, default='N')
+
+    class Meta:
+        verbose_name = "Entretien d'admission"
+        verbose_name_plural = "Entretiens d'admission"
+        ordering = ('date',)
+
+    def __str__(self):
+        return '{0} : {1}/{2} - ({3}) -salle:{4}-{5}'.format(
+            django_format(self.date, "l j F Y à H\hi"),
+            self.teacher_int or '?', self.teacher_file or '?',
+            self.status, self.room, self.candidat or '???'
+        )

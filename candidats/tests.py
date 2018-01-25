@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from unittest import mock
 
 from django.contrib.auth.models import User
@@ -6,8 +6,8 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
-from stages.models import Section
-from .models import Candidate
+from stages.models import Section, Teacher
+from .models import Candidate, Interview
 
 
 class CandidateTests(TestCase):
@@ -16,6 +16,26 @@ class CandidateTests(TestCase):
         User.objects.create_superuser(
             'me', 'me@example.org', 'mepassword', first_name='Hans', last_name='Schmid',
         )
+
+    def test_interview(self):
+        inter = Interview.objects.create(date=datetime(2018, 3, 10, 10, 30), room='B103')
+        self.assertEqual(str(inter), 'samedi 10 mars 2018 à 10h30 : ?/? - (N) -salle:B103-???')
+        ede = Section.objects.create(name='EDE')
+        cand = Candidate.objects.create(
+            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            email='henri@example.org', deposite_date=date.today()
+        )
+        t1 = Teacher.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
+        t2 = Teacher.objects.create(first_name='Jeanne', last_name='Dubois')
+        inter.teacher_int = t1
+        inter.teacher_file = t2
+        inter.candidat = cand
+        inter.save()
+        self.assertEqual(
+            str(inter),
+            'samedi 10 mars 2018 à 10h30 : Caux Julie/Dubois Jeanne - (N) -salle:B103-Dupond Henri'
+        )
+        self.assertEqual(cand.interview, inter)
 
     def test_send_confirmation_mail(self):
         ede = Section.objects.create(name='EDE')
