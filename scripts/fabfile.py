@@ -34,7 +34,7 @@ def clone_remote_db(dbtype='sqlite'):
     # Dump remote data and download the file
     with cd(APP_DIR):
         with prefix('source %s' % VIRTUALENV_DIR):
-            run('python manage.py dumpdata --natural-foreign --indent 1 -e auth.Permission auth stages > epcstages.json')
+            run('python manage.py dumpdata --natural-foreign --indent 1 -e auth.Permission auth stages candidats > epcstages.json')
         get('epcstages.json', '.')
 
     # Recreate a fresh DB with downloaded data
