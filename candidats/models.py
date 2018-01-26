@@ -166,7 +166,11 @@ class Interview(models.Model):
 
     def __str__(self):
         return '{0} : {1}/{2} - ({3}) -salle:{4}-{5}'.format(
-            django_format(self.date, "l j F Y à H\hi"),
+            self.date_formatted,
             self.teacher_int or '?', self.teacher_file or '?',
             self.status, self.room, self.candidat or '???'
         )
+
+    @property
+    def date_formatted(self):
+        return django_format(self.date, "l j F Y à H\hi")

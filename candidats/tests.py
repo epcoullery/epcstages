@@ -113,3 +113,53 @@ me@example.org
         self.assertContains(response, "Échec d’envoi pour le candidat Dupond Henri (Error sending mail)")
         henri.refresh_from_db()
         self.assertIsNone(henri.date_confirmation_mail)
+
+    def test_convocation_ede(self):
+        ede = Section.objects.create(name='EDE')
+        henri = Candidate.objects.create(
+            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            email='henri@example.org', deposite_date=date.today()
+        )
+        inter = Interview.objects.create(date=datetime(2018, 3, 10, 10, 30), room='B103', candidat=henri)
+        self.client.login(username='me', password='mepassword')
+        response = self.client.get(reverse('candidate-convocation', args=[henri.pk]))
+        self.assertContains(response, '<h2>Dupond Henri</h2>')
+        self.assertContains(response, '<input type="text" name="to" value="henri@example.org" size="60" id="id_to" required>', html=True)
+        self.assertContains(response, """
+Monsieur Henri Dupond,
+
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
+
+Vous êtes attendu-e à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
+
+ - mercredi 7 mars 2018, à 13h30, salle 405, pour l’examen écrit (durée approx. 4 heures)
+
+ - samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée approx. 45 min.).
+
+En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
+
+De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance
+de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
+ - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bilan act. prof./dernier stage, Bull. de notes
+
+Dans l’intervalle, nous vous adressons, Monsieur, nos salutations les plus cordiales.
+
+Secrétariat de la filière Education de l’enfance, dipl. ES
+Hans Schmid
+me@example.org
+tél. 032 886 33 00"""
+        )
+        response = self.client.post(reverse('candidate-convocation', args=[henri.pk]), data={
+            'id_candidate': str(henri.pk),
+            'cci': 'me@example.org',
+            'to': henri.email,
+            'subject': "Procédure de qualification",
+            'message': "Monsieur Henri Dupond, ...",
+            'sender': 'me@example.org',
+        })
+        self.assertRedirects(response, reverse('admin:candidats_candidate_changelist'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].recipients(), ['henri@example.org', 'me@example.org'])
+        self.assertEqual(mail.outbox[0].subject, "Procédure de qualification")
+        henri.refresh_from_db()
+        self.assertIsNotNone(henri.convocation_date)

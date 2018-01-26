@@ -6,6 +6,7 @@ from django.contrib import admin
 from django.core.mail import EmailMessage
 from django.db.models import BooleanField
 from django.template import loader
+from django.urls import reverse
 
 from stages.exports import OpenXMLExport
 from .models import Candidate, Interview, GENDER_CHOICES
@@ -119,7 +120,7 @@ class CandidateAdminForm(forms.ModelForm):
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateAdminForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
     actions = [export_candidates, send_confirmation_mail]
@@ -156,6 +157,17 @@ class CandidateAdmin(admin.ModelAdmin):
     def confirm_mail(self, obj):
         return obj.date_confirmation_mail is not None
     confirm_mail.boolean = True
+
+    def convocation(self, obj):
+        if obj.interview is None:
+            return '???'
+        elif obj.interview and obj.convocation_date:
+            return obj.interview
+        else:
+            url = reverse('candidate-convocation', args=[obj.pk])
+            return '<a href="' + url  + '">Envoyer convocation</a>'
+    convocation.short_description = 'Convoc. aux examens'
+    convocation.allow_tags = True
 
 
 class InterviewAdmin(admin.ModelAdmin):

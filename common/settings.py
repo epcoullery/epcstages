@@ -146,6 +146,8 @@ CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2017-2018"
 MAX_ENS_PERIODS = 1900
 MAX_ENS_FORMATION = 250
 
+DATE_LIEU_EXAMEN_EDE = "mercredi 7 mars 2018, à 13h30, salle 405"
+
 if 'TRAVIS' in os.environ:
     SECRET_KEY = 'secretkeyfortravistests'
     STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
