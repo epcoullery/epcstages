@@ -1,14 +1,20 @@
+import os
+import tempfile
+import zipfile
+
 from collections import OrderedDict
 from datetime import date
-
 from django import forms
+
 from django.contrib import admin
 from django.core.mail import EmailMessage
-from django.db.models import BooleanField
+from django.db.models import BooleanField, Q
 from django.template import loader
+from django.http import HttpResponse
 
 from stages.exports import OpenXMLExport
-from .models import Candidate, Interview, GENDER_CHOICES
+from candidats.models import Candidate, Interview, GENDER_CHOICES
+from stages.pdf import InscriptionSummaryPDF
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -83,8 +89,44 @@ def send_confirmation_mail(modeladmin, request, queryset):
             candidate.date_confirmation_mail = date.today()
             candidate.save()
         modeladmin.message_user(request, "%d messages de confirmation ont été envoyés." % email_sent)
-
 send_confirmation_mail.short_description = "Envoyer email de confirmation"
+
+
+def print_summary(modeladmin, request, queryset):
+    """
+    Print a summary of inscription
+    """
+    filename = 'archive_InscriptionSummary.zip'
+    path = os.path.join(tempfile.gettempdir(), filename)
+
+    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+        for candidate in queryset:
+            pdf = InscriptionSummaryPDF(candidate)
+            pdf.produce(candidate)
+            filezip.write(pdf.filename)
+
+    with open(filezip.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    return response
+print_summary.short_description = 'Imprimer résumé'
+
+
+def send_interviews_schedule(modeladmin, request, queryset):
+    """
+    Send schedule of interviews to teachers
+    """
+    teachers_concerned = []
+    for interview in Interview.objects.all():
+        if not interview.te in teachers_concerned:
+            teachers_concerned.append(interview.teacher_int)
+        if not interview.teacher_2 in teachers_concerned:
+            teachers_concerned.append(interview.teacher_file)
+
+    for prof in teachers_concerned:
+        interviews = Interview.objects.filter(Q(teacher_int=prof) |
+                                              Q(teacher_file=prof))
+send_interviews_schedule.short_description = 'Email aux enseignants'
 
 
 class CandidateAdminForm(forms.ModelForm):
@@ -119,10 +161,10 @@ class CandidateAdminForm(forms.ModelForm):
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateAdminForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'date_convocation')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
-    actions = [export_candidates, send_confirmation_mail]
+    actions = [export_candidates, send_confirmation_mail, print_summary]
     fieldsets = (
         (None, {
             'fields': (('first_name', 'last_name', 'gender'),
@@ -141,12 +183,14 @@ class CandidateAdmin(admin.ModelAdmin):
         }),
         ("EDE/EDS", {
             'classes': ('collapse',),
-            'fields': (('registration_form', 'certificate_of_payement', 'cv', 'certif_of_cfc',
-                        'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate',
-                        'marks_certificate', 'proc_admin_ext', 'promise', 'contract'),
-                       ('interview',),
-                       ('examination_result', 'interview_result', 'file_result', 'total_result_points',
-                        'total_result_mark')
+            'fields': (('diploma', 'diploma_detail', 'diploma_status'),
+                        ('registration_form', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
+                        'marks_certificate', 'residence_permits', 'aes_accords'),
+                        ('certif_of_800_childhood', 'certif_800_general', 'work_certificate'),
+                        ('promise', 'contract', 'activity_rate'),
+                        ('interview',),
+                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
+                            'total_result_mark')
                        ),
         }),
     )
@@ -155,6 +199,18 @@ class CandidateAdmin(admin.ModelAdmin):
         return obj.date_confirmation_mail is not None
     confirm_mail.boolean = True
 
+    def date_convocation(self, obj):
+        print(obj.interview)
+        if obj.interview is None:
+            return '???'
+        elif obj.interview and obj.date_convocation_sended:
+            return self.interview
+        else:
+            url = '/candidate/{0}/send_convocation/'.format(obj.id)
+            return '<a href=\"' + url  + '\">Envoyer convocation</a>'
+
+    date_convocation.short_description = 'Convoc. aux examens'
+    date_convocation.allow_tags = True
 
 class InterviewAdmin(admin.ModelAdmin):
     pass

@@ -4,7 +4,7 @@ from django.conf import settings
 from tabimport import FileFactory, UnsupportedFileFormat
 
 from .models import Section, Period
-
+from candidats.models import Candidate
 
 class StudentImportForm(forms.Form):
     upload = forms.FileField(label="Fichier des étudiants")
@@ -38,3 +38,10 @@ class UploadHPFileForm(forms.Form):
 
 class UploadBulletinForm(forms.Form):
     upload = forms.FileField(label='Bulletins CLOEE (pdf)')
+
+
+class CandidateProfilForm(forms.ModelForm):
+    model = Candidate
+
+    class Meta:
+        fields = '__all__'

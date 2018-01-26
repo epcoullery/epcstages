@@ -1,5 +1,6 @@
 # Django settings for epcstages project.
 import os
+import locale
 
 PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -22,6 +23,7 @@ DATABASES = {
     }
 }
 
+locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
 TIME_ZONE = 'Europe/Zurich'
 
 LANGUAGE_CODE = 'fr'
@@ -142,6 +144,7 @@ CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2017-2018"
 # Maximum numbers of periods per teacher per year
 MAX_ENS_PERIODS = 1900
 MAX_ENS_FORMATION = 250
+FORMATED_DATE_TIME = '%A %d %B %Y '
 
 if 'TRAVIS' in os.environ:
     SECRET_KEY = 'secretkeyfortravistests'

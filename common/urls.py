@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.views.generic import RedirectView
 
 from stages import views
+from candidats import views as candidats_views
 
 urlpatterns = [
     url(r'^$', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
@@ -20,6 +21,8 @@ urlpatterns = [
     url(r'^institutions/(?P<pk>\d+)/$', views.CorporationView.as_view(), name='corporation'),
     url(r'^classes/$', views.KlassListView.as_view(), name='classes'),
     url(r'^classes/(?P<pk>\d+)/$', views.KlassView.as_view(), name='class'),
+
+    url(r'^candidate/(?P<pk>\d+)/send_convocation/$', candidats_views.SendConvocationView.as_view(), name='candidate-convocation'),
 
     url(r'^imputations/export/$', views.imputations_export, name='imputations_export'),
     url(r'^print/update_form/$', views.print_update_form, name='print_update_form'),

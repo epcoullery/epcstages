@@ -24,9 +24,34 @@ OPTION_CHOICES = (
     ('HAN', 'Handicap'),
     ('PE-5400h', 'Parcours Emploi 5400h.'),
     ('PE-3600h', 'Parcours Emploi 3600h.'),
-    ('PS', 'Parcours stage'),
+    ('PS', 'Parcours stage 5400h.'),
 )
 
+DIPLOMA_CHOICES = (
+    (0, 'Aucun'),
+    (1, "CFC d'ASE"),
+    (2, "CFC autre domaine"),
+    (3, "Matu acad./spéc. ou dipl. ECG"),
+    (4, "Portfolio"),
+)
+
+DIPLOMA_STATUS_CHOICES = (
+    (0, 'Inconnu'),
+    (1, 'En cours'),
+    (2, 'OK'),
+)
+
+RESIDENCE_PERMITS_CHOICES = (
+    (0, 'Pas nécessaire'),
+    (1, 'Nécessaire - OK'),
+    (2, 'Manquante'),
+)
+
+AES_ACCORDS_CHOICES = (
+    (0, 'OK'),
+    (1, 'Demander accord du canton concerné'),
+    (2, 'Refus du canton concerné')
+)
 
 class Candidate(models.Model):
     """
@@ -66,23 +91,39 @@ class Candidate(models.Model):
     certificate_of_payement = models.BooleanField("Attest. de paiement", default=False)
     police_record = models.BooleanField("Casier judic.", default=False)
     cv = models.BooleanField("CV", default=False)
-    certif_of_cfc = models.BooleanField("Attest. CFC", default=False)
-    certif_of_800h = models.BooleanField("Attest. 800h.", default=False)
+
+    # certif_of_cfc = models.BooleanField("Attest. CFC", default=False)
+    # certif_of_800h = models.BooleanField("Attest. 800h.", default=False)
     reflexive_text = models.BooleanField("Texte réflexif", default=False)
     promise = models.BooleanField("Promesse d'eng.", default=False)
     contract = models.BooleanField("Contrat valide", default=False)
     comment = models.TextField('Remarques', blank=True)
 
-    proc_admin_ext = models.BooleanField("Insc. autre école", default=False)
-    work_certificate = models.BooleanField("Certif. de travail", default=False)
+    # proc_admin_ext = models.BooleanField("Insc. autre école", default=False)
+    work_certificate = models.BooleanField("Bilan act. prof./dernier stage", default=False)
     marks_certificate = models.BooleanField("Bull. de notes", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
+
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
     interview_result = models.PositiveSmallIntegerField('Points entretien prof.', blank=True, null=True)
     file_result = models.PositiveSmallIntegerField('Points dossier', blank=True, null=True)
     total_result_points = models.PositiveSmallIntegerField('Total points', blank=True, null=True)
     total_result_mark = models.PositiveSmallIntegerField('Note finale', blank=True, null=True)
+
+    inscr_other_school = models.CharField("Inscr. autre école", max_length=30, default='')
+    certif_of_800_childhood = models.BooleanField("Attest. 800h. enfance", default=False)
+    certif_800_general = models.BooleanField("Attest. 800h. général", default=False)
+    diploma = models.IntegerField('Titre sec. II', choices=DIPLOMA_CHOICES, default=0)
+    diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
+    diploma_status = models.IntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
+    activity_rate = models.CharField("Taux d'activité", max_length=50, blank=True,  default='')
+    date_convocation_sended = models.DateTimeField(null=True, blank=True, default=None)
+
+    aes_accords = models.IntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=False)
+    residence_permits = models.IntegerField("Autorisation de séjour (pour les personnes étrangères)",
+                                            choices=RESIDENCE_PERMITS_CHOICES, blank=True, default=0)
     accepted = models.BooleanField('Admis', default=False)
+
 
     class Meta:
         verbose_name = 'Candidat'
@@ -98,6 +139,9 @@ class Candidate(models.Model):
             return 'Madame'
         else:
             return ''
+
+    def get_ok(self, fieldname):
+        return 'OK' if getattr(self, fieldname)==True else 'NON'
 
 
 INTERVIEW_CHOICES = (
