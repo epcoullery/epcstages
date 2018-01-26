@@ -103,6 +103,9 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesSto
 
 ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 
+FABRIC_HOST = 'stages.pierre-coullery.ch'
+FABRIC_USERNAME = ''
+
 # Mapping between column names of a tabular file and Student field names
 STUDENT_IMPORT_MAPPING = {
     'NOCLOEE': 'ext_id',

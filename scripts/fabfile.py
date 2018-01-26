@@ -3,11 +3,19 @@ import os
 import sys
 
 from fabric.api import cd, env, get, local, prefix, prompt, run
+from fabric.contrib import django
 from fabric.utils import abort
 
-env.hosts = ['stages.pierre-coullery.ch']
 APP_DIR = '/var/www/epcstages'
 VIRTUALENV_DIR = '/var/virtualenvs/stages/bin/activate'
+
+"""Read settings from Django settings"""
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+django.settings_module('common.settings')
+from common import settings
+
+env.hosts = [settings.FABRIC_HOST]
+env.user = settings.FABRIC_USERNAME
 
 
 def clone_remote_db(dbtype='sqlite'):
@@ -15,9 +23,6 @@ def clone_remote_db(dbtype='sqlite'):
     Copy remote data (JSON dump), download it locally and recreate a local
     SQLite database with those data.
     """
-    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    from common import settings
-
     db_path = settings.DATABASES['default']['NAME']
     if os.path.exists(db_path):
         rep = prompt('A local database (%s) already exists. Overwrite? (y/n)' % db_path)
