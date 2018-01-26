@@ -141,13 +141,15 @@ class CandidateAdmin(admin.ModelAdmin):
         }),
         ("EDE/EDS", {
             'classes': ('collapse',),
-            'fields': (('registration_form', 'certificate_of_payement', 'cv', 'certif_of_cfc',
-                        'police_record', 'certif_of_800h', 'reflexive_text', 'work_certificate',
-                        'marks_certificate', 'proc_admin_ext', 'promise', 'contract'),
-                       ('interview',),
-                       ('examination_result', 'interview_result', 'file_result', 'total_result_points',
-                        'total_result_mark')
-                       ),
+            'fields': (('diploma', 'diploma_detail', 'diploma_status'),
+                        ('registration_form', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
+                        'marks_certificate', 'residence_permits', 'aes_accords'),
+                        ('certif_of_800_childhood', 'certif_800_general', 'work_certificate'),
+                        ('promise', 'contract', 'activity_rate'),
+                        ('interview',),
+                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
+                            'total_result_mark')
+            ),
         }),
     )
 
