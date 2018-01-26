@@ -138,6 +138,9 @@ class Candidate(models.Model):
         else:
             return ''
 
+    def get_ok(self, fieldname):
+        return 'OK' if getattr(self, fieldname) is True else 'NON'
+
 
 INTERVIEW_CHOICES = (
     ('N', 'Normal'),

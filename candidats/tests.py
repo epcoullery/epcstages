@@ -163,3 +163,22 @@ tél. 032 886 33 00"""
         self.assertEqual(mail.outbox[0].subject, "Procédure de qualification")
         henri.refresh_from_db()
         self.assertIsNotNone(henri.convocation_date)
+
+    def test_summary_pdf(self):
+        ede = Section.objects.create(name='EDE')
+        cand = Candidate.objects.create(
+            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            email='henri@example.org', deposite_date=date.today()
+        )
+        change_url = reverse('admin:candidats_candidate_changelist')
+        self.client.login(username='me', password='mepassword')
+        response = self.client.post(change_url, {
+            'action': 'print_summary',
+            '_selected_action': Candidate.objects.values_list('pk', flat=True)
+        }, follow=True)
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename="archive_InscriptionResumes.zip"'
+        )
+        self.assertEqual(response['Content-Type'], 'application/zip')
+        self.assertGreater(len(response.content), 200)

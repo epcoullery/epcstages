@@ -1,3 +1,6 @@
+import os
+import tempfile
+import zipfile
 from collections import OrderedDict
 from datetime import date
 
@@ -5,11 +8,13 @@ from django import forms
 from django.contrib import admin
 from django.core.mail import EmailMessage
 from django.db.models import BooleanField
+from django.http import HttpResponse
 from django.template import loader
 from django.urls import reverse
 
 from stages.exports import OpenXMLExport
 from .models import Candidate, Interview, GENDER_CHOICES
+from .pdf import InscriptionSummaryPDF
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -84,8 +89,27 @@ def send_confirmation_mail(modeladmin, request, queryset):
             candidate.date_confirmation_mail = date.today()
             candidate.save()
         modeladmin.message_user(request, "%d messages de confirmation ont été envoyés." % email_sent)
-
 send_confirmation_mail.short_description = "Envoyer email de confirmation"
+
+
+def print_summary(modeladmin, request, queryset):
+    """
+    Print a summary of inscription
+    """
+    filename = 'archive_InscriptionResumes.zip'
+    path = os.path.join(tempfile.gettempdir(), filename)
+
+    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+        for candidate in queryset:
+            pdf = InscriptionSummaryPDF(candidate)
+            pdf.produce(candidate)
+            filezip.write(pdf.filename)
+
+    with open(filezip.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    return response
+print_summary.short_description = 'Imprimer résumé'
 
 
 class CandidateAdminForm(forms.ModelForm):
@@ -123,7 +147,7 @@ class CandidateAdmin(admin.ModelAdmin):
     list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
-    actions = [export_candidates, send_confirmation_mail]
+    actions = [export_candidates, send_confirmation_mail, print_summary]
     fieldsets = (
         (None, {
             'fields': (('first_name', 'last_name', 'gender'),

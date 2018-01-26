@@ -6,19 +6,73 @@ from django.conf import settings
 from django.contrib.staticfiles.finders import find
 from django.utils.text import slugify
 
-from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
-                                PageBreak, Table, TableStyle, Image)
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle as PS
+from reportlab.platypus import (
+    Frame, Image, NextPageTemplate, PageBreak, PageTemplate, Paragraph,
+    SimpleDocTemplate, Spacer, Table, TableStyle,
+)
 
 style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_LEFT)
 style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment = TA_LEFT)
-style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment = TA_LEFT, spaceBefore=2*cm)
+style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment = TA_LEFT, spaceBefore=1*cm)
 style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=10, alignment = TA_LEFT, leftIndent=280)
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_RIGHT)
+
+LOGO_EPC = find('img/logo_EPC.png')
+LOGO_ESNE = find('img/logo_ESNE.png')
+
+
+class EpcBaseDocTemplate(SimpleDocTemplate):
+    filiere = 'Formation EDE'
+
+    def __init__(self, filename, title='', pagesize=A4):
+        super().__init__(
+            filename, pagesize=pagesize, _pageBreakQuick=0,
+            lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=1.5 * cm
+        )
+        self.story = []
+        self.title = title
+
+    def header(self, canvas, doc):
+        canvas.saveState()
+        canvas.drawImage(
+            LOGO_EPC, doc.leftMargin, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+        )
+        canvas.drawImage(
+            LOGO_ESNE, doc.width - 2 * cm, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+        )
+        canvas.line(doc.leftMargin, doc.height - 0.5 * cm, doc.width + doc.leftMargin, doc.height - 0.5 * cm)
+        canvas.drawString(doc.leftMargin, doc.height - 1.1 * cm, self.filiere)
+        canvas.drawRightString(doc.width + doc.leftMargin, doc.height - 1.1 * cm, self.title)
+        canvas.line(doc.leftMargin, doc.height - 1.3 * cm, doc.width + doc.leftMargin, doc.height - 1.3 * cm)
+        canvas.restoreState()
+
+    def later_header(self, canvas, doc):
+        canvas.saveState()
+        canvas.line(doc.leftMargin, doc.height + 1 * cm, doc.width + doc.leftMargin, doc.height + 1 * cm)
+        canvas.drawString(doc.leftMargin, doc.height + 0.5 * cm, self.filiere)
+        canvas.drawRightString(doc.width + doc.leftMargin, doc.height + 0.5 * cm, self.title)
+        canvas.line(doc.leftMargin, doc.height + 0.2 * cm, doc.width + doc.leftMargin, doc.height + 0.2 * cm)
+        canvas.restoreState()
+
+    def setNormalTemplatePage(self):
+        first_page_table_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 4 * cm,
+            id='first_table', showBoundary=0, leftPadding=0 * cm
+        )
+        later_pages_table_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 2 * cm,
+            id='later_table', showBoundary=0, leftPadding=0 * cm
+        )
+        # Page template
+        first_page = PageTemplate(id='FirstPage', frames=[first_page_table_frame], onPage=self.header)
+        later_pages = PageTemplate(id='LaterPages', frames=[later_pages_table_frame], onPage=self.later_header)
+        self.addPageTemplates([first_page, later_pages])
+        self.story = [NextPageTemplate(['*', 'LaterPages'])]
 
 
 class ChargeSheetPDF(SimpleDocTemplate):
