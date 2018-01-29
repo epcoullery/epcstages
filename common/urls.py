@@ -1,46 +1,46 @@
-from django.conf.urls import include, url
 from django.contrib import admin
+from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 
 from candidats import views as candidats_views
 from stages import views
 
 urlpatterns = [
-    url(r'^$', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
+    path('', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
 
-    url(r'^admin/', admin.site.urls),
-    url(r'^import_students/', views.StudentImportView.as_view(), name='import-students'),
-    url(r'^import_hp/', views.HPImportView.as_view(), name='import-hp'),
-    url(r'^import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
-    url(r'^import_bulletins/', views.ImportBulletinView.as_view(), name='import-bulletins'),
+    path('admin/', admin.site.urls),
+    path('import_students/', views.StudentImportView.as_view(), name='import-students'),
+    path('import_hp/', views.HPImportView.as_view(), name='import-hp'),
+    path('import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
+    path('import_bulletins/', views.ImportBulletinView.as_view(), name='import-bulletins'),
 
-    url(r'^attribution/$', views.AttributionView.as_view(), name='attribution'),
-    url(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),
+    path('attribution/', views.AttributionView.as_view(), name='attribution'),
+    re_path(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),
 
-    url(r'^institutions/$', views.CorporationListView.as_view(), name='corporations'),
-    url(r'^institutions/(?P<pk>\d+)/$', views.CorporationView.as_view(), name='corporation'),
-    url(r'^classes/$', views.KlassListView.as_view(), name='classes'),
-    url(r'^classes/(?P<pk>\d+)/$', views.KlassView.as_view(), name='class'),
+    path('institutions/', views.CorporationListView.as_view(), name='corporations'),
+    path('institutions/<int:pk>/', views.CorporationView.as_view(), name='corporation'),
+    path('classes/', views.KlassListView.as_view(), name='classes'),
+    path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
 
-    url(r'^candidate/(?P<pk>\d+)/send_convocation/$', candidats_views.SendConvocationView.as_view(),
+    path('candidate/<int:pk>/send_convocation/', candidats_views.SendConvocationView.as_view(),
         name='candidate-convocation'),
 
-    url(r'^imputations/export/$', views.imputations_export, name='imputations_export'),
-    url(r'^print/update_form/$', views.print_update_form, name='print_update_form'),
-    url(r'^general_export/$', views.general_export, name='general-export'),
-    url(r'^ortra_export/$', views.ortra_export, name='ortra-export'),
+    path('imputations/export/', views.imputations_export, name='imputations_export'),
+    path('print/update_form/', views.print_update_form, name='print_update_form'),
+    path('general_export/', views.general_export, name='general-export'),
+    path('ortra_export/', views.ortra_export, name='ortra-export'),
 
     # AJAX/JSON urls
-    url(r'^section/(?P<pk>\d+)/periods/', views.section_periods, name='section_periods'),
-    url(r'^section/(?P<pk>\d+)/classes/', views.section_classes, name='section_classes'),
-    url(r'^period/(?P<pk>\d+)/students/', views.period_students, name='period_students'),
-    url(r'^period/(?P<pk>\d+)/corporations/', views.period_availabilities, name='period_availabilities'),
+    path('section/<int:pk>/periods/', views.section_periods, name='section_periods'),
+    path('section/<int:pk>/classes/', views.section_classes, name='section_classes'),
+    path('period/<int:pk>/students/', views.period_students, name='period_students'),
+    path('period/<int:pk>/corporations/', views.period_availabilities, name='period_availabilities'),
     # Training params in POST:
-    url(r'^training/new/', views.new_training, name="new_training"),
-    url(r'^training/del/', views.del_training, name="del_training"),
-    url(r'^training/by_period/(?P<pk>\d+)/', views.TrainingsByPeriodView.as_view()),
+    path('training/new/', views.new_training, name="new_training"),
+    path('training/del/', views.del_training, name="del_training"),
+    path('training/by_period/<int:pk>/', views.TrainingsByPeriodView.as_view()),
 
-    url(r'^student/(?P<pk>\d+)/summary/', views.StudentSummaryView.as_view()),
-    url(r'^availability/(?P<pk>\d+)/summary/', views.AvailabilitySummaryView.as_view()),
-    url(r'^corporation/(?P<pk>\d+)/contacts/', views.CorpContactJSONView.as_view()),
+    path('student/<int:pk>/summary/', views.StudentSummaryView.as_view()),
+    path('availability/<int:pk>/summary/', views.AvailabilitySummaryView.as_view()),
+    path('corporation/<int:pk>/contacts/', views.CorpContactJSONView.as_view()),
 ]
