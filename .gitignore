@@ -1,7 +1,7 @@
 *.pyc
 database.db
 common/local_settings.py
-media/
+/media/
 scripts/epcstages.json
-static/
+/static/
 .idea/
