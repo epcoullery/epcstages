@@ -5,7 +5,7 @@ from datetime import date
 from django.conf import settings
 from django.contrib.staticfiles.finders import find
 from django.utils.text import slugify
-
+from django.utils.dateformat import format as django_format
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
@@ -244,3 +244,35 @@ class UpdateDataFormPDF(SimpleDocTemplate):
 
     def is_instr_required(self, klass_name):
         return any(el in klass_name for el in ['FE', 'EDS'])
+
+
+class InscriptionEDESummary(EpcBaseDocTemplate):
+
+    def __init__(self, candidate):
+        self.candidate = candidate
+        filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
+        path = os.path.join(tempfile.gettempdir(), filename)
+        super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
+        self.setNormalTemplatePage()
+
+    def produce(self, candidate):
+
+        tab_style = TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('FONT', (0, 0), (0, -1), 'Helvetica'),
+            ('SIZE', (0, 0), (-1, -1), 9),
+        ])
+        #Personal data
+        data = []
+        data.append(
+            ['Nom: ', candidate.last_name, 'Prénom: ', candidate.birth_date_formated],
+            ['Prénom: ', candidate.first_name, 'Canton: ', candidate.district],
+            ['N° de tél.: ', candidate.mobile]
+        )
+        t = Table(data, colWidths=[3 * cm, 5 * cm, 5 * cm, 4 * cm], hAlign=TA_LEFT)
+        t.setStyle(tab_style)
+        self.story.append(t)
+
+
+
+        self.build(self.story)

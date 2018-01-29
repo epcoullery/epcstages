@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils.dateformat import format as django_format
-
+from django.utils.html import format_html
 from stages.models import Corporation, CorpContact, Teacher
 
 GENDER_CHOICES = (
@@ -97,7 +97,7 @@ class Candidate(models.Model):
     contract = models.BooleanField("Contrat valide", default=False)
     comment = models.TextField('Remarques', blank=True)
 
-    work_certificate = models.BooleanField("Bilan act. prof./dernier stage", default=False)
+    work_certificate = models.BooleanField("Bilan act. prof./dernier stage", blank=True, default=False)
     marks_certificate = models.BooleanField("Bull. de notes", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
 
@@ -107,9 +107,9 @@ class Candidate(models.Model):
     total_result_points = models.PositiveSmallIntegerField('Total points', blank=True, null=True)
     total_result_mark = models.PositiveSmallIntegerField('Note finale', blank=True, null=True)
 
-    inscr_other_school = models.CharField("Inscr. autre école", max_length=30, default='')
-    certif_of_800_childhood = models.BooleanField("Attest. 800h. enfance", default=False)
-    certif_800_general = models.BooleanField("Attest. 800h. général", default=False)
+    inscr_other_school = models.CharField("Inscr. autre école", max_length=30, blank=True, default='')
+    certif_of_800_childhood = models.BooleanField("Attest. 800h. enfance", blank=True, default=False)
+    certif_of_800_general = models.BooleanField("Attest. 800h. général", blank=True, default=False)
     diploma = models.PositiveSmallIntegerField('Titre sec. II', choices=DIPLOMA_CHOICES, default=0)
     diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
@@ -118,7 +118,7 @@ class Candidate(models.Model):
 
     aes_accords = models.PositiveSmallIntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=0)
     residence_permits = models.PositiveSmallIntegerField(
-        "Autorisation de séjour (pour les personnes étrangères)",
+        "Autor. de séjour (pour les pers. étrang.)",
         choices=RESIDENCE_PERMITS_CHOICES, blank=True, default=0
     )
     accepted = models.BooleanField('Admis', default=False)
@@ -140,6 +140,20 @@ class Candidate(models.Model):
 
     def get_ok(self, fieldname):
         return 'OK' if getattr(self, fieldname) is True else 'NON'
+
+
+    def full_name(self):
+        if self.section == 'EDE':
+            return format_html(
+                '<a href="/candidate/{0}/change" >{1} {2}</a>'.format(self.id, self.last_name, self.first_name)
+            )
+        else:
+            return format_html(
+                '<a href="/admin/candidats/candidate/{0}/change" >{1} {2}</a>'.format(self.id, self.last_name, self.first_name)
+            )
+    full_name.short_description = 'Nom Prénom'
+    full_name.allow_tags = True
+
 
 
 INTERVIEW_CHOICES = (
@@ -170,7 +184,7 @@ class Interview(models.Model):
     def __str__(self):
         return '{0} : {1}/{2} - ({3}) -salle:{4}-{5}'.format(
             self.date_formatted,
-            self.teacher_int or '?', self.teacher_file or '?',
+            self.teacher_int.abrev or '?', self.teacher_file.abrev or '?',
             self.status, self.room, self.candidat or '???'
         )
 

@@ -12,6 +12,7 @@ from django.http import HttpResponse
 from django.template import loader
 from django.urls import reverse
 
+
 from stages.exports import OpenXMLExport
 from .models import Candidate, Interview, GENDER_CHOICES
 from .pdf import InscriptionSummaryPDF
@@ -76,12 +77,13 @@ def send_confirmation_mail(modeladmin, request, queryset):
             subject=subject,
             body=body,
             from_email=from_email,
-            to=to,
+            #to=to,
+            to=['alain.zosso@webzos.com'],
             bcc=[from_email]
         )
 
         try:
-            email.send()
+            # email.send()
             email_sent += 1
         except Exception as err:
             modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
@@ -144,7 +146,7 @@ class CandidateAdminForm(forms.ModelForm):
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateAdminForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
+    list_display = ('full_name', 'last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
     actions = [export_candidates, send_confirmation_mail, print_summary]
@@ -169,7 +171,7 @@ class CandidateAdmin(admin.ModelAdmin):
             'fields': (('diploma', 'diploma_detail', 'diploma_status'),
                         ('registration_form', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
                         'marks_certificate', 'residence_permits', 'aes_accords'),
-                        ('certif_of_800_childhood', 'certif_800_general', 'work_certificate'),
+                        ('certif_of_800_childhood', 'certif_of_800_general', 'work_certificate'),
                         ('promise', 'contract', 'activity_rate'),
                         ('interview',),
                         ('examination_result', 'interview_result', 'file_result', 'total_result_points',

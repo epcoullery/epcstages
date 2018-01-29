@@ -1,0 +1,107 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}
+<link rel="stylesheet" type="text/css" href="/static/admin/css/base.css" />
+<link rel="stylesheet" type="text/css" href="/static/admin/css/forms.css" />
+<style>
+    .fieldWrapper {
+        width:120px;
+      }
+    .inputField {
+        width:300px;
+        }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
+&rsaquo; <a href="{% url 'corporations' %}">Candidat</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="POST" action="">
+    {% csrf_token %}
+    <table border="0">
+        <tr>
+            <td class="fieldWrapper">{{ form.last_name.errors }}{{ form.last_name.label_tag }}</td><td class="inputField">{{ form.last_name }}</td>
+            <td class="fieldWrapper">{{ form.first_name.errors }}{{ form.first_name.label_tag }}</td><td class="inputField">{{ form.first_name }}</td>
+            <td class="fieldWrapper">{{ form.gender.errors }}{{ form.gender.label_tag }}</td><td colspan="4">{{ form.gender }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.street.errors }}{{ form.street.label_tag }}</td><td class="inputField">{{ form.street }}</td>
+            <td class="fieldWrapper">{{ form.pcode.errors }}{{ form.pcode.label_tag }}</td><td class="inputField">{{ form.pcode }}</td>
+            <td class="fieldWrapper">{{ form.city.errors }}{{ form.city.label_tag }}</td><td class="inputField">{{ form.city }}</td>
+            <td class="fieldWrapper">{{ form.district.errors }}{{ form.district.label_tag }}</td><td class="inputField">{{ form.district }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.mobile.errors }}{{ form.mobile.label_tag }}</td><td>{{ form.mobile }}</td>
+            <td class="fieldWrapper">{{ form.email.errors }}{{ form.email.label_tag }}</td><td>{{ form.email }}</td>
+            <td class="fieldWrapper">{{ form.birth_date.errors }}{{ form.birth_date.label_tag }}</td><td>{{ form.birth_date }}</td>
+            <td class="fieldWrapper">{{ form.avs.errors }}{{ form.avs.label_tag }}</td><td>{{ form.avs }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.section.errors }}{{ form.section.label_tag }}</td><td>{{ form.section }}</td>
+            <td class="fieldWrapper">{{ form.option.errors }}{{ form.option.label_tag }}</td><td>{{ form.option }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.corporation.errors }}{{ form.corporation.label_tag }}</td><td colspan="7">{{ form.corporation }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.instructor.errors }}{{ form.instructor.label_tag }}</td><td colspan="7">{{ form.instructor }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.deposite_date.errors }}{{ form.deposite_date.label_tag }}</td><td>{{ form.deposite_date }}</td>
+
+            <td class="fieldWrapper">{{ form.canceled_file.errors }}{{ form.canceled_file.label_tag }}</td><td>{{ form.canceled_file }}</td>
+            <td class="fieldWrapper">{{ form.aes_accords.errors }}{{ form.aes_accords.label_tag }}</td><td>{{ form.aes_accords }}</td>
+            <td class="fieldWrapper">{{ form.residence_permits.errors }}{{ form.residence_permits.label_tag }}</td><td>{{ form.residence_permits }}</td>
+
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.diploma.errors }}{{ form.diploma.label_tag }}</td><td>{{ form.diploma }}</td>
+            <td class="fieldWrapper">{{ form.diploma_detail.errors }}{{ form.diploma_detail.label_tag }}</td><td>{{ form.diploma_detail }}</td>
+            <td class="fieldWrapper">{{ form.diploma_status.errors }}{{ form.diploma_status.label_tag }}</td><td colspan="4">{{ form.diploma_status }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.certif_of_800_general.errors }}{{ form.certif_of_800_general.label_tag }}</td><td>{{ form.certif_of_800_general }}</td>
+            <td class="fieldWrapper">{{ form.certif_of_800_childhood.errors }}{{ form.certif_of_800_childhood.label_tag }}</td><td>{{ form.certif_of_800_childhood }}</td>
+            <td class="fieldWrapper">{{ form.work_certificate.errors }}{{ form.work_certificate.label_tag }}</td><td colspan="4">{{ form.work_certificate }}</td>
+        </tr>
+        <tr>
+            <td class="fieldWrapper">{{ form.contract.errors }}{{ form.contract.label_tag }}</td><td>{{ form.contract }}</td>
+            <td class="fieldWrapper">{{ form.promise.errors }}{{ form.promise.label_tag }}</td><td>{{ form.promise }}</td>
+            <td class="fieldWrapper">{{ form.activity_rate.errors }}{{ form.activity_rate.label_tag }}</td><td colspan="4">{{ form.activity_rate }}</td>
+        </tr>
+    </table>
+    <table>
+        <tr>
+            <td>{{ form.registration_form.errors }}{{ form.registration_form.label_tag }}</td><td>{{ form.registration_form }}</td>
+            <td>{{ form.certificate_of_payement.errors }}{{ form.certificate_of_payement.label_tag }}</td><td>{{ form.certificate_of_payement }}</td>
+            <td>{{ form.police_record.errors }}{{ form.police_record.label_tag }}</td><td>{{ form.police_record }}</td>
+            <td>{{ form.cv.errors }}{{ form.cv.label_tag }}</td><td>{{ form.cv }}</td>
+            <td>{{ form.reflexive_text.errors }}{{ form.reflexive_text.label_tag }}</td><td>{{ form.reflexive_text }}</td>
+            <td>{{ form.has_photo.errors }}{{ form.has_photo.label_tag }}</td><td>{{ form.has_photo }}</td>
+            <td>{{ form.marks_certificate.errors }}{{ form.marks_certificate.label_tag }}</td><td>{{ form.marks_certificate }}</td>
+        </tr>
+    </table>
+
+    <div class="submit-row">
+        <input type="submit" value="Enregistrer" class="default" name="_save" />
+        <p class="deletelink-box"><a href="/admin/candidats/candidate/21/delete/" class="deletelink">Supprimer</a></p>
+
+        {% if candidate.date_confirmation_mail %}
+            Mail de confirmation: {{ candidate.date_mail_confirmation }}
+            {% else %}
+            <input type="submit" value="Envoyer Confirmation" name="_confirm" />
+        {% endif %}
+        {% if candidate.convocation_date %}
+            Convocation envoyée: {{ candidate.convocation_date }}
+            {% else %}
+            <input type="submit" value="Envoyer convoc. examen" name ="_examen"/>
+        {% endif %}
+    </div>
+</form>
+{% endblock %}

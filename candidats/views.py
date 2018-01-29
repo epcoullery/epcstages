@@ -5,9 +5,10 @@ from django.core.mail import EmailMessage
 from django.template import loader
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import FormView
-
+from django.views.generic import FormView, CreateView, UpdateView
+from django.http import HttpResponseRedirect
 from candidats.models import Candidate
+from candidats.forms import CandidateProfileForm
 
 
 class ConvocationForm(forms.Form):
@@ -28,24 +29,27 @@ class SendConvocationView(FormView):
         context = super().get_context_data(**kwargs)
 
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        docs = [
-            'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'reflexive_text',
-            'has_photo', 'work_certificate', 'marks_certificate',
-        ]
-        if candidate.option == 'PE-5400h':
-            docs.append('promise', 'contract', 'certif_of_800h')
-        elif candidate.option == 'PE-3600h':
-            docs.append('certif_of_cfc', 'promise', 'contract')
-        elif candidate.option == 'PS':
-            docs.append('certif_of_800h')
+        my_dict = {
+            0: [],
+            1: ['work_certificate'], # CFC ASE
+            2: ['certif_of_800_childhood', 'work_certificate'],
+            3: ['certif_of_800_general', 'certif_of_800_childhood', 'work_certificate'],
+            4: ['certif_of_800_general', 'certif_of_800_childhood', 'work_certificate'],
+        }
+        docs_required = my_dict[candidate.diploma]
+        docs_required.extend(['registration_form', 'certificate_of_payement', 'police_record', 'cv', 'reflexive_text',
+            'has_photo', 'marks_certificate'])
+
+        print(docs_required)
 
         missing_documents = {'documents': ', '.join([
-            Candidate._meta.get_field(doc).verbose_name for doc in docs if not getattr(candidate, doc)
+            Candidate._meta.get_field(doc).verbose_name for doc in docs_required if not getattr(candidate, doc)
         ])}
 
         msg_context = {
             'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
             'candidate_civility': candidate.civility,
+            'option': candidate.get_option_display(),
             'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE,
             'date_entretien': candidate.interview.date_formatted,
             'salle_entretien': candidate.interview.room,
@@ -73,12 +77,14 @@ class SendConvocationView(FormView):
             subject=form.cleaned_data['subject'],
             body=form.cleaned_data['message'],
             from_email=form.cleaned_data['sender'],
-            to=form.cleaned_data['to'].split(';'),
+            #to=form.cleaned_data['to'].split(';'),
+            to=['alain.zosso@rpn.ch'],
             bcc=form.cleaned_data['cci'].split(';'),
         )
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
         try:
-            email.send()
+            # email.send()
+            print(email)
         except Exception as err:
             messages.error(self.request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
         else:
@@ -88,3 +94,32 @@ class SendConvocationView(FormView):
                 "Le message de convocation a été envoyé pour le candidat {0}".format(candidate)
             )
         return super().form_valid(form)
+
+
+class CandidateCreateView(CreateView):
+    model = Candidate
+    template_name = 'candidate_profile.html'
+    fields = '__all__'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CandidateProfileForm
+        return context
+
+    def form_valid(self, form):
+        print(self.request.user)
+        return super().form_valid(form)
+
+
+class CandidateUpdateView(UpdateView):
+    template_name = 'candidate_update_form.html'
+    model = Candidate
+    fields = '__all__'
+    success_url = '/admin/candidats/candidate'
+
+    def form_valid(self, form):
+        print(form)
+        return super(CandidateUpdateView, self).form_valid(form)
+
+    def form_invalid(self, form):
+        return super(CandidateUpdateView, self).form_invalid(form)

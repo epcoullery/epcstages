@@ -24,6 +24,8 @@ urlpatterns = [
 
     url(r'^candidate/(?P<pk>\d+)/send_convocation/$', candidats_views.SendConvocationView.as_view(),
         name='candidate-convocation'),
+    url(r'^candidate/add/', candidats_views.CandidateCreateView.as_view(), name='candidate-add'),
+    url(r'^candidate/(?P<pk>\d+)/change/', candidats_views.CandidateUpdateView.as_view(), name='candidate-change'),
 
     url(r'^imputations/export/$', views.imputations_export, name='imputations_export'),
     url(r'^print/update_form/$', views.print_update_form, name='print_update_form'),
