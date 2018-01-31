@@ -5,7 +5,6 @@ Vous trouverez en annexe le bulletin scolaire de {{ student_name }} pour le seme
 Nous vous souhaitons bonne réception de ce document et vous prions de recevoir, Madame, Monsieur, nos salutations les plus cordiales.
 
 Secrétariat de l'EPC
-tél. 032 886 33 00
-
 {{ sender_name }}
 {{ sender_email }}
+tél. 032 886 33 00

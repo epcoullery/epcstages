@@ -3,6 +3,7 @@ from django.utils.dateformat import format as django_format
 from django.utils.html import format_html
 from stages.models import Corporation, CorpContact, Teacher
 
+
 GENDER_CHOICES = (
     ('M', 'Masculin'),
     ('F', 'Féminin'),
@@ -13,11 +14,12 @@ SECTION_CHOICES = (
     ('ASA', 'Aide en soin et accompagnement AFP'),
     ('ASE', 'Assist. socio-éducatif-ve CFC'),
     ('ASSC', 'Assist. en soin et santé communautaire CFC'),
-    ('EDE', 'Educ. de l\'enfance, dipl. ES'),
-    ('EDS', 'Educ. social-e, dipl. ES'),
+    ('EDE', 'Education de l\'enfance, dipl. ES'),
+    ('EDS', 'Education sociale, dipl. ES'),
 )
 
 OPTION_CHOICES = (
+    ('---', '-----'),
     ('GEN', 'Généraliste'),
     ('ENF', 'Enfance'),
     ('PAG', 'Personnes âgées'),
@@ -69,14 +71,14 @@ class Candidate(models.Model):
     mobile = models.CharField('Portable', max_length=40, blank=True)
     email = models.EmailField('Courriel', blank=True)
     avs = models.CharField('No AVS', max_length=15, blank=True)
-    handicap = models.BooleanField(default=False)
+    handicap = models.BooleanField('Mesures liées à un handicap', default=False)
 
     section = models.CharField('Filière', max_length=10, choices=SECTION_CHOICES)
     option = models.CharField('Option', max_length=20, choices=OPTION_CHOICES, blank=True)
     exemption_ecg = models.BooleanField(default=False)
     validation_sfpo = models.DateField('Confirmation SFPO', blank=True, null=True)
     integration_second_year = models.BooleanField('Intégration', default=False)
-    date_confirmation_mail = models.DateField('Mail de confirmation', blank=True, null=True)
+    date_confirmation_mail = models.DateField('Envoi mail de confirmation', blank=True, null=True)
     canceled_file = models.BooleanField('Dossier retiré', default=False)
     has_photo = models.BooleanField(default=False, verbose_name='Photo passeport')
 
@@ -114,7 +116,8 @@ class Candidate(models.Model):
     diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
     activity_rate = models.CharField("Taux d'activité", max_length=50, blank=True,  default='')
-    convocation_date = models.DateTimeField(null=True, blank=True, default=None)
+    date_convocation_mail = models.DateTimeField('Envoi mail de confirmation', null=True, blank=True, default=None)
+    date_validation_mail = models.DateTimeField('Envoi mail de validation', null=True, blank=True, default=None)
 
     aes_accords = models.PositiveSmallIntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=0)
     residence_permits = models.PositiveSmallIntegerField(
@@ -141,19 +144,12 @@ class Candidate(models.Model):
     def get_ok(self, fieldname):
         return 'OK' if getattr(self, fieldname) is True else 'NON'
 
-
-    def full_name(self):
-        if self.section == 'EDE':
-            return format_html(
-                '<a href="/candidate/{0}/change" >{1} {2}</a>'.format(self.id, self.last_name, self.first_name)
-            )
+    @property
+    def section_option(self):
+        if self.option == '---' == '':
+            return self.get_section_display()
         else:
-            return format_html(
-                '<a href="/admin/candidats/candidate/{0}/change" >{1} {2}</a>'.format(self.id, self.last_name, self.first_name)
-            )
-    full_name.short_description = 'Nom Prénom'
-    full_name.allow_tags = True
-
+            return '{0}, option "{1}"'.format(self.get_section_display(),self.get_option_display())
 
 
 INTERVIEW_CHOICES = (
@@ -191,3 +187,4 @@ class Interview(models.Model):
     @property
     def date_formatted(self):
         return django_format(self.date, "l j F Y à H\hi")
+

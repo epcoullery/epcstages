@@ -21,6 +21,7 @@ style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment 
 style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment = TA_LEFT, spaceBefore=1*cm)
 style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=10, alignment = TA_LEFT, leftIndent=280)
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_RIGHT)
+style_normal_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=9, alignment = TA_LEFT, spaceBefore=0.7*cm)
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
@@ -112,12 +113,13 @@ class ChargeSheetPDF(SimpleDocTemplate):
         data.append(["Report à l'année prochaine", '{0:3d} pér.'.format(activities['report'])])
 
         t = Table(data, colWidths=[12*cm, 2*cm, 2*cm])
-        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
-                               ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                               ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.black),
-                               ('LINEABOVE', (0, -3) ,(-1, -1), 0.5, colors.black),
-                               ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
-                               ]))
+        t.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.black),
+            ('LINEABOVE', (0, -3) ,(-1, -1), 0.5, colors.black),
+            ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
+        ]))
         t.hAlign = TA_CENTER
         self.story.append(t)
         self.story.append(Spacer(0, 2*cm))
@@ -246,33 +248,88 @@ class UpdateDataFormPDF(SimpleDocTemplate):
         return any(el in klass_name for el in ['FE', 'EDS'])
 
 
-class InscriptionEDESummary(EpcBaseDocTemplate):
-
-    def __init__(self, candidate):
-        self.candidate = candidate
-        filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
+class InscriptionSummaryPDF(EpcBaseDocTemplate):
+    def __init__(self, filename):
+        super().__init__(filename, "Dossier d'inscription")
         self.setNormalTemplatePage()
 
     def produce(self, candidate):
-
-        tab_style = TableStyle([
+        ts = TableStyle([
             ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
             ('FONT', (0, 0), (0, -1), 'Helvetica'),
-            ('SIZE', (0, 0), (-1, -1), 9),
+            ('SIZE', (0, 0), (0, -1), 9),
         ])
-        #Personal data
+
+        # Personal data
         data = []
-        data.append(
-            ['Nom: ', candidate.last_name, 'Prénom: ', candidate.birth_date_formated],
+        self.story.append(Paragraph('Données personnelles', style_normal_title))
+        data.extend([
+            ['Nom: ', candidate.last_name, 'Date de naissance: ', django_format(candidate.birth_date, "j F Y ")],
             ['Prénom: ', candidate.first_name, 'Canton: ', candidate.district],
-            ['N° de tél.: ', candidate.mobile]
-        )
-        t = Table(data, colWidths=[3 * cm, 5 * cm, 5 * cm, 4 * cm], hAlign=TA_LEFT)
-        t.setStyle(tab_style)
+            ['No de tél.: ', candidate.mobile]
+        ])
+        t = Table(data, colWidths=[4 * cm, 5 * cm, 4 * cm, 4 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
         self.story.append(t)
 
+        # Inscription
+        data = []
+        self.story.append(Paragraph("Inscription", style_normal_title))
+        data.extend([
+            [candidate.get_section_display(), candidate.get_option_display()]
+        ])
+        t = Table(data, colWidths=[6 * cm, 11 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
+        self.story.append(t)
 
+        # Diploma
+        data = []
+        self.story.append(Paragraph("Titres / diplôme / Attestations", style_normal_title))
+        detail = '' if candidate.diploma_detail == '' else '({0})'.format(candidate.diploma_detail)
+        data.extend([
+            ['{0} {1}'.format(candidate.get_diploma_display(),detail), 'statut: {0}'.format(candidate.get_diploma_status_display())]
+        ])
 
+        if candidate.diploma == 1:  #CFC ASE
+            data.extend([
+                ['Evaluation du dernier stage ASE et/ou dernier rapport de formation', candidate.get_ok('work_certificate')]
+            ])
+        if candidate.diploma == 2:  # CFC autre domaine
+            data.extend([
+                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance", candidate.get_ok('certif_of_800_childhood')],
+                ["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')]
+            ])
+
+        if candidate.diploma == 3:  # Matur, Ecole cult. générale
+            data.extend([
+                ["Certif. de travail/stage de 800h. dans n'importe quel domaine", candidate.get_ok('certif_of_800_general')],
+                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance", candidate.get_ok('certif_of_800_childhood')],
+                ["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')]
+            ])
+
+        if candidate.diploma == 4:  # Protfolio
+            data.extend([
+                ["Certif. de travail/stage de 800h. dans n'importe quel domaine", candidate.get_ok('certif_of_800_general')],
+                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance", candidate.get_ok('certif_of_800_childhood')],
+                ["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')]
+            ])
+        t = Table(data, colWidths=[13 * cm, 4*cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
+        self.story.append(t)
+
+        # Others documents
+        data = []
+        self.story.append(Paragraph("Autres documents", style_normal_title))
+        docs_required = [
+            'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'has_photo', 'reflexive_text',
+            'marks_certificate', 'handicap'
+        ]
+        data.extend([[candidate._meta.get_field(doc).verbose_name, candidate.get_ok(doc)] for doc in docs_required])
+        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
+        self.story.append(t)
+
+        # Remarks
+        self.story.append(Paragraph("Remarques", style_normal_title))
+        self.story.append(Paragraph(candidate.comment, style_normal))
         self.build(self.story)

@@ -22,10 +22,13 @@ urlpatterns = [
     url(r'^classes/$', views.KlassListView.as_view(), name='classes'),
     url(r'^classes/(?P<pk>\d+)/$', views.KlassView.as_view(), name='class'),
 
-    url(r'^candidate/(?P<pk>\d+)/send_convocation/$', candidats_views.SendConvocationView.as_view(),
+    url(r'^candidate/(?P<pk>\d+)/send_convocation/$', candidats_views.ConvocationView.as_view(),
         name='candidate-convocation'),
-    url(r'^candidate/add/', candidats_views.CandidateCreateView.as_view(), name='candidate-add'),
-    url(r'^candidate/(?P<pk>\d+)/change/', candidats_views.CandidateUpdateView.as_view(), name='candidate-change'),
+    url(r'^candidate/(?P<pk>\d+)/send_confirmation/$', candidats_views.ConfirmationView.as_view(),
+        name='candidate-confirmation'),
+    url(r'^candidate/(?P<pk>\d+)/send_validation/$', candidats_views.ValidationView.as_view(),
+        name='candidate-validation'),
+    url(r'^candidate/(?P<pk>\d+)/summary/$', candidats_views.inscription_summary, name='candidate-summary'),
 
     url(r'^imputations/export/$', views.imputations_export, name='imputations_export'),
     url(r'^print/update_form/$', views.print_update_form, name='print_update_form'),

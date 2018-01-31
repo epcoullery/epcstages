@@ -1,21 +1,13 @@
-import os
-import tempfile
-import zipfile
 from collections import OrderedDict
-from datetime import date
-
-from django import forms
 from django.contrib import admin
-from django.core.mail import EmailMessage
 from django.db.models import BooleanField
-from django.http import HttpResponse
-from django.template import loader
+from django.http import HttpResponseRedirect
 from django.urls import reverse
-
+from django.shortcuts import redirect
 
 from stages.exports import OpenXMLExport
 from .models import Candidate, Interview, GENDER_CHOICES
-from .pdf import InscriptionSummaryPDF
+from .forms import CandidateAdminForm
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -46,121 +38,25 @@ def export_candidates(modeladmin, request, queryset):
 export_candidates.short_description = "Exporter les candidats sélectionnés"
 
 
-def send_confirmation_mail(modeladmin, request, queryset):
-    from_email = request.user.email
-    subject = "Confirmation de votre inscription à l'Ecole Santé-social Pierre-Coullery"
-    email_sent = 0
-
-    for candidate in queryset.filter(
-            deposite_date__isnull=False, date_confirmation_mail__isnull=True, canceled_file=False):
-        to = [candidate.email]
-
-        if candidate.corporation and candidate.corporation.email:
-            to.append(candidate.corporation.email)
-        if candidate.instructor and candidate.instructor.email:
-            to.append(candidate.instructor.email)
-
-        context = {
-            'candidate_civility': candidate.civility,
-            'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
-            'section': candidate.section,
-            'sender_name': " ".join([request.user.first_name, request.user.last_name]),
-            'sender_email': from_email,
-        }
-
-        if candidate.section == 'EDE':
-            body = loader.render_to_string('email/candidate_confirm_EDE.txt', context)
-        else:
-            body = loader.render_to_string('email/candidate_confirm_FE.txt', context)
-
-        email = EmailMessage(
-            subject=subject,
-            body=body,
-            from_email=from_email,
-            #to=to,
-            to=['alain.zosso@webzos.com'],
-            bcc=[from_email]
-        )
-
-        try:
-            # email.send()
-            email_sent += 1
-        except Exception as err:
-            modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
-        else:
-            candidate.date_confirmation_mail = date.today()
-            candidate.save()
-        modeladmin.message_user(request, "%d messages de confirmation ont été envoyés." % email_sent)
-send_confirmation_mail.short_description = "Envoyer email de confirmation"
-
-
-def print_summary(modeladmin, request, queryset):
-    """
-    Print a summary of inscription
-    """
-    filename = 'archive_InscriptionResumes.zip'
-    path = os.path.join(tempfile.gettempdir(), filename)
-
-    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
-        for candidate in queryset:
-            pdf = InscriptionSummaryPDF(candidate)
-            pdf.produce(candidate)
-            filezip.write(pdf.filename)
-
-    with open(filezip.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
-    return response
-print_summary.short_description = 'Imprimer résumé'
-
-
-class CandidateAdminForm(forms.ModelForm):
-    interview = forms.ModelChoiceField(queryset=Interview.objects.all(), required=False)
-
-    class Meta:
-        model = Candidate
-        widgets = {
-            'comment': forms.Textarea(attrs={'cols': 100, 'rows': 1}),
-            'pcode': forms.TextInput(attrs={'size': 10}),
-        }
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        try:
-            kwargs['initial'] = {'interview': kwargs['instance'].interview}
-        except Interview.DoesNotExist:
-            pass
-        return super().__init__(*args, **kwargs)
-
-    def save(self, **kwargs):
-        obj = super().save(**kwargs)
-        if 'interview' in self.changed_data:
-            if self.cleaned_data['interview'] is None:
-                self.initial['interview'].candidat = None
-                self.initial['interview'].save()
-            else:
-                self.cleaned_data['interview'].candidat = obj
-                self.cleaned_data['interview'].save()
-        return obj
-
-
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateAdminForm
-    list_display = ('full_name', 'last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation')
     list_filter = ('section', 'option')
-    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
-    actions = [export_candidates, send_confirmation_mail, print_summary]
+    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail',
+                       'date_validation_mail', 'date_convocation_mail'
+                       )
+    actions = [export_candidates]
     fieldsets = (
         (None, {
             'fields': (('first_name', 'last_name', 'gender'),
                        ('street', 'pcode', 'city', 'district'),
                        ('mobile', 'email'),
-                       ('birth_date', 'avs', 'handicap', 'has_photo'),
+                       ('birth_date', 'avs', 'handicap'),
                        ('section', 'option'),
                        ('corporation', 'instructor'),
                        ('deposite_date', 'date_confirmation_mail', 'canceled_file'),
                        'comment',
-                      ),
+                       ),
         }),
         ("FE", {
             'classes': ('collapse',),
@@ -168,31 +64,59 @@ class CandidateAdmin(admin.ModelAdmin):
         }),
         ("EDE/EDS", {
             'classes': ('collapse',),
-            'fields': (('diploma', 'diploma_detail', 'diploma_status'),
-                        ('registration_form', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
-                        'marks_certificate', 'residence_permits', 'aes_accords'),
+            'fields': (
+                        ('diploma', 'diploma_detail', 'diploma_status'),
+                        ('registration_form', 'has_photo', 'certificate_of_payement', 'cv', 'police_record',
+                         'reflexive_text', 'marks_certificate', 'residence_permits', 'aes_accords'),
                         ('certif_of_800_childhood', 'certif_of_800_general', 'work_certificate'),
                         ('promise', 'contract', 'activity_rate'),
                         ('interview',),
                         ('examination_result', 'interview_result', 'file_result', 'total_result_points',
-                            'total_result_mark')
+                         'total_result_mark'),
+                        ('date_confirmation_mail', 'date_validation_mail', 'date_convocation_mail'),
             ),
         }),
     )
 
+    def response_change(self, request, obj):
+        opts = self.model._meta
+        pk_value = obj._get_pk_val()
+        preserved_filters = self.get_preserved_filters(request)
+        super(CandidateAdmin, self).response_change(request, obj)
+
+        if "_confirmation" in request.POST:
+            url = reverse('candidate-confirmation', kwargs={'pk': obj.id})
+            return HttpResponseRedirect(url)
+        elif "_validation" in request.POST:
+            url = reverse('candidate-validation', kwargs={'pk': obj.id})
+            return HttpResponseRedirect(url)
+        elif "_convocation" in request.POST:
+            url = reverse('candidate-convocation', kwargs={'pk': obj.id})
+            return HttpResponseRedirect(url)
+        elif "_summary" in request.POST:
+            url = reverse('candidate-summary', kwargs={'pk': obj.id})
+            return HttpResponseRedirect(url)
+        return redirect('/admin/candidats/candidate/')
+
     def confirm_mail(self, obj):
         return obj.date_confirmation_mail is not None
     confirm_mail.boolean = True
+    confirm_mail.short_description = "Mail de confirmation"
+
+    def validation_mail(selfself, obj):
+        return obj.date_validation_mail is not None
+    validation_mail.boolean = True
+    validation_mail.short_descritpion = "Valid. examen EDE"
 
     def convocation(self, obj):
         if obj.interview is None:
             return '???'
-        elif obj.interview and obj.convocation_date:
+        elif obj.interview and obj.date_convocation_mail:
             return obj.interview
         else:
             url = reverse('candidate-convocation', args=[obj.pk])
-            return '<a href="' + url  + '">Envoyer convocation</a>'
-    convocation.short_description = 'Convoc. aux examens'
+            return '<a href="{0}">Envoyer convocation</a>'.format(url)
+    convocation.short_description = 'Convoc. examens EDE'
     convocation.allow_tags = True
 
 

@@ -46,7 +46,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         data = [
             ['Nom: ', candidate.last_name, 'Date de naissance:', candidate.birth_date],
             ['Prénom:', candidate.first_name, 'Canton:', candidate.district],
-            ['N° de tél.:', candidate.mobile, '',''],
+            ['N° de tél.:', candidate.mobile, '', ''],
         ]
         t = Table(data, colWidths=[2 * cm, 6 * cm, 4 * cm, 5 * cm], hAlign=TA_LEFT)
         t.setStyle(myTableStyle)
@@ -68,10 +68,10 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             '{0} {1}'.format(candidate.diploma_detail, diploma_status[candidate.diploma_status])
         ])
 
-        if candidate.diploma == 1: # CFC ASE
+        if candidate.diploma == 1:  # CFC ASE
             data.append(['Evaluation du dernier stage', candidate.get_ok('work_certificate')])
-        elif candidate.diploma == 2: # CFC autre domaine
-            data.append(['Attestation de 800h. min. domaine Enfance',candidate.get_ok('certif_of_800_childhood')])
+        elif candidate.diploma == 2:  # CFC autre domaine
+            data.append(['Attestation de 800h. min. domaine Enfance', candidate.get_ok('certif_of_800_childhood')])
             data.append(["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')])
         elif candidate.diploma == 3 or candidate.diploma == 4:  # Matu. aca ou ECG ou Portfolio
             data.append(['Attestation de 800h. min. domaine Général', candidate.get_ok('certif_800_general')])
@@ -109,5 +109,4 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         t = Table(data, colWidths=[17 * cm], hAlign=TA_LEFT)
         t.setStyle(myTableStyle)
         self.story.append(t)
-
         self.build(self.story)
