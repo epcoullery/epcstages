@@ -3,7 +3,7 @@ from django.conf import settings
 
 from tabimport import FileFactory, UnsupportedFileFormat
 
-from .models import Section, Period
+from .models import Section, Period, Candidate
 
 
 class StudentImportForm(forms.Form):
@@ -38,3 +38,4 @@ class UploadHPFileForm(forms.Form):
 
 class UploadBulletinForm(forms.Form):
     upload = forms.FileField(label='Bulletins CLOEE (pdf)')
+

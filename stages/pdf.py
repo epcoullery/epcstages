@@ -333,3 +333,4 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         self.story.append(Paragraph("Remarques", style_normal_title))
         self.story.append(Paragraph(candidate.comment, style_normal))
         self.build(self.story)
+
