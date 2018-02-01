@@ -4,8 +4,9 @@ import tempfile
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Preformatted, Table, TableStyle
+from reportlab.platypus import Paragraph, Table, TableStyle
 
+from django.utils.dateformat import format as django_format
 from django.utils.text import slugify 
 
 from stages.pdf import EpcBaseDocTemplate
@@ -36,78 +37,103 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         aes_accords = dict(AES_ACCORDS_CHOICES)
         residence_permits = dict(RESIDENCE_PERMITS_CHOICES)
 
-        myTableStyle = TableStyle([
-            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ts = TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
             ('FONT', (0, 0), (-1, -1), 'Helvetica'),
-            ('SIZE', (0, 0), (-1, -1), 8)
+            ('SIZE', (0, 0), (0, -1), 9)
         ])
 
+        # Personal data
         self.story.append(Paragraph("Données personnelles", style_normal_bold))
         data = [
-            ['Nom: ', candidate.last_name, 'Date de naissance:', candidate.birth_date],
+            ['Nom: ', candidate.last_name,
+             'Date de naissance:',
+             django_format(candidate.birth_date, 'j F Y') if candidate.birth_date else '?'],
             ['Prénom:', candidate.first_name, 'Canton:', candidate.district],
             ['N° de tél.:', candidate.mobile, '',''],
         ]
-        t = Table(data, colWidths=[2 * cm, 6 * cm, 4 * cm, 5 * cm], hAlign=TA_LEFT)
-        t.setStyle(myTableStyle)
+        t = Table(data, colWidths=[4 * cm, 5 * cm, 4 * cm, 4 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
         self.story.append(t)
 
-        # Chosen Option
-        data = []
+        # Inscription
         self.story.append(Paragraph("Option choisie", style_normal_bold))
-        data.append([options.get(candidate.option, '')])
-        t = Table(data, colWidths=[17 * cm], hAlign=TA_LEFT)
-        t.setStyle(myTableStyle)
+        data = [
+            [candidate.get_section_display(), candidate.get_option_display()]
+        ]
+        t = Table(data, colWidths=[6 * cm, 11 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
         self.story.append(t)
 
         # Diploma
-        data = []
-        self.story.append(Paragraph("Titres / diplômes /attest. prof.", style_normal_bold))
-        data.append([
-            diploma[candidate.diploma],
-            '{0} {1}'.format(candidate.diploma_detail, diploma_status[candidate.diploma_status])
-        ])
+        self.story.append(Paragraph("Titres / diplôme / Attestations", style_normal_bold))
+        detail = '({0})'.format(candidate.diploma_detail) if candidate.diploma_detail else ''
+        data = [
+            ['{0} {1}'.format(candidate.get_diploma_display(), detail),
+             'statut: {0}'.format(candidate.get_diploma_status_display())]
+        ]
 
-        if candidate.diploma == 1: # CFC ASE
-            data.append(['Evaluation du dernier stage', candidate.get_ok('work_certificate')])
-        elif candidate.diploma == 2: # CFC autre domaine
-            data.append(['Attestation de 800h. min. domaine Enfance',candidate.get_ok('certif_of_800_childhood')])
-            data.append(["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')])
-        elif candidate.diploma == 3 or candidate.diploma == 4:  # Matu. aca ou ECG ou Portfolio
-            data.append(['Attestation de 800h. min. domaine Général', candidate.get_ok('certif_of_800_general')])
-            data.append(['Attestation de 800h. min. domaine Enfance', candidate.get_ok('certif_of_800_childhood')])
-            data.append(["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')])
+        if candidate.diploma == 1:  # CFC ASE
+            data.append([
+                'Evaluation du dernier stage ASE et/ou dernier rapport de formation',
+                candidate.get_ok('work_certificate'),
+            ])
+
+        elif candidate.diploma == 2:  # CFC autre domaine
+            data.append([
+                "Attestation de 800h. dans un seul lieu d'accueil de l'enfance",
+                candidate.get_ok('certif_of_800_childhood')
+            ])
+            data.append([
+                "Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')
+            ])
+
+        elif candidate.diploma == 3:  # Matur, Ecole cult. générale
+            data.extend([
+                ["Certif. de travail/stage de 800h. dans n'importe quel domaine",
+                 candidate.get_ok('certif_of_800_general')],
+                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance",
+                 candidate.get_ok('certif_of_800_childhood')],
+                ["Bilan de l'activité professionnelle",
+                 candidate.get_ok('work_certificate')],
+            ])
+
+        elif candidate.diploma == 4:  # Portfolio
+            data.extend([
+                ["Certif. de travail/stage de 800h. dans n'importe quel domaine",
+                 candidate.get_ok('certif_of_800_general')],
+                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance",
+                 candidate.get_ok('certif_of_800_childhood')],
+                ["Bilan de l'activité professionnelle",
+                 candidate.get_ok('work_certificate')],
+            ])
 
         if candidate.option != 'PS':
             data.append(["Contrat de travail", candidate.get_ok('contract')])
             data.append(["Promesse d'engagement", candidate.get_ok('promise')])
             data.append(["Taux d'activité", candidate.activity_rate])
-        t = Table(data, colWidths=[12 * cm, 5 * cm], hAlign=TA_LEFT)
-        t.setStyle(myTableStyle)
+        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
         self.story.append(t)
 
-        # Others documents
-        data = []
+        # Other documents
         self.story.append(Paragraph("Autres documents", style_normal_bold))
-        docs = [
+        data = []
+        docs_required = [
             'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'has_photo',
-            'reflexive_text', 'marks_certificate', 'aes_accords', 'residence_permits'
+            'reflexive_text', 'marks_certificate', 'handicap',
         ]
-        for doc in docs:
+        for doc in docs_required:
             data.append([candidate._meta.get_field(doc).verbose_name, candidate.get_ok(doc)])
         data.append(['Validation des accords AES', aes_accords[candidate.aes_accords]])
         data.append(['Autorisation de séjour (pour les personnes étrangères)', residence_permits[candidate.residence_permits]])
 
-        t = Table(data, colWidths=[12 * cm, 5 * cm], hAlign=TA_LEFT)
-        t.setStyle(myTableStyle)
+        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t.setStyle(ts)
         self.story.append(t)
 
         # Remarks
-        data = []
         self.story.append(Paragraph("Remarques", style_normal_bold))
-        data.append([Preformatted(candidate.comment, style_normal, maxLineLength=100)])
-        t = Table(data, colWidths=[17 * cm], hAlign=TA_LEFT)
-        t.setStyle(myTableStyle)
-        self.story.append(t)
+        self.story.append(Paragraph(candidate.comment, style_normal))
 
         self.build(self.story)
