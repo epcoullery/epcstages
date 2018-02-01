@@ -119,7 +119,7 @@ class Candidate(models.Model):
     aes_accords = models.PositiveSmallIntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=0)
     residence_permits = models.PositiveSmallIntegerField(
         "Autor. de séjour (pour les pers. étrang.)",
-        choices=RESIDENCE_PERMITS_CHOICES, blank=True, default=0
+        choices=RESIDENCE_PERMITS_CHOICES, blank=True, null=True, default=0
     )
     accepted = models.BooleanField('Admis', default=False)
 

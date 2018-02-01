@@ -37,6 +37,54 @@ class CandidateTests(TestCase):
         )
         self.assertEqual(cand.interview, inter)
 
+    def test_add_candidate(self):
+        url = reverse('admin:candidats_candidate_add')
+        post_data = dict({},
+            city = 'Peseux',
+            section = 'EDE',
+            certificate_of_payement = 'on',
+            interview = '',
+            gender = 'F',
+            aes_accords = '0',
+            mobile = '077 999 99 99',
+            registration_form = 'on',
+            birth_date = '15.03.1997',
+            residence_permits = '',
+            corporation = '',
+            _save = 'Enregistrer',
+            marks_certificate = 'on',
+            avs = '75609994444567',
+            activity_rate = '',
+            last_name = 'G.',
+            deposite_date = '31.01.2018',
+            police_record = 'on',
+            examination_result = '',
+            diploma_detail = 'Maturité linguistique',
+            handicap = 'on',
+            work_certificate = 'on',
+            comment = 'Le casier judiciaire a été envoyé par e-mail le 30.01.2018',
+            certif_of_800_general = 'on',
+            instructor = '',
+            validation_sfpo = '',
+            email = 'caterina.g@example.org',
+            file_result = '',
+            cv = 'on',
+            diploma_status = '2',
+            pcode = '2034',
+            first_name = 'Caterina',
+            reflexive_text = 'on',
+            diploma = '4',
+            has_photo = 'on',
+            certif_of_800_childhood = 'on',
+            district = 'Ne',
+            option = 'PS',
+            interview_result = '',
+            street = 'de Neuchâtel 99',
+        )
+        self.client.login(username='me', password='mepassword')
+        response = self.client.post(url, post_data)
+        self.assertEqual(response.status_code, 302)
+
     def test_send_confirmation_mail(self):
         ede = Section.objects.create(name='EDE')
         ase = Section.objects.create(name='ASE')
