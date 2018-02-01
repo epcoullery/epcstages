@@ -1,4 +1,3 @@
-from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.core.mail import EmailMessage
@@ -7,26 +6,17 @@ from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import FormView
 
+from candidats.forms import EmailBaseForm
 from candidats.models import Candidate
 
 
-class ConvocationForm(forms.Form):
-    id_candidate = forms.CharField(widget=forms.HiddenInput())
-    sender = forms.CharField(widget=forms.HiddenInput())
-    to = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
-    cci = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
-    subject = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
-    message = forms.CharField(widget=forms.Textarea(attrs={'rows': 25, 'cols': 120}))
-
-
 class SendConvocationView(FormView):
-    template_name = 'candidats/convocation.html'
-    form_class = ConvocationForm
+    template_name = 'email_base.html'
+    form_class = EmailBaseForm
     success_url = reverse_lazy('admin:candidats_candidate_changelist')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
+    def get_initial(self):
+        initial = super().get_initial()
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
         # Define required documents depending on candidate diploma
         common_docs = [
@@ -59,7 +49,7 @@ class SendConvocationView(FormView):
             'sender_email': self.request.user.email,
         }
 
-        form = ConvocationForm(initial={
+        initial.update({
             'id_candidate': candidate.pk,
             'cci': self.request.user.email,
             'to': candidate.email,
@@ -67,9 +57,13 @@ class SendConvocationView(FormView):
             'message': loader.render_to_string('email/candidate_convocation_EDE.txt', msg_context),
             'sender': self.request.user.email,
         })
+        return initial
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update({
-            'candidat': candidate,
-            'form': form,
+            'candidat': Candidate.objects.get(pk=self.kwargs['pk']),
+            'title': "Convocation aux examens d'admission EDE",
         })
         return context
 
