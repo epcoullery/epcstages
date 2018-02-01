@@ -1,17 +1,19 @@
 {{ candidate_name }},
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES, option «{{ option }}».
 
 Vous êtes attendu-e à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
 
- - {{ date_lieu_examen }}, pour l’examen écrit (durée approx. 4 heures)
+ - {{ date_lieu_examen }}, pour l’examen écrit (analyse de texte d’une durée de 2h30);
 
- - {{ date_entretien }}, en salle {{ salle_entretien }}, pour l’entretien d’admission (durée approx. 45 min.).
+ - {{ date_entretien }}, en salle {{ salle_entretien }}, pour l’entretien d’admission (durée 45 min.).
 
 En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
-{{ rappel }}
 
-Dans l’intervalle, nous vous adressons, {{ candidate_civility }}, nos salutations les plus cordiales.
+Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Vous devrez alors nous faire parvenir par retour de courriel votre demande avec une preuve officielle (rapport d’orthophonie par exemple), avant le 2 mars 2018.
+
+{{ rappel }}
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente de vous rencontrer prochainement, nous vous prions d’agréer, {{ candidate_civility }}, nos salutations les meilleures.
 
 Secrétariat de la filière Education de l’enfance, dipl. ES
 {{ sender_name }}

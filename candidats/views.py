@@ -28,24 +28,29 @@ class SendConvocationView(FormView):
         context = super().get_context_data(**kwargs)
 
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        docs = [
+        # Define required documents depending on candidate diploma
+        common_docs = [
             'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'reflexive_text',
-            'has_photo', 'work_certificate', 'marks_certificate',
+            'has_photo', 'marks_certificate',
         ]
-        if candidate.option == 'PE-5400h':
-            docs.append('promise', 'contract', 'certif_of_800h')
-        elif candidate.option == 'PE-3600h':
-            docs.append('certif_of_cfc', 'promise', 'contract')
-        elif candidate.option == 'PS':
-            docs.append('certif_of_800h')
+        dipl_docs = {
+            0: [],
+            1: ['work_certificate'],  # CFC ASE
+            2: ['certif_of_800_childhood', 'work_certificate'],
+            3: ['certif_of_800_general', 'certif_of_800_childhood', 'work_certificate'],
+            4: ['certif_of_800_general', 'certif_of_800_childhood', 'work_certificate'],
+        }[candidate.diploma]
+        docs_required = dipl_docs + common_docs
 
         missing_documents = {'documents': ', '.join([
-            Candidate._meta.get_field(doc).verbose_name for doc in docs if not getattr(candidate, doc)
+            Candidate._meta.get_field(doc).verbose_name for doc in docs_required
+            if not getattr(candidate, doc)
         ])}
 
         msg_context = {
             'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
             'candidate_civility': candidate.civility,
+            'option': candidate.get_option_display(),
             'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE,
             'date_entretien': candidate.interview.date_formatted,
             'salle_entretien': candidate.interview.room,

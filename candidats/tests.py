@@ -117,7 +117,7 @@ me@example.org
     def test_convocation_ede(self):
         ede = Section.objects.create(name='EDE')
         henri = Candidate.objects.create(
-            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            first_name='Henri', last_name='Dupond', gender='M', section=ede, option='ENF',
             email='henri@example.org', deposite_date=date.today()
         )
         inter = Interview.objects.create(date=datetime(2018, 3, 10, 10, 30), room='B103', candidat=henri)
@@ -125,30 +125,35 @@ me@example.org
         response = self.client.get(reverse('candidate-convocation', args=[henri.pk]))
         self.assertContains(response, '<h2>Dupond Henri</h2>')
         self.assertContains(response, '<input type="text" name="to" value="henri@example.org" size="60" id="id_to" required>', html=True)
-        self.assertContains(response, """
-Monsieur Henri Dupond,
+        expected_message = """Monsieur Henri Dupond,
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES, option «Enfance».
 
 Vous êtes attendu-e à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
 
- - mercredi 7 mars 2018, à 13h30, salle 405, pour l’examen écrit (durée approx. 4 heures)
+ - mercredi 7 mars 2018, à 13h30, salle 405, pour l’examen écrit (analyse de texte d’une durée de 2h30);
 
- - samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée approx. 45 min.).
+ - samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 45 min.).
 
 En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
 
-De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance
-de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
- - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bilan act. prof./dernier stage, Bull. de notes
+Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Vous devrez alors nous faire parvenir par retour de courriel votre demande avec une preuve officielle (rapport d’orthophonie par exemple), avant le 2 mars 2018.
 
-Dans l’intervalle, nous vous adressons, Monsieur, nos salutations les plus cordiales.
+De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
+ - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
+
+Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
+
+Sans nouvelles de votre part jusqu’au 3 mars prochain, votre dossier ne sera pas pris en considération et vous ne pourrez pas vous présenter à l’examen d’admission.
+
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente de vous rencontrer prochainement, nous vous prions d’agréer, Monsieur, nos salutations les meilleures.
 
 Secrétariat de la filière Education de l’enfance, dipl. ES
 Hans Schmid
 me@example.org
-tél. 032 886 33 00"""
-        )
+tél. 032 886 33 00
+"""
+        self.assertEqual(response.context['form'].initial['message'], expected_message)
         response = self.client.post(reverse('candidate-convocation', args=[henri.pk]), data={
             'id_candidate': str(henri.pk),
             'cci': 'me@example.org',
