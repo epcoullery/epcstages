@@ -26,14 +26,14 @@ class CandidateTests(TestCase):
             email='henri@example.org', deposite_date=date.today()
         )
         t1 = Teacher.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
-        t2 = Teacher.objects.create(first_name='Jeanne', last_name='Dubois')
+        t2 = Teacher.objects.create(first_name='Jeanne', last_name='Dubois', abrev="JDU")
         inter.teacher_int = t1
         inter.teacher_file = t2
         inter.candidat = cand
         inter.save()
         self.assertEqual(
             str(inter),
-            'samedi 10 mars 2018 à 10h30 : Caux Julie/Dubois Jeanne - (N) -salle:B103-Dupond Henri'
+            'samedi 10 mars 2018 à 10h30 : JCA/JDU - (N) -salle:B103-Dupond Henri'
         )
         self.assertEqual(cand.interview, inter)
 

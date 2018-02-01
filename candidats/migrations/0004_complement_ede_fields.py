@@ -65,12 +65,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='candidate',
             name='inscr_other_school',
-            field=models.CharField(default='', max_length=30, verbose_name='Inscr. autre école'),
+            field=models.CharField(blank=True, max_length=30, verbose_name='Inscr. autre école'),
         ),
         migrations.AddField(
             model_name='candidate',
             name='residence_permits',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(0, 'Pas nécessaire'), (1, 'Nécessaire - OK'), (2, 'Manquante')], default=0, verbose_name='Autorisation de séjour (pour les personnes étrangères)'),
+            field=models.PositiveSmallIntegerField(blank=True, choices=[(0, 'Pas nécessaire'), (1, 'Nécessaire - OK'), (2, 'Manquante')], default=0, verbose_name='Autor. de séjour (pour les pers. étrang.)'),
         ),
         migrations.AlterField(
             model_name='candidate',

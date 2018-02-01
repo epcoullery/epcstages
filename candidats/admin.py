@@ -170,7 +170,7 @@ class CandidateAdmin(admin.ModelAdmin):
             'fields': (('diploma', 'diploma_detail', 'diploma_status'),
                         ('registration_form', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
                         'marks_certificate', 'residence_permits', 'aes_accords'),
-                        ('certif_of_800_childhood', 'certif_800_general', 'work_certificate'),
+                        ('certif_of_800_childhood', 'certif_of_800_general', 'work_certificate'),
                         ('promise', 'contract', 'activity_rate'),
                         ('interview',),
                         ('examination_result', 'interview_result', 'file_result', 'total_result_points',

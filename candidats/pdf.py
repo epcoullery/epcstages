@@ -74,7 +74,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             data.append(['Attestation de 800h. min. domaine Enfance',candidate.get_ok('certif_of_800_childhood')])
             data.append(["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')])
         elif candidate.diploma == 3 or candidate.diploma == 4:  # Matu. aca ou ECG ou Portfolio
-            data.append(['Attestation de 800h. min. domaine Général', candidate.get_ok('certif_800_general')])
+            data.append(['Attestation de 800h. min. domaine Général', candidate.get_ok('certif_of_800_general')])
             data.append(['Attestation de 800h. min. domaine Enfance', candidate.get_ok('certif_of_800_childhood')])
             data.append(["Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')])
 

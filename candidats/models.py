@@ -107,9 +107,9 @@ class Candidate(models.Model):
     total_result_points = models.PositiveSmallIntegerField('Total points', blank=True, null=True)
     total_result_mark = models.PositiveSmallIntegerField('Note finale', blank=True, null=True)
 
-    inscr_other_school = models.CharField("Inscr. autre école", max_length=30, default='')
+    inscr_other_school = models.CharField("Inscr. autre école", max_length=30, blank=True)
     certif_of_800_childhood = models.BooleanField("Attest. 800h. enfance", default=False)
-    certif_800_general = models.BooleanField("Attest. 800h. général", default=False)
+    certif_of_800_general = models.BooleanField("Attest. 800h. général", default=False)
     diploma = models.PositiveSmallIntegerField('Titre sec. II', choices=DIPLOMA_CHOICES, default=0)
     diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
@@ -118,7 +118,7 @@ class Candidate(models.Model):
 
     aes_accords = models.PositiveSmallIntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=0)
     residence_permits = models.PositiveSmallIntegerField(
-        "Autorisation de séjour (pour les personnes étrangères)",
+        "Autor. de séjour (pour les pers. étrang.)",
         choices=RESIDENCE_PERMITS_CHOICES, blank=True, default=0
     )
     accepted = models.BooleanField('Admis', default=False)
@@ -170,7 +170,8 @@ class Interview(models.Model):
     def __str__(self):
         return '{0} : {1}/{2} - ({3}) -salle:{4}-{5}'.format(
             self.date_formatted,
-            self.teacher_int or '?', self.teacher_file or '?',
+            self.teacher_int.abrev if self.teacher_int else '?',
+            self.teacher_file.abrev if self.teacher_file else '?',
             self.status, self.room, self.candidat or '???'
         )
 
