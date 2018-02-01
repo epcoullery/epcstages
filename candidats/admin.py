@@ -13,6 +13,7 @@ from django.template import loader
 from django.urls import reverse
 
 from stages.exports import OpenXMLExport
+from .forms import CandidateForm
 from .models import Candidate, Interview, GENDER_CHOICES
 from .pdf import InscriptionSummaryPDF
 
@@ -112,39 +113,8 @@ def print_summary(modeladmin, request, queryset):
 print_summary.short_description = 'Imprimer résumé'
 
 
-class CandidateAdminForm(forms.ModelForm):
-    interview = forms.ModelChoiceField(queryset=Interview.objects.all(), required=False)
-
-    class Meta:
-        model = Candidate
-        widgets = {
-            'comment': forms.Textarea(attrs={'cols': 100, 'rows': 1}),
-            'pcode': forms.TextInput(attrs={'size': 10}),
-        }
-        fields = '__all__'
-
-    def __init__(self, *args, **kwargs):
-        if kwargs.get('instance'):
-            try:
-                kwargs['initial'] = {'interview': kwargs['instance'].interview}
-            except Interview.DoesNotExist:
-                pass
-        return super().__init__(*args, **kwargs)
-
-    def save(self, **kwargs):
-        obj = super().save(**kwargs)
-        if 'interview' in self.changed_data:
-            if self.cleaned_data['interview'] is None:
-                self.initial['interview'].candidat = None
-                self.initial['interview'].save()
-            else:
-                self.cleaned_data['interview'].candidat = obj
-                self.cleaned_data['interview'].save()
-        return obj
-
-
 class CandidateAdmin(admin.ModelAdmin):
-    form = CandidateAdminForm
+    form = CandidateForm
     list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
     list_filter = ('section', 'option')
     readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
