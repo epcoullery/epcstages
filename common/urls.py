@@ -22,8 +22,13 @@ urlpatterns = [
     path('classes/', views.KlassListView.as_view(), name='classes'),
     path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
 
-    path('candidate/<int:pk>/send_convocation/', candidats_views.SendConvocationView.as_view(),
+    path('candidate/<int:pk>/send_convocation/', candidats_views.ConvocationView.as_view(),
         name='candidate-convocation'),
+    path('candidate/<int:pk>/send_confirmation/', candidats_views.ConfirmationView.as_view(),
+        name='candidate-confirmation'),
+    path('candidate/<int:pk>/send_validation/', candidats_views.ValidationView.as_view(),
+        name='candidate-validation'),
+    path('candidate/<int:pk>/summary/', candidats_views.inscription_summary, name='candidate-summary'),
 
     path('imputations/export/', views.imputations_export, name='imputations_export'),
     path('print/update_form/', views.print_update_form, name='print_update_form'),

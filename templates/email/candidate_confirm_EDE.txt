@@ -1,14 +1,13 @@
-{{ candidate_civility }},
+{{ candidate.civility }} {{ candidate.first_name }} {{ candidate.last_name }},
 
-Par ce courriel, nous vous confirmons la bonne réception de votre dossier de candidature à la formation ES d’Educateur-trice de l’enfance et vous remercions de l’intérêt que vous portez à notre institution.
+Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation {{ candidate.section_option }} et vous remercions de l’intérêt que vous portez à notre institution.
 
-Celui-ci sera traité et des nouvelles vous seront communiquées par courriel durant la 2ème quinzaine du mois de février.
+Votre dossier sera traité dans les jours à venir et des nouvelles vous seront communiquées par courriel durant la 2ème quinzaine du mois de février.
 
-Dans l’intervalle, nous vous adressons, {{ candidate_civility }}, nos salutations les plus cordiales.
+Dans l’intervalle, nous vous adressons, {{ candidate.civility }}, nos salutations les plus cordiales.
 
 
-Secrétariat de l'EPC
+Secrétariat de la filière Education de l’enfance, dipl. ES
+{{ sender.first_name }} {{ sender.last_name }}
+{{ sender.email }}
 tél. 032 886 33 00
-
-{{ sender_name }}
-{{ sender_email }}

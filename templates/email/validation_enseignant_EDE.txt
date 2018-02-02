@@ -1,0 +1,19 @@
+Bonjour,
+
+Par ce courriel, je vous informe qu'un entretien d'admission a été planifié selon les modalités suivantes:
+
+- {{ candidate.interview.date_formatted }}, en salle {{ candidate.interview.room }}
+  Candidat{% if candidate.gender == "F" %}e{% endif %} :
+  {{ candidate.civility }} {{ candidate.first_name }} {{ candidate.last_name }}
+  {{ candidate.street }}
+  {{ candidate.pcode }} {{ candidate.city }}
+  Date de naiss.: {{ candidate.birth_date }}
+
+Sans nouvelle de votre part dans les 48 heures, une convocation définitive sera envoyée {% if candidate.gender == "F" %}à la candidate{% else %} au candidat{% endif %}.
+
+Avec mes meilleurs messages.
+
+Secrétariat de la filière Education de l’enfance, dipl. ES
+{{ sender.first_name }} {{ sender.last_name }}
+{{ sender.email }}
+tél. 032 886 33 00

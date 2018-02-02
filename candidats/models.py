@@ -139,6 +139,13 @@ class Candidate(models.Model):
         else:
             return ''
 
+    @property
+    def section_option(self):
+        if not self.option:
+            return self.get_section_display()
+        else:
+            return '{0}, option «{1}»'.format(self.get_section_display(), self.get_option_display())
+
     def get_ok(self, fieldname):
         return 'OK' if getattr(self, fieldname) is True else 'NON'
 

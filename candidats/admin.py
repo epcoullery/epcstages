@@ -1,21 +1,13 @@
-import os
-import tempfile
-import zipfile
 from collections import OrderedDict
-from datetime import date
 
-from django import forms
 from django.contrib import admin
-from django.core.mail import EmailMessage
 from django.db.models import BooleanField
-from django.http import HttpResponse
-from django.template import loader
 from django.urls import reverse
+from django.utils.html import format_html
 
 from stages.exports import OpenXMLExport
 from .forms import CandidateForm
 from .models import Candidate, Interview, GENDER_CHOICES
-from .pdf import InscriptionSummaryPDF
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -46,85 +38,21 @@ def export_candidates(modeladmin, request, queryset):
 export_candidates.short_description = "Exporter les candidats sélectionnés"
 
 
-def send_confirmation_mail(modeladmin, request, queryset):
-    from_email = request.user.email
-    subject = "Confirmation de votre inscription à l'Ecole Santé-social Pierre-Coullery"
-    email_sent = 0
-
-    for candidate in queryset.filter(
-            deposite_date__isnull=False, date_confirmation_mail__isnull=True, canceled_file=False):
-        to = [candidate.email]
-
-        if candidate.corporation and candidate.corporation.email:
-            to.append(candidate.corporation.email)
-        if candidate.instructor and candidate.instructor.email:
-            to.append(candidate.instructor.email)
-
-        context = {
-            'candidate_civility': candidate.civility,
-            'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
-            'section': candidate.section,
-            'sender_name': " ".join([request.user.first_name, request.user.last_name]),
-            'sender_email': from_email,
-        }
-
-        if candidate.section == 'EDE':
-            body = loader.render_to_string('email/candidate_confirm_EDE.txt', context)
-        else:
-            body = loader.render_to_string('email/candidate_confirm_FE.txt', context)
-
-        email = EmailMessage(
-            subject=subject,
-            body=body,
-            from_email=from_email,
-            to=to,
-            bcc=[from_email]
-        )
-
-        try:
-            email.send()
-            email_sent += 1
-        except Exception as err:
-            modeladmin.message_user(request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
-        else:
-            candidate.date_confirmation_mail = date.today()
-            candidate.save()
-        modeladmin.message_user(request, "%d messages de confirmation ont été envoyés." % email_sent)
-send_confirmation_mail.short_description = "Envoyer email de confirmation"
-
-
-def print_summary(modeladmin, request, queryset):
-    """
-    Print a summary of inscription
-    """
-    filename = 'archive_InscriptionResumes.zip'
-    path = os.path.join(tempfile.gettempdir(), filename)
-
-    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
-        for candidate in queryset:
-            pdf = InscriptionSummaryPDF(candidate)
-            pdf.produce(candidate)
-            filezip.write(pdf.filename)
-
-    with open(filezip.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
-    return response
-print_summary.short_description = 'Imprimer résumé'
-
-
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateForm
     list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
     list_filter = ('section', 'option')
-    readonly_fields = ('total_result_points', 'total_result_mark', 'confirmation_date')
-    actions = [export_candidates, send_confirmation_mail, print_summary]
+    readonly_fields = (
+        'total_result_points', 'total_result_mark', 'confirmation_date', 'validation_date',
+        'convocation_date', 'candidate_actions',
+    )
+    actions = [export_candidates]
     fieldsets = (
         (None, {
             'fields': (('first_name', 'last_name', 'gender'),
                        ('street', 'pcode', 'city', 'district'),
                        ('mobile', 'email'),
-                       ('birth_date', 'avs', 'handicap', 'has_photo'),
+                       ('birth_date', 'avs', 'handicap'),
                        ('section', 'option'),
                        ('corporation', 'instructor'),
                        ('deposite_date', 'confirmation_date', 'canceled_file'),
@@ -138,14 +66,18 @@ class CandidateAdmin(admin.ModelAdmin):
         ("EDE/EDS", {
             'classes': ('collapse',),
             'fields': (('diploma', 'diploma_detail', 'diploma_status'),
-                        ('registration_form', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
+                        ('registration_form', 'has_photo', 'certificate_of_payement', 'cv', 'police_record', 'reflexive_text',
                         'marks_certificate', 'residence_permits', 'aes_accords'),
                         ('certif_of_800_childhood', 'certif_of_800_general', 'work_certificate'),
                         ('promise', 'contract', 'activity_rate'),
                         ('interview',),
                         ('examination_result', 'interview_result', 'file_result', 'total_result_points',
-                            'total_result_mark')
+                            'total_result_mark'),
+                        ('confirmation_date', 'validation_date', 'convocation_date'),
             ),
+        }),
+        (None, {
+            'fields': (('candidate_actions',)),
         }),
     )
 
@@ -163,6 +95,20 @@ class CandidateAdmin(admin.ModelAdmin):
             return '<a href="' + url  + '">Envoyer convocation</a>'
     convocation.short_description = 'Convoc. aux examens'
     convocation.allow_tags = True
+
+    def candidate_actions(self, obj):
+        return format_html(
+            '<a class="button" href="{}">Confirmation de réception</a>&nbsp;'
+            '<a class="button" href="{}">Validation enseignants EDE</a>&nbsp;'
+            '<a class="button" href="{}">Convocation aux examens EDE</a>&nbsp;'
+            '<a class="button" href="{}">Impression du résumé du dossier EDE</a>',
+            reverse('candidate-confirmation', args=[obj.pk]),
+            reverse('candidate-validation', args=[obj.pk]),
+            reverse('candidate-convocation', args=[obj.pk]),
+            reverse('candidate-summary', args=[obj.pk]),
+        )
+    candidate_actions.short_description = 'Actions pour candidats'
+    candidate_actions.allow_tags = True
 
 
 class InterviewAdmin(admin.ModelAdmin):

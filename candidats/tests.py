@@ -86,6 +86,8 @@ class CandidateTests(TestCase):
         self.assertEqual(response.status_code, 302)
 
     def test_send_confirmation_mail(self):
+        self.maxDiff = None
+
         ede = Section.objects.create(name='EDE')
         ase = Section.objects.create(name='ASE')
         Candidate.objects.bulk_create([
@@ -96,50 +98,67 @@ class CandidateTests(TestCase):
             Candidate(first_name='Hervé', last_name='Bern', gender='M', section=ede,
                 deposite_date=date.today(), canceled_file=True),
             # Good
+            Candidate(first_name='Henri', last_name='Dupond', gender='M', section=ede, option='ENF',
+                email='henri@example.org', deposite_date=date.today()),
             Candidate(first_name='Joé', last_name='Glatz', gender='F', section=ase,
                 email='joe@example.org', deposite_date=date.today()),
-            Candidate(first_name='Henri', last_name='Dupond', gender='M', section=ede,
-                email='henri@example.org', deposite_date=date.today()),
         ])
-        change_url = reverse('admin:candidats_candidate_changelist')
         self.client.login(username='me', password='mepassword')
-        response = self.client.post(change_url, {
-            'action': 'send_confirmation_mail',
-            '_selected_action': Candidate.objects.values_list('pk', flat=True)
-        }, follow=True)
-        self.assertEqual(len(mail.outbox), 2)
+        cand1 = Candidate.objects.get(last_name='Simth')
+        response = self.client.get(reverse('candidate-confirmation', args=[cand1.pk]), follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertEqual(msg, "Une confirmation a déjà été envoyée!")
+
+        cand2 = Candidate.objects.get(last_name='Bern')
+        response = self.client.get(reverse('candidate-confirmation', args=[cand2.pk]), follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertEqual(msg, "Ce dossier a été annulé!")
+
+        cand3 = Candidate.objects.get(last_name='Dupond')
+        response = self.client.get(reverse('candidate-confirmation', args=[cand3.pk]))
+        data = response.context['form'].initial
+        response = self.client.post(
+            reverse('candidate-confirmation', args=[cand3.pk]), data=data, follow=True
+        )
+        self.assertEqual(len(mail.outbox), 1)
         # Logged-in user also receives as Bcc
         self.assertEqual(mail.outbox[0].recipients(), ['henri@example.org', 'me@example.org'])
-        self.assertEqual(mail.outbox[1].recipients(), ['joe@example.org', 'me@example.org'])
         # Mail content differ depending on the section
-        self.assertEqual(mail.outbox[0].body, """Monsieur,
+        self.assertEqual(mail.outbox[0].body, """Monsieur Henri Dupond,
 
-Par ce courriel, nous vous confirmons la bonne réception de votre dossier de candidature à la formation ES d’Educateur-trice de l’enfance et vous remercions de l’intérêt que vous portez à notre institution.
+Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation Education de l&#39;enfance, dipl. ES, option «Enfance» et vous remercions de l’intérêt que vous portez à notre institution.
 
-Celui-ci sera traité et des nouvelles vous seront communiquées par courriel durant la 2ème quinzaine du mois de février.
+Votre dossier sera traité dans les jours à venir et des nouvelles vous seront communiquées par courriel durant la 2ème quinzaine du mois de février.
 
 Dans l’intervalle, nous vous adressons, Monsieur, nos salutations les plus cordiales.
 
 
-Secrétariat de l'EPC
-tél. 032 886 33 00
-
+Secrétariat de la filière Education de l’enfance, dipl. ES
 Hans Schmid
 me@example.org
-""".format()
+tél. 032 886 33 00"""
         )
-        self.assertEqual(mail.outbox[1].body, """Madame, Monsieur,
 
-Nous vous confirmons la bonne réception de l'inscription de Madame Joé Glatz dans la filière ASE pour l'année scolaire à venir.
+        mail.outbox = []
+        cand4 = Candidate.objects.get(last_name='Glatz')
+        response = self.client.get(reverse('candidate-confirmation', args=[cand4.pk]))
+        data = response.context['form'].initial
+        response = self.client.post(
+            reverse('candidate-confirmation', args=[cand4.pk]), data=data, follow=True
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        # Logged-in user also receives as Bcc
+        self.assertEqual(mail.outbox[0].recipients(), ['joe@example.org', 'me@example.org'])
+        self.assertEqual(mail.outbox[0].body, """Madame, Monsieur,
+
+Nous vous confirmons la bonne réception de l’inscription de Madame Joé Glatz dans la filière Assist. socio-éducatif-ve CFC pour l’année scolaire à venir.
 
 Nous nous tenons à votre disposition pour tout renseignement complémentaire et vous prions de recevoir, Madame, Monsieur, nos salutations les plus cordiales.
 
-Secrétariat de l'EPC
-tél. 032 886 33 00
-
+Secrétariat de l’EPC
 Hans Schmid
 me@example.org
-""".format()
+tél. 032 886 33 00"""
         )
         # One was already set, 2 new.
         self.assertEqual(Candidate.objects.filter(confirmation_date__isnull=False).count(), 3)
@@ -150,14 +169,14 @@ me@example.org
             first_name='Henri', last_name='Dupond', gender='M', section=ede,
             email='henri@example.org', deposite_date=date.today()
         )
-        change_url = reverse('admin:candidats_candidate_changelist')
         self.client.login(username='me', password='mepassword')
+        response = self.client.get(reverse('candidate-confirmation', args=[henri.pk]))
+        data = response.context['form'].initial
         with mock.patch('django.core.mail.EmailMessage.send') as mocked:
             mocked.side_effect = Exception("Error sending mail")
-            response = self.client.post(change_url, {
-                'action': 'send_confirmation_mail',
-                '_selected_action': Candidate.objects.values_list('pk', flat=True)
-            }, follow=True)
+            response = self.client.post(
+                reverse('candidate-confirmation', args=[henri.pk]), data=data, follow=True
+            )
         self.assertContains(response, "Échec d’envoi pour le candidat Dupond Henri (Error sending mail)")
         henri.refresh_from_db()
         self.assertIsNone(henri.confirmation_date)
@@ -217,21 +236,69 @@ tél. 032 886 33 00
         henri.refresh_from_db()
         self.assertIsNotNone(henri.convocation_date)
 
+    def test_validation_enseignant_ede(self):
+        self.maxDiff = None
+        ede = Section.objects.create(name='EDE')
+        henri = Candidate.objects.create(
+            first_name='Henri', last_name='Dupond', gender='M', birth_date=date(2000, 5, 15),
+            street="Rue Neuve 3", pcode='2222', city='Petaouchnok',
+            section=ede, option='ENF',
+            email='henri@example.org', deposite_date=date.today()
+        )
+        t1 = Teacher.objects.create(
+            first_name="Julie", last_name="Caux", abrev="JCA", email="julie@example.org"
+        )
+        t2 = Teacher.objects.create(
+            first_name='Jeanne', last_name='Dubois', abrev="JDU", email="jeanne@example.org"
+        )
+        inter = Interview.objects.create(
+            date=datetime(2018, 3, 10, 10, 30), room='B103', candidat=henri,
+            teacher_int=t1, teacher_file=t2,
+        )
+        self.client.login(username='me', password='mepassword')
+        response = self.client.get(reverse('candidate-validation', args=[henri.pk]))
+        expected_message = """Bonjour,
+
+Par ce courriel, je vous informe qu'un entretien d'admission a été planifié selon les modalités suivantes:
+
+- samedi 10 mars 2018 à 10h30, en salle B103
+  Candidat :
+  Monsieur Henri Dupond
+  Rue Neuve 3
+  2222 Petaouchnok
+  Date de naiss.: 15 mai 2000
+
+Sans nouvelle de votre part dans les 48 heures, une convocation définitive sera envoyée  au candidat.
+
+Avec mes meilleurs messages.
+
+Secrétariat de la filière Education de l’enfance, dipl. ES
+Hans Schmid
+me@example.org
+tél. 032 886 33 00
+"""
+        self.assertEqual(response.context['form'].initial['message'], expected_message)
+
+        data = response.context['form'].initial
+        response = self.client.post(reverse('candidate-validation', args=[henri.pk]), data=data)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].recipients(), ["julie@example.org", "jeanne@example.org", 'me@example.org'])
+        self.assertEqual(mail.outbox[0].subject, "Validation de l'entretien d'admission")
+        henri.refresh_from_db()
+        self.assertIsNotNone(henri.validation_date)
+
     def test_summary_pdf(self):
         ede = Section.objects.create(name='EDE')
         cand = Candidate.objects.create(
             first_name='Henri', last_name='Dupond', gender='M', section=ede,
             email='henri@example.org', deposite_date=date.today()
         )
-        change_url = reverse('admin:candidats_candidate_changelist')
+        summary_url = reverse('candidate-summary', args=[cand.pk])
         self.client.login(username='me', password='mepassword')
-        response = self.client.post(change_url, {
-            'action': 'print_summary',
-            '_selected_action': Candidate.objects.values_list('pk', flat=True)
-        }, follow=True)
+        response = self.client.post(summary_url, follow=True)
         self.assertEqual(
             response['Content-Disposition'],
-            'attachment; filename="archive_InscriptionResumes.zip"'
+            'attachment; filename="dupond_henri.pdf"'
         )
-        self.assertEqual(response['Content-Type'], 'application/zip')
+        self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
