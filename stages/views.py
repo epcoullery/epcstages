@@ -565,7 +565,7 @@ class ImportBulletinView(FormView):
         email_sent = 0
         pdf_file_list = os.listdir(temp_dir)
 
-        students = klass.student_set.exclude(archived=True)
+        students = klass.student_set.exclude(archived=True).order_by('last_name', 'first_name')
         for student in students:
             if not student.email:
                 messages.warning(self.request, "L'étudiant %s ne possède pas d'email." % student)

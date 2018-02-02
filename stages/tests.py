@@ -108,13 +108,13 @@ class StagesTest(TestCase):
 
     def test_new_training(self):
         student = Student.objects.get(last_name='Varrin')
-        avail = Availability.objects.get(pk=2)
+        avail = Availability.objects.filter(priority=True).first()
         response = self.client.post(reverse('new_training'),
             {'student': student.pk,
              'avail': avail.pk,
-             'referent': 1})
+             'referent': Teacher.objects.first().pk})
         self.assertEqual(response.content, b'OK')
-        avail = Availability.objects.get(pk=2)
+        avail.refresh_from_db()
         self.assertEqual(avail.training.student, student)
 
     def test_archived_trainings(self):
