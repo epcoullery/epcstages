@@ -14,9 +14,10 @@ def export_candidates(modeladmin, request, queryset):
     """
     Export all candidates fields.
     """
-    export_fields = OrderedDict(
-        [(f.verbose_name, f.name) for f in Candidate._meta.get_fields() if f.name != 'ID']
-    )
+    export_fields = OrderedDict([
+        (getattr(f, 'verbose_name', f.name), f.name)
+        for f in Candidate._meta.get_fields() if f.name != 'ID'
+    ])
     boolean_fields = [f.name for f in Candidate._meta.get_fields() if isinstance(f, BooleanField)]
     export_fields['Employeur'] = 'corporation__name'
     export_fields['Employeur_localite'] = 'corporation__city'
