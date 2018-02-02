@@ -18,16 +18,28 @@ env.hosts = [settings.FABRIC_HOST]
 env.user = settings.FABRIC_USERNAME
 
 
-def clone_remote_db(dbtype='sqlite'):
+def clone_remote_db():
     """
     Copy remote data (JSON dump), download it locally and recreate a local
     SQLite database with those data.
     """
-    db_path = settings.DATABASES['default']['NAME']
-    if os.path.exists(db_path):
-        rep = prompt('A local database (%s) already exists. Overwrite? (y/n)' % db_path)
+    db_name = settings.DATABASES['default']['NAME']
+    is_sqlite = 'sqlite' in settings.DATABASES['default']['ENGINE']
+
+    def exist_local_db():
+        if is_sqlite:
+            return os.path.exists(db_name)
+        else:  # Assume postgres
+            db_list = local('psql --list', capture=True)
+            return (' ' + db_name + ' ') in db_list
+
+    if exist_local_db():
+        rep = prompt('A local database named "%s" already exists. Overwrite? (y/n)' % db_name)
         if rep == 'y':
-            os.remove(db_path)
+            if is_sqlite:
+                os.remove(settings.DATABASES['default']['NAME'])
+            else:
+                local('''sudo -u postgres psql -c "DROP DATABASE %(db)s;"'''  % {'db': db_name})
         else:
             abort("Database not copied")
 
@@ -36,6 +48,10 @@ def clone_remote_db(dbtype='sqlite'):
         with prefix('source %s' % VIRTUALENV_DIR):
             run('python manage.py dumpdata --natural-foreign --indent 1 -e auth.Permission auth stages candidats > epcstages.json')
         get('epcstages.json', '.')
+
+    if not is_sqlite:
+        local('''sudo -u postgres psql -c "CREATE DATABASE %(db)s OWNER=%(owner)s;"''' % {
+        'db': db_name, 'owner': settings.DATABASES['default']['USER']})
 
     # Recreate a fresh DB with downloaded data
     local("python ../manage.py migrate")
