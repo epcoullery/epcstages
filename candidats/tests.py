@@ -92,7 +92,7 @@ class CandidateTests(TestCase):
             # A mail should NOT be sent for those first 2
             Candidate(
                 first_name='Jill', last_name='Simth', gender='F', section=ede,
-                deposite_date=date.today(), date_confirmation_mail=date.today()),
+                deposite_date=date.today(), confirmation_date=date.today()),
             Candidate(first_name='Hervé', last_name='Bern', gender='M', section=ede,
                 deposite_date=date.today(), canceled_file=True),
             # Good
@@ -142,7 +142,7 @@ me@example.org
 """.format()
         )
         # One was already set, 2 new.
-        self.assertEqual(Candidate.objects.filter(date_confirmation_mail__isnull=False).count(), 3)
+        self.assertEqual(Candidate.objects.filter(confirmation_date__isnull=False).count(), 3)
 
     def test_send_confirmation_error(self):
         ede = Section.objects.create(name='EDE')
@@ -160,7 +160,7 @@ me@example.org
             }, follow=True)
         self.assertContains(response, "Échec d’envoi pour le candidat Dupond Henri (Error sending mail)")
         henri.refresh_from_db()
-        self.assertIsNone(henri.date_confirmation_mail)
+        self.assertIsNone(henri.confirmation_date)
 
     def test_convocation_ede(self):
         ede = Section.objects.create(name='EDE')

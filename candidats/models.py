@@ -13,8 +13,8 @@ SECTION_CHOICES = (
     ('ASA', 'Aide en soin et accompagnement AFP'),
     ('ASE', 'Assist. socio-éducatif-ve CFC'),
     ('ASSC', 'Assist. en soin et santé communautaire CFC'),
-    ('EDE', 'Educ. de l\'enfance, dipl. ES'),
-    ('EDS', 'Educ. social-e, dipl. ES'),
+    ('EDE', "Education de l'enfance, dipl. ES"),
+    ('EDS', 'Education sociale, dipl. ES'),
 )
 
 OPTION_CHOICES = (
@@ -76,7 +76,7 @@ class Candidate(models.Model):
     exemption_ecg = models.BooleanField(default=False)
     validation_sfpo = models.DateField('Confirmation SFPO', blank=True, null=True)
     integration_second_year = models.BooleanField('Intégration', default=False)
-    date_confirmation_mail = models.DateField('Mail de confirmation', blank=True, null=True)
+    confirmation_date = models.DateTimeField('Envoi mail de confirmation', blank=True, null=True)
     canceled_file = models.BooleanField('Dossier retiré', default=False)
     has_photo = models.BooleanField(default=False, verbose_name='Photo passeport')
 
@@ -114,7 +114,8 @@ class Candidate(models.Model):
     diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
     activity_rate = models.CharField("Taux d'activité", max_length=50, blank=True,  default='')
-    convocation_date = models.DateTimeField(null=True, blank=True, default=None)
+    validation_date = models.DateTimeField('Envoi mail de validation', null=True, blank=True)
+    convocation_date = models.DateTimeField('Envoi mail de confirmation', null=True, blank=True)
 
     aes_accords = models.PositiveSmallIntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=0)
     residence_permits = models.PositiveSmallIntegerField(

@@ -117,7 +117,7 @@ class CandidateAdmin(admin.ModelAdmin):
     form = CandidateForm
     list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
     list_filter = ('section', 'option')
-    readonly_fields = ('total_result_points', 'total_result_mark', 'date_confirmation_mail')
+    readonly_fields = ('total_result_points', 'total_result_mark', 'confirmation_date')
     actions = [export_candidates, send_confirmation_mail, print_summary]
     fieldsets = (
         (None, {
@@ -127,7 +127,7 @@ class CandidateAdmin(admin.ModelAdmin):
                        ('birth_date', 'avs', 'handicap', 'has_photo'),
                        ('section', 'option'),
                        ('corporation', 'instructor'),
-                       ('deposite_date', 'date_confirmation_mail', 'canceled_file'),
+                       ('deposite_date', 'confirmation_date', 'canceled_file'),
                        'comment',
                       ),
         }),
@@ -150,7 +150,7 @@ class CandidateAdmin(admin.ModelAdmin):
     )
 
     def confirm_mail(self, obj):
-        return obj.date_confirmation_mail is not None
+        return obj.confirmation_date is not None
     confirm_mail.boolean = True
 
     def convocation(self, obj):
