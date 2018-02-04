@@ -1,6 +1,5 @@
 from django import forms
 from django.conf import settings
-
 from tabimport import FileFactory, UnsupportedFileFormat
 
 from .models import Section, Period
@@ -36,5 +35,17 @@ class UploadHPFileForm(forms.Form):
     upload = forms.FileField(label='Fichier HyperPlanning')
 
 
-class UploadBulletinForm(forms.Form):
+class UploadReportForm(forms.Form):
     upload = forms.FileField(label='Bulletins CLOEE (pdf)')
+    klass_name = forms.CharField(widget=forms.HiddenInput())
+
+
+class EmailStudentBaseForm(forms.Form):
+    id_student = forms.CharField(widget=forms.HiddenInput())
+    sender = forms.CharField(widget=forms.HiddenInput())
+    to = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
+    cci = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
+    subject = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
+    message = forms.CharField(widget=forms.Textarea(attrs={'rows': 20, 'cols': 120}))
+    attachment = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
+    pdf_file = forms.CharField(widget=forms.HiddenInput())

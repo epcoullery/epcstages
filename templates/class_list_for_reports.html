@@ -1,0 +1,22 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Accueil</a>
+&rsaquo; Envoi des bulletins scolaires
+</div>
+{% endblock %}
+
+{% block content %}
+    <h2>Liste de classe {{ object.name }}</h2>
+
+    <table>
+    {% for student in students %}
+    <tr class="{% cycle 'row1' 'row2' %}">
+        <td>{{ student.full_name }} </td>
+        <td>{{ student.corporation }}</td>
+        <td><a class="button" href="{% url 'send-student-reports' student.id semestre %}">Envoyer bull. sem.1</a></td>
+    </tr>
+    {% endfor %}
+    </table>
+{% endblock %}

@@ -9,6 +9,9 @@
 
 {% block content %}
 <form action="." method="post" enctype="multipart/form-data">{% csrf_token %}
+  {% if klass_name %}
+    Importer le fichier des moyennes de la classe {{ klass_name }}
+  {% endif %}
   {{ form.as_p }}
   <input type="submit" value="Envoyer">
 </form>

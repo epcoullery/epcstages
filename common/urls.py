@@ -12,7 +12,12 @@ urlpatterns = [
     path('import_students/', views.StudentImportView.as_view(), name='import-students'),
     path('import_hp/', views.HPImportView.as_view(), name='import-hp'),
     path('import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
-    path('import_bulletins/', views.ImportBulletinView.as_view(), name='import-bulletins'),
+
+    path('prepare_reports/sem/<int:semestre>/', views.PrepareReportsView.as_view(), {'semestre': 1}, name='prepare-reports'),
+    path('import_reports/klass/<int:pk>/sem/<int:semestre>/', views.ImportReportsView.as_view(), {'semestre': 1}, name='import-reports'),
+    path('send_reports/klass/<int:pk>/sem/<int:semestre>/', views.ClassListForReportsView.as_view(), {'semestre': 1}, name='send-klass-reports'),
+    path('send_reports/student/<int:pk>/sem/<int:semestre>/', views.SendStudentReportsView.as_view(), {'semestre': 1}, name='send-student-reports'),
+
 
     path('attribution/', views.AttributionView.as_view(), name='attribution'),
     re_path(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),

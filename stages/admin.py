@@ -6,13 +6,16 @@ from django import forms
 from django.contrib import admin
 from django.db import models
 from django.db.models import Case, Count, When
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
+from django.utils.html import format_html
+from django.conf import settings
 
-from stages.models import (
+from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
 )
-from stages.pdf import ChargeSheetPDF
+from .pdf import ChargeSheetPDF
 
 
 def print_charge_sheet(modeladmin, request, queryset):
@@ -79,7 +82,7 @@ class TeacherAdmin(admin.ModelAdmin):
 
 
 class StudentAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
+    list_display = ('__str__', 'pcode_city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
@@ -96,13 +99,6 @@ class StudentAdmin(admin.ModelAdmin):
             student.archived = True
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
-
-    '''def get_readonly_fields(self, request, obj=None):
-        if 'edit' not in request.GET:
-            return self.fields
-        else:
-            return self.readonly_fields
-    '''
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -183,6 +179,7 @@ class AvailabilityAdminForm(forms.ModelForm):
                 contact=instance.contact,
                 comment=instance.comment)
         return instance
+
 
 class AvailabilityInline(admin.StackedInline):
     model = Availability
