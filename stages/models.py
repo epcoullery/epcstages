@@ -1,9 +1,11 @@
+import os
 import json
 from collections import OrderedDict
 from datetime import date, timedelta
 
 from django.conf import settings
 from django.db import models
+
 
 from . import utils
 
@@ -50,6 +52,12 @@ class Klass(models.Model):
 
     def __str__(self):
         return self.name
+
+    def test_bulletins_sem1(self):
+        return os.path.exists(os.path.join(settings.BULLETINS_SEM1, self.name))
+
+    def test_bulletins_sem2(self):
+        return os.path.exists(os.path.join(settings.BULLETINS_SEM2, self.name))
 
 
 class Teacher(models.Model):
@@ -178,6 +186,8 @@ class Student(models.Model):
         on_delete=models.PROTECT)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
+    report_sem_1 = models.DateTimeField('Date envoi bull. sem1', null=True, blank=True, default=None)
+    report_sem_2 = models.DateTimeField('Date envoi bull. sem2', null=True, blank=True, default=None)
 
     support_tabimport = True
 

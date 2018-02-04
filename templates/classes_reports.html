@@ -1,0 +1,30 @@
+{% extends "admin/base_site.html" %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Accueil</a>
+&rsaquo; Préparation des bulletins
+</div>
+{% endblock %}
+
+{% block content %}
+    <h2>Liste des classes FE</h2>
+
+    <table>
+    {% for klass in object_list %}
+    <tr class="{% cycle 'row1' 'row2' %}">
+        <td>{{ klass.name }} </td>
+            <td><a class="button" href="{% url 'import-reports' klass.id semestre %}">Importer bulletins CLOEE</a></td>
+            {% if semestre == 1 %}
+                {% if klass.test_bulletins_sem1 %}
+                    <td><a class="button" href="{% url 'send-klass-reports' klass.id 1 %}">Envoyer bulletins</a></td>
+                {% endif %}
+            {% else %}
+                {% if klass.test_bulletins_sem2 %}
+                    <td><a class="button" href="{% url 'send-klass-reports' klass.id 2 %}">Envoyer bulletins</a></td>
+                {% endif %}
+            {% endif %}
+    </tr>
+    {% endfor %}
+    </table>
+{% endblock %}
