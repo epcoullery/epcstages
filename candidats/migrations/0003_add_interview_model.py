@@ -5,7 +5,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stages', '__latest__'),
+        ('stages', '__first__'),
         ('candidats', '0002_deposit_date_non_null'),
     ]
 

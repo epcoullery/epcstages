@@ -176,6 +176,10 @@ class Student(models.Model):
         on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
         on_delete=models.PROTECT)
+    report_sem1 = models.FileField('Bulletin 1er sem.', null=True, blank=True, upload_to='bulletins')
+    report_sem1_sent = models.DateTimeField('Date envoi bull. sem 1', null=True, blank=True)
+    report_sem2 = models.FileField('Bulletin 2e sem.', null=True, blank=True, upload_to='bulletins')
+    report_sem2_sent = models.DateTimeField('Date envoi bull. sem 2', null=True, blank=True)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
 
