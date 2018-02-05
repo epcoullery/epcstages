@@ -12,7 +12,6 @@ urlpatterns = [
     path('import_students/', views.StudentImportView.as_view(), name='import-students'),
     path('import_hp/', views.HPImportView.as_view(), name='import-hp'),
     path('import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
-    path('import_bulletins/', views.ImportBulletinView.as_view(), name='import-bulletins'),
 
     path('attribution/', views.AttributionView.as_view(), name='attribution'),
     re_path(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),
@@ -21,6 +20,7 @@ urlpatterns = [
     path('institutions/<int:pk>/', views.CorporationView.as_view(), name='corporation'),
     path('classes/', views.KlassListView.as_view(), name='classes'),
     path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
+    path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(), name='import-reports'),
 
     path('candidate/<int:pk>/send_convocation/', candidats_views.ConvocationView.as_view(),
         name='candidate-convocation'),
@@ -46,6 +46,8 @@ urlpatterns = [
     path('training/by_period/<int:pk>/', views.TrainingsByPeriodView.as_view()),
 
     path('student/<int:pk>/summary/', views.StudentSummaryView.as_view()),
+    path('student/<int:pk>/send_reports/sem/<int:semestre>/', views.SendStudentReportsView.as_view(),
+        name='send-student-reports'),
     path('availability/<int:pk>/summary/', views.AvailabilitySummaryView.as_view()),
     path('corporation/<int:pk>/contacts/', views.CorpContactJSONView.as_view()),
 ]

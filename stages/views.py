@@ -14,7 +14,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
 from django.core.mail import EmailMessage
-from django.db.models import Case, Count, When, Q
+from django.db.models import Case, Count, Value, When, Q
+from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import loader
@@ -24,7 +25,7 @@ from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
 from .exports import OpenXMLExport
-from .forms import PeriodForm, StudentImportForm, UploadHPFileForm, UploadBulletinForm
+from .forms import EmailStudentBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
 from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
@@ -503,25 +504,31 @@ class HPContactsImportView(ImportViewBase):
         return {'modified': obj_modified, 'errors': errors}
 
 
-class ImportBulletinView(FormView):
+class ImportReportsView(FormView):
     template_name = 'file_import.html'
-    form_class = UploadBulletinForm
+    form_class = UploadReportForm
+
+    def dispatch(self, request, *args, **kwargs):
+        self.klass = get_object_or_404(Klass, pk=kwargs['pk'])
+        self.title = "Importation d'un fichier PDF de moyennes pour la classe {}".format(self.klass.name)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         upfile = form.cleaned_data['upload']
         klass_name = upfile.name[:-4]
+        redirect_url = reverse('class', args=[self.klass.pk])
 
-        try:
-            klass = Klass.objects.get(name=klass_name)
-        except Klass.DoesNotExist:
-            messages.error(self.request, "La classe %s n'existe pas !" % klass_name)
-            return HttpResponseRedirect(reverse('admin:index'))
+        if self.klass.name != klass_name:
+            messages.error(self.request,
+                "Le fichier téléchargé ne correspond pas à la classe {} !".format(self.klass.name)
+            )
+            return HttpResponseRedirect(redirect_url)
 
         # Check poppler-utils presence on server
         res = call(['pdftotext', '-v'], stderr=PIPE)
         if res != 0:
             messages.error(self.request, "Unable to find pdftotext on your system. Try to install the poppler-utils package.")
-            return HttpResponseRedirect(reverse('admin:index'))
+            return HttpResponseRedirect(redirect_url)
 
         # Move the file to MEDIA directory
         pdf_origin = os.path.join(settings.MEDIA_ROOT, upfile.name)
@@ -530,15 +537,16 @@ class ImportBulletinView(FormView):
                 destination.write(chunk)
 
         try:
-            self.send_bulletins(klass, pdf_origin)
+            self.import_reports(pdf_origin, form.cleaned_data['semester'])
         except Exception as err:
+            raise
             if settings.DEBUG:
                 raise
             else:
-                messages.error(self.request, "Erreur durant l'envoi des bulletins PDF: %s" % err)
-        return HttpResponseRedirect(reverse('admin:index'))
+                messages.error(self.request, "Erreur durant l'importation des bulletins PDF: %s" % err)
+        return HttpResponseRedirect(redirect_url)
 
-    def send_bulletins(self, klass, pdf_path):
+    def import_reports(self, pdf_path, semester):
         path = os.path.abspath(pdf_path)
         student_regex = '[E|É]lève\s*:\s*([^\n]*)'
         # Directory automatically deleted when the variable is deleted
@@ -548,66 +556,101 @@ class ImportBulletinView(FormView):
         os.system("pdfseparate %s %s/%s_%%d.pdf" % (path, temp_dir, os.path.basename(path)[:-4]))
 
         # Look for student names in each separated PDF and rename PDF with student name
+        pdf_count = 0
+        pdf_field = 'report_sem' + semester
         for filename in os.listdir(temp_dir):
             p = Popen(['pdftotext', os.path.join(temp_dir, filename), '-'],
                       shell=False, stdout=PIPE, stderr=PIPE)
-            output, errors = p.communicate()
+            output, errs = p.communicate()
             m = re.search(student_regex, output.decode('utf-8'))
             if not m:
                 print("Unable to find student name in %s" % filename)
                 continue
             student_name = m.groups()[0]
-            os.rename(
-                os.path.join(temp_dir, filename),
-                "%s.pdf" % (os.path.join(temp_dir, slugify(student_name)))
-            )
-
-        email_sent = 0
-        pdf_file_list = os.listdir(temp_dir)
-
-        students = klass.student_set.exclude(archived=True).order_by('last_name', 'first_name')
-        for student in students:
-            if not student.email:
-                messages.warning(self.request, "L'étudiant %s ne possède pas d'email." % student)
-                continue
-            context = {
-                'student_name': " ".join([student.civility, student.first_name, student.last_name]),
-                'sender_name': " ".join([self.request.user.first_name, self.request.user.last_name]),
-                'sender_email': self.request.user.email,
-            }
-            student_filename = slugify('{0} {1}'.format(student.last_name, student.first_name))
-            student_filename = '{0}.pdf'.format(student_filename)
+            # Find a student with the found student_name
             try:
-                attach_idx = pdf_file_list.index(student_filename)
-            except ValueError:
-                messages.error(self.request,
-                               "Impossible de trouver un fichier PDF pour l'étudiant %s" % student)
+                student = self.klass.student_set.exclude(archived=True
+                    ).annotate(fullname=Concat('last_name', Value(' '), 'first_name')).get(fullname=student_name)
+            except Student.DoesNotExist:
+                messages.warning(
+                    self.request,
+                    "Impossible de trouver l'étudiant {} dans la classe {}".format(student_name, self.klass.name)
+                )
                 continue
+            with open(os.path.join(temp_dir, filename), 'rb') as pdf:
+                getattr(student, pdf_field).save(filename, File(pdf), save=True)
+            student.save()
+            pdf_count += 1
 
-            to = [student.email]
-            if student.instructor and student.instructor.email:
-                to.append(student.instructor.email)
-            email = EmailMessage(
-                subject='Bulletins scolaires',
-                body=loader.render_to_string('email/bulletins_scolaires.txt', context),
-                from_email=self.request.user.email,
-                to=to,
-                bcc=[self.request.user.email],
+        messages.success(
+            self.request,
+            '{0} bulletins PDF ont été importés pour la classe {1} (sur {2} élèves)'.format(
+                pdf_count, self.klass.name,
+                self.klass.student_set.exclude(archived=True).count()
             )
-            # Attach PDF file to email
-            pdf_file = os.path.join(temp_dir, pdf_file_list[attach_idx])
-            pdf_name = 'bulletin_scol_{0}'.format(student_filename)
-            with open(pdf_file, 'rb') as pdf:
-                email.attach(pdf_name, pdf.read(), 'application/pdf')
+        )
 
-            try:
-                email.send(fail_silently=False)
-                email_sent += 1
-            except Exception as err:
-                messages.error(self.request, "Échec d'envoi pour le candidat {0} ({1})".format(student, err))
 
-        messages.warning(self.request, '{0} messages sur {1} élèves ont été envoyés'
-                         .format(email_sent, students.count()))
+class SendStudentReportsView(FormView):
+    template_name = 'email_report.html'
+    form_class = EmailStudentBaseForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        self.student = Student.objects.get(pk=self.kwargs['pk'])
+        self.semestre = self.kwargs['semestre']
+
+        to = [self.student.email]
+        if self.student.instructor and self.student.instructor.email:
+            to.append(self.student.instructor.email)
+
+        context = {
+            'student': self.student,
+            'sender': self.request.user,
+        }
+
+        initial.update({
+            'id_student': self.student.pk,
+            'cci': self.request.user.email,
+            'to': '; '.join(to),
+            'subject': "Bulletin semestriel",
+            'message': loader.render_to_string('email/bulletins_scolaires.txt', context),
+            'sender': self.request.user.email,
+        })
+        return initial
+
+    def form_valid(self, form):
+        email = EmailMessage(
+            subject=form.cleaned_data['subject'],
+            body=form.cleaned_data['message'],
+            from_email=form.cleaned_data['sender'],
+            to=form.cleaned_data['to'].split(';'),
+            bcc=form.cleaned_data['cci'].split(';'),
+        )
+        # Attach PDF file to email
+        student_filename = slugify('{0} {1}'.format(self.student.last_name, self.student.first_name))
+        student_filename = '{0}.pdf'.format(student_filename)
+        #pdf_file = os.path.join(dir_klass, pdf_file_list[attach_idx])
+        pdf_name = 'bulletin_scol_{0}'.format(student_filename)
+        with open(getattr(self.student, 'report_sem%d' % self.semestre).path, 'rb') as pdf:
+            email.attach(pdf_name, pdf.read(), 'application/pdf')
+
+        try:
+            email.send()
+        except Exception as err:
+            messages.error(self.request, "Échec d’envoi pour l'étudiant {0} ({1})".format(self.student, err))
+        else:
+            messages.success(self.request, "Le message a été envoyé.")
+        return HttpResponseRedirect(reverse('class', args=[self.student.klass.pk]))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'candidat': self.student,
+            'title': 'Envoi du bulletin semestriel',
+            'pdf_field': getattr(self.student, 'report_sem%d' % self.semestre),
+        })
+        return context
 
 
 EXPORT_FIELDS = [

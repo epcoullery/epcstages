@@ -283,6 +283,12 @@ class ImportTests(TestCase):
     def setUp(self):
         User.objects.create_user('me', 'me@example.org', 'mepassword')
 
+    def tearDown(self):
+        # Clean uploaded bulletins
+        bulletins_dir = os.path.join(settings.MEDIA_ROOT, 'bulletins')
+        for f in os.listdir(bulletins_dir):
+            os.remove(os.path.join(bulletins_dir, f))
+
     def test_import_students(self):
         """
         Import of the main students file.
@@ -369,12 +375,23 @@ class ImportTests(TestCase):
         path = os.path.join(os.path.dirname(__file__), 'test_files', '1ASEFEa.pdf')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
-            response = self.client.post(reverse('import-bulletins'), {'upload': fh}, follow=True)
+            response = self.client.post(
+                reverse('import-reports', args=[klass1.pk]),
+                data={'upload': fh, 'semester': '1'},
+                follow=True
+            )
         messages = [str(msg) for msg in response.context['messages']]
-        self.assertIn("Impossible de trouver un fichier PDF pour l'étudiant Hickx Elvire", messages)
-        self.assertIn('2 messages sur 3 élèves ont été envoyés', messages)
-        self.assertEqual(len(mail.outbox), 2)
+        self.assertIn('2 bulletins PDF ont été importés pour la classe 1ASEFEa (sur 3 élèves)', messages)
+        student = Student.objects.get(last_name="Dupond")
+        self.assertEqual(student.report_sem1.name, 'bulletins/1ASEFEa_1.pdf')
+
+        # Now send
+        send_url = reverse('send-student-reports', args=[student.pk, '1'])
+        response = self.client.get(send_url)
+        data = response.context['form'].initial
+        self.assertEqual(data['to'], "albin@example.org")
+        response = self.client.post(send_url, data=data, follow=True)
+        self.assertEqual(len(mail.outbox), 1)
         # Second email as bcc
         self.assertEqual(mail.outbox[0].recipients(), ['albin@example.org', 'me@example.org'])
-        self.assertEqual(mail.outbox[1].recipients(), ['justine@example.org', 'me@example.org'])
         self.assertIn("le bulletin scolaire de Monsieur Albin Dupond", mail.outbox[0].body)

@@ -1,0 +1,5 @@
+{% extends "email_base.html" %}
+
+{% block post_form %}
+Bulletin qui sera joint au message: <a href="{{ pdf_field.url }}">{{ pdf_field.name }}</a>
+{% endblock %}
