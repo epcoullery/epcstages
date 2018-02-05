@@ -66,10 +66,22 @@ class KlassRelatedListFilter(admin.RelatedFieldListFilter):
         ]
 
 
+class StudentInline(admin.StackedInline):
+    model = Student
+    ordering = ('last_name', 'first_name')
+    fields = (
+        ('last_name', 'first_name', 'birth_date'),
+        ('pcode', 'city', 'tel', 'mobile', 'email'),
+    )
+    can_delete = False
+    extra = 0
+
+
 class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section')
     ordering = ('name',)
     list_filter = ('section', 'level',)
+    inlines = [StudentInline]
 
 
 class TeacherAdmin(admin.ModelAdmin):
