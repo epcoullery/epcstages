@@ -8,11 +8,11 @@ from django.db import models
 from django.db.models import Case, Count, When
 from django.http import HttpResponse
 
-from stages.models import (
+from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
 )
-from stages.pdf import ChargeSheetPDF
+from .pdf import ChargeSheetPDF
 
 
 def print_charge_sheet(modeladmin, request, queryset):
@@ -97,13 +97,6 @@ class StudentAdmin(admin.ModelAdmin):
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
-    '''def get_readonly_fields(self, request, obj=None):
-        if 'edit' not in request.GET:
-            return self.fields
-        else:
-            return self.readonly_fields
-    '''
-
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
@@ -183,6 +176,7 @@ class AvailabilityAdminForm(forms.ModelForm):
                 contact=instance.contact,
                 comment=instance.comment)
         return instance
+
 
 class AvailabilityInline(admin.StackedInline):
     model = Availability
