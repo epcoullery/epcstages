@@ -273,6 +273,13 @@ class Corporation(models.Model):
         return '{0} {1}'.format(self.pcode, self.city)
 
 
+class ExternalRole(models.Model):
+    name = models.CharField('rôle', max_length=30)
+
+    def __str__(self):
+        return self.name
+
+
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
@@ -286,6 +293,7 @@ class CorpContact(models.Model):
     email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
+    roles_ede = models.ManyToManyField(ExternalRole, blank=True)
 
     class Meta:
         verbose_name = "Contact"
