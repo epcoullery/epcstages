@@ -395,3 +395,6 @@ class ImportTests(TestCase):
         # Second email as bcc
         self.assertEqual(mail.outbox[0].recipients(), ['albin@example.org', 'me@example.org'])
         self.assertIn("le bulletin scolaire de Monsieur Albin Dupond", mail.outbox[0].body)
+        student.refresh_from_db()
+        self.assertIsNotNone(student.report_sem1_sent)
+        self.assertIsNone(student.report_sem2_sent)

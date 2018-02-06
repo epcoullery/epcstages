@@ -21,6 +21,7 @@ from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedire
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
@@ -642,6 +643,8 @@ class SendStudentReportsView(FormView):
         except Exception as err:
             messages.error(self.request, "Échec d’envoi pour l'étudiant {0} ({1})".format(self.student, err))
         else:
+            setattr(self.student, 'report_sem%d_sent' % self.semestre, timezone.now())
+            self.student.save()
             messages.success(self.request, "Le message a été envoyé.")
         return HttpResponseRedirect(reverse('class', args=[self.student.klass.pk]))
 
