@@ -29,6 +29,7 @@ class CandidateForm(forms.ModelForm):
                 self.initial['interview'].candidat = None
                 self.initial['interview'].save()
             else:
+                Interview.objects.filter(candidat=obj).update(candidat=None)
                 self.cleaned_data['interview'].candidat = obj
                 self.cleaned_data['interview'].save()
         return obj
