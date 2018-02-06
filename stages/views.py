@@ -14,6 +14,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
 from django.core.mail import EmailMessage
+from django.db import transaction
 from django.db.models import Case, Count, Value, When, Q
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
@@ -289,7 +290,8 @@ class ImportViewBase(FormView):
                 imp_file = CSVImportedFile(File(upfile))
             else:
                 imp_file = FileFactory(upfile)
-            stats = self.import_data(imp_file)
+            with transaction.atomic():
+                stats = self.import_data(imp_file)
         except Exception as e:
             if settings.DEBUG:
                 raise
