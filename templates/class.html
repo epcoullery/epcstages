@@ -11,18 +11,21 @@
 {% block content %}
 <h2>{{ klass.name }}</h2>
 <ul>
+  {% if klass.section.is_fe %}
   <li><a href="{% url 'import-reports' klass.pk %}">Importer des bulletins semestriels</a></li>
+  {% endif %}
 </ul>
 <div style="float:right;">
     <a href="{% url 'class' object.pk %}?format=xls"><img src="{% static 'img/xls.png' %}" title="Exportation Excel" width="24"></a>
 </div>
 <h3>Liste des éléves</h3>
 <table>
-  <thead><th>Nom, prénom</th><th>Date naiss.</th><th>Bulletins</th><th>Récapitulatif des stages</th></thead>
+  <thead><th>Nom, prénom</th><th>Date naiss.</th>{% if klass.section.is_fe %}<th>Bulletins</th>{% endif %}<th>Récapitulatif des stages</th></thead>
 {% for student in students %}
   <tr class="{% cycle 'row1' 'row2' %}">
       <td><a href="{% url 'admin:stages_student_change' student.pk %}">{{ student }}</a></td>
       <td>{{ student.birth_date }}</td>
+      {% if klass.section.is_fe %}
       <td>{% if student.report_sem1 %}<a href="{{ student.report_sem1.url }}">Sem. 1</a>
             {% if student.report_sem1_sent %}<img src="{% static 'admin/img/icon-yes.svg' %}" title="Envoyé le {{ student.report_sem1_sent }}">{% else %}
             <a href="{% url 'send-student-reports' student.pk 1 %}"><img src="{% static 'img/envelope.png' %}" width="18" title="Envoyer le bulletin à l'élève"></a>
@@ -34,6 +37,7 @@
         {% endif %}
       {% endif %}
       </td>
+      {% endif %}
       {% for train in student.training_set.all %}
       <td>{{ train.availability.period }}<br>{{ train.availability.corporation }}<br>
         {% if train.comment %}<div style="float: right;"><img src="{% static 'admin/img/icon-unknown.svg' %}" title="{{ train.comment }}"></div>{% endif %}

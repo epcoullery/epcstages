@@ -18,6 +18,10 @@ class Section(models.Model):
     def __str__(self):
         return self.name
 
+    def is_fe(self):
+        """fe=formation en entreprise"""
+        return self.name in {'ASA', 'ASE', 'ASSC'}
+
 
 class Level(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom')
