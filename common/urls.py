@@ -1,6 +1,10 @@
+import os
+
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path, re_path
 from django.views.generic import RedirectView
+from django.views.static import serve
 
 from candidats import views as candidats_views
 from stages import views
@@ -50,4 +54,9 @@ urlpatterns = [
         name='send-student-reports'),
     path('availability/<int:pk>/summary/', views.AvailabilitySummaryView.as_view()),
     path('corporation/<int:pk>/contacts/', views.CorpContactJSONView.as_view()),
+
+    # Serve bulletins by Django to allow LoginRequiredMiddleware to apply
+    path('media/bulletins/<path:path>', serve,
+        {'document_root': os.path.join(settings.MEDIA_ROOT, 'bulletins'), 'show_indexes': False}
+    ),
 ]
