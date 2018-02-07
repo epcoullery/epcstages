@@ -4,6 +4,7 @@ from datetime import date, timedelta
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Sum
 
 from . import utils
 
@@ -150,6 +151,10 @@ class Teacher(models.Model):
 
         return (self.calc_activity(), imputations)
 
+    def total_logbook(self):
+        qs = LogBook.objects.filter(teacher=self).aggregate(Sum('period'))['period__sum']
+        return qs
+    total_logbook.short_description = 'Solde du carnet du lait:'
 
 class LogBookReason(models.Model):
     name = models.CharField('motif', max_length=50)
@@ -157,18 +162,21 @@ class LogBookReason(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        verbose_name = 'motif'
+
 
 class LogBook(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name='Enseignant')
-    reason = models.ForeignKey(LogBookReason, on_delete=models.CASCADE, verbose_name='motif')
-    input_date = models.DateTimeField('Date de saisie', auto_now=True, editable=False)
-    start_date = models.DateTimeField('Date de début', auto_now=True)
-    end_date = models.DateTimeField('Date de fin', auto_now=True)
+    reason = models.ForeignKey(LogBookReason, on_delete=models.CASCADE, verbose_name='catégorie')
+    input_date = models.DateField('Date de saisie', default=None)
+    start_date = models.DateField('Date de début', default=None)
+    end_date = models.DateField('Date de fin', default=None)
     period = models.IntegerField('Période', default=0)
     comment = models.CharField('Motif', max_length=200)
 
     def __str__(self):
-        return '{} : {} pér.'.format(self.teacher, self.period)
+        return '{} : {} pér. - {}'.format(self.teacher, self.period, self.comment)
 
     class Meta:
         verbose_name = 'Carnet du lait'

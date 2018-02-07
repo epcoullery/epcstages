@@ -14,7 +14,7 @@ from .models import (
     Role, ExternalSupport, LogBookReason, LogBook
 )
 from .pdf import ChargeSheetPDF
-
+from stages.forms import LogBookForm, TeacherAdminForm
 
 def print_charge_sheet(modeladmin, request, queryset):
     """
@@ -85,16 +85,29 @@ class KlassAdmin(admin.ModelAdmin):
     inlines = [StudentInline]
 
 
+class LogBookInline(admin.TabularInline):
+    model = LogBook
+    ordering = ('input_date',)
+    extra = 0
+    form = LogBookForm
+
+
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'abrev', 'email', 'archived')
-    list_filter = (('archived', ArchivedListFilter),)
+    list_display = ('__str__', 'abrev', 'email', 'contract', 'rate', 'total_logbook', 'archived')
+    list_filter = (('archived', ArchivedListFilter), 'contract')
     fields = (('civility', 'last_name', 'first_name', 'abrev'),
               ('birth_date', 'email', 'ext_id'),
               ('contract', 'rate', 'archived'),
-              ('previous_report', 'next_report')
+              ('previous_report', 'next_report', 'total_logbook')
               )
-
+    readonly_fields = ('total_logbook',)
     actions = [print_charge_sheet]
+    inlines = (LogBookInline,)
+    form = TeacherAdminForm
+
+    class Media:
+        css = {'all': ('css/hide_original_tabular_inline.css',)}
+
 
 
 class StudentAdmin(admin.ModelAdmin):
@@ -254,6 +267,8 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'public', 'subject', 'period', 'imputation')
     list_filter = ('imputation', )
     search_fields = ('teacher__last_name', 'public', 'subject')
+
+
 
 
 admin.site.register(Section)
