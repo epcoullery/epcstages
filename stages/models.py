@@ -151,6 +151,30 @@ class Teacher(models.Model):
         return (self.calc_activity(), imputations)
 
 
+class LogBookReason(models.Model):
+    name = models.CharField('motif', max_length=50)
+
+    def __str__(self):
+        return self.name
+
+
+class LogBook(models.Model):
+    teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, verbose_name='Enseignant')
+    reason = models.ForeignKey(LogBookReason, on_delete=models.CASCADE, verbose_name='motif')
+    input_date = models.DateTimeField('Date de saisie', auto_now=True, editable=False)
+    start_date = models.DateTimeField('Date de début', auto_now=True)
+    end_date = models.DateTimeField('Date de fin', auto_now=True)
+    period = models.IntegerField('Période', default=0)
+    comment = models.CharField('Motif', max_length=200)
+
+    def __str__(self):
+        return '{} : {} pér.'.format(self.teacher, self.period)
+
+    class Meta:
+        verbose_name = 'Carnet du lait'
+        verbose_name_plural = 'Carnet du lait'
+
+
 class Option(models.Model):
     name = models.CharField("Nom", max_length=100, unique=True)
 

@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
-    Role, ExternalSupport
+    Role, ExternalSupport, LogBookReason, LogBook
 )
 from .pdf import ChargeSheetPDF
 
@@ -88,6 +88,12 @@ class KlassAdmin(admin.ModelAdmin):
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'abrev', 'email', 'archived')
     list_filter = (('archived', ArchivedListFilter),)
+    fields = (('civility', 'last_name', 'first_name', 'abrev'),
+              ('birth_date', 'email', 'ext_id'),
+              ('contract', 'rate', 'archived'),
+              ('previous_report', 'next_report')
+              )
+
     actions = [print_charge_sheet]
 
 
@@ -265,3 +271,5 @@ admin.site.register(Availability, AvailabilityAdmin)
 admin.site.register(Training, TrainingAdmin)
 admin.site.register(Role)
 admin.site.register(ExternalSupport)
+admin.site.register(LogBookReason)
+admin.site.register(LogBook)
