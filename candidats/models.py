@@ -126,6 +126,7 @@ class Candidate(models.Model):
 
     class Meta:
         verbose_name = 'Candidat'
+        ordering = ('last_name',)
 
     def __str__(self):
         return "%s %s" % (self.last_name, self.first_name)

@@ -41,10 +41,11 @@ export_candidates.short_description = "Exporter les candidats sélectionnés"
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'convocation')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation_mail')
     list_filter = ('section', 'option')
+    search_fields = ('last_name', 'city')
     readonly_fields = (
-        'total_result_points', 'total_result_mark', 'confirmation_date', 'validation_date',
+        'total_result_points', 'total_result_mark', 'confirmation_date',
         'convocation_date', 'candidate_actions',
     )
     actions = [export_candidates]
@@ -86,16 +87,13 @@ class CandidateAdmin(admin.ModelAdmin):
         return obj.confirmation_date is not None
     confirm_mail.boolean = True
 
-    def convocation(self, obj):
-        if obj.interview is None:
-            return '???'
-        elif obj.interview and obj.convocation_date:
-            return obj.interview
-        else:
-            url = reverse('candidate-convocation', args=[obj.pk])
-            return '<a href="' + url  + '">Envoyer convocation</a>'
-    convocation.short_description = 'Convoc. aux examens'
-    convocation.allow_tags = True
+    def validation_mail(self, obj):
+        return obj.validation_date is not None
+    validation_mail.boolean = True
+
+    def convocation_mail(self, obj):
+        return obj.convocation_date is not None
+    convocation_mail.boolean = True
 
     def candidate_actions(self, obj):
         return format_html(
