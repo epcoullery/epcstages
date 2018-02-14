@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
+    Role, ExternalSupport
 )
 from .pdf import ChargeSheetPDF
 
@@ -102,7 +103,9 @@ class StudentAdmin(admin.ModelAdmin):
               ('klass', 'option_ase'),
               ('report_sem1', 'report_sem1_sent'),
               ('report_sem2', 'report_sem2_sent'),
-              ('corporation', 'instructor'))
+              ('corporation', 'instructor'),
+              ('supervisor', ), ('fpp',), ('mentor',), ('expert'),
+              )
     actions = ['archive']
 
     def archive(self, request, queryset):
@@ -112,6 +115,17 @@ class StudentAdmin(admin.ModelAdmin):
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "supervisor":
+            kwargs['queryset'] = CorpContact.supervisor_objects.filter(archived=False)
+        if db_field.name == "mentor":
+            kwargs['queryset'] = CorpContact.mentor_objects.filter(archived=False)
+        if db_field.name == "fpp":
+            kwargs['queryset'] = CorpContact.fpp_objects.filter(archived=False)
+        if db_field.name == "expert":
+            kwargs['queryset'] = CorpContact.expert_objects.filter(archived=False)
+        return super(StudentAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
@@ -120,7 +134,9 @@ class CorpContactAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('corporation',), ('title', 'last_name', 'first_name'),
               ('sections', 'is_main', 'always_cc', 'archived'),
-              ('role', 'ext_id'), ('tel', 'email'))
+              ('role', 'ext_id'), ('tel', 'email'),
+              ('roles_ede',)
+              )
     formfield_overrides = {
         models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
     }
@@ -247,3 +263,5 @@ admin.site.register(Domain)
 admin.site.register(Period, PeriodAdmin)
 admin.site.register(Availability, AvailabilityAdmin)
 admin.site.register(Training, TrainingAdmin)
+admin.site.register(Role)
+admin.site.register(ExternalSupport)

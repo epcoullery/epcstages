@@ -8,6 +8,13 @@ from django.db import models
 from . import utils
 
 
+class Role(models.Model):
+    name = models.CharField('rôle', max_length=40)
+
+    def __str__(self):
+        return self.name
+
+
 class Section(models.Model):
     """ Filières """
     name = models.CharField(max_length=20, verbose_name='Nom')
@@ -156,6 +163,7 @@ GENDER_CHOICES = (
     ('F', 'Féminin'),
 )
 
+
 class Student(models.Model):
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
@@ -186,6 +194,15 @@ class Student(models.Model):
     report_sem2_sent = models.DateTimeField('Date envoi bull. sem 2', null=True, blank=True)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
+
+    supervisor = models.ForeignKey('CorpContact', related_name='rel_supervisor', verbose_name='superviseur',
+                                   null=True, default=None, blank=True, on_delete=models.SET_NULL)
+    mentor = models.ForeignKey('CorpContact', related_name='rel_mentor', verbose_name='mentor',
+                               null=True, default=None, blank=True, on_delete=models.SET_NULL)
+    fpp = models.ForeignKey('CorpContact', related_name='rel_fpp', verbose_name='fpp',
+                            null=True, default=None, blank=True, on_delete=models.SET_NULL)
+    expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='expert',
+                               null=True, default=None, blank=True, on_delete=models.SET_NULL)
 
     support_tabimport = True
 
@@ -273,6 +290,26 @@ class Corporation(models.Model):
         return '{0} {1}'.format(self.pcode, self.city)
 
 
+class SupervisorManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(roles_ede__name='Superviseur')
+
+
+class MentorManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(roles_ede__name='Mentor')
+
+
+class FPPManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(roles_ede__name='FPP')
+
+
+class ExpertManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(roles_ede__name='Expert')
+
+
 class CorpContact(models.Model):
     corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
@@ -287,8 +324,16 @@ class CorpContact(models.Model):
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
 
+    roles_ede = models.ManyToManyField(Role, blank=True)
+    objects = models.Manager()
+    supervisor_objects = SupervisorManager()
+    mentor_objects = MentorManager()
+    fpp_objects = FPPManager()
+    expert_objects = ExpertManager()
+
     class Meta:
         verbose_name = "Contact"
+        ordering = ('last_name', 'first_name')
 
     def __str__(self):
         return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation)
@@ -431,3 +476,13 @@ class Course(models.Model):
         return '{0} - {1} - {2} - {3}'.format(
             self.teacher, self.public, self.subject, self.period
         )
+
+
+class ExternalSupport(models.Model):
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+    corpcontact = models.ForeignKey(CorpContact, on_delete=models.CASCADE)
+    student = models.ForeignKey(Student, null=True, blank=True, default=None, on_delete=models.CASCADE)
+
+    def __str__(self):
+        student = '???' if self.student is None else self.student.last_name
+        return '{} - {} : {}'.format(self.role.name, self.corpcontact.last_name, student)
