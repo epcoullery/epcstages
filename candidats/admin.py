@@ -7,7 +7,10 @@ from django.utils.html import format_html
 
 from stages.exports import OpenXMLExport
 from .forms import CandidateForm
-from .models import Candidate, Interview, GENDER_CHOICES
+from .models import (
+    Candidate, Interview, GENDER_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
+    SECTION_CHOICES, OPTION_CHOICES, AES_ACCORDS_CHOICES, RESIDENCE_PERMITS_CHOICES,
+)
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -16,20 +19,33 @@ def export_candidates(modeladmin, request, queryset):
     """
     export_fields = OrderedDict([
         (getattr(f, 'verbose_name', f.name), f.name)
-        for f in Candidate._meta.get_fields() if f.name != 'ID'
+        for f in Candidate._meta.get_fields() if f.name not in ('ID', 'interview')
     ])
-    boolean_fields = [f.name for f in Candidate._meta.get_fields() if isinstance(f, BooleanField)]
     export_fields['Employeur'] = 'corporation__name'
-    export_fields['Employeur_localite'] = 'corporation__city'
     export_fields['FEE/FPP'] = 'instructor__last_name'
+    export_fields['Prof. entretien'] = 'interview__teacher_int__abrev'
+    export_fields['Correct. dossier'] = 'examination_teacher__abrev'
+    export_fields['Prof. dossier'] = 'interview__teacher_file__abrev'
+    export_fields['Date entretien'] = 'interview__date'
+    export_fields['Salle entretien'] = 'interview__room'
+    boolean_fields = [f.name for f in Candidate._meta.get_fields() if isinstance(f, BooleanField)]
+    choice_fields = {
+        'gender': dict(GENDER_CHOICES),
+        'section':  dict(SECTION_CHOICES),
+        'option': dict(OPTION_CHOICES),
+        'diploma': dict(DIPLOMA_CHOICES),
+        'diploma_status': dict(DIPLOMA_STATUS_CHOICES),
+        'aes_accords': dict(AES_ACCORDS_CHOICES),
+        'residence_permits': dict(RESIDENCE_PERMITS_CHOICES),
+    }
 
     export = OpenXMLExport('Exportation')
     export.write_line(export_fields.keys(), bold=True)
     for cand in queryset.values_list(*export_fields.values()):
         values = []
         for value, field_name in zip(cand, export_fields.values()):
-            if field_name == 'gender':
-                value = dict(GENDER_CHOICES)[value]
+            if value != '' and field_name in choice_fields:
+                value = choice_fields[field_name][value]
             if field_name in boolean_fields:
                 value = 'Oui' if value else ''
             values.append(value)

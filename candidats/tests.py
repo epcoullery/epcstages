@@ -6,6 +6,7 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
+from stages.exports import openxml_contenttype
 from stages.models import Section, Teacher
 from .models import Candidate, Interview
 
@@ -314,3 +315,22 @@ tél. 032 886 33 00
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
+
+    def test_export_candidates(self):
+        ede = Section.objects.create(name='EDE')
+        Candidate.objects.create(
+            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            email='henri@example.org', deposite_date=date.today()
+        )
+        Candidate.objects.create(
+            first_name='Joé', last_name='Glatz', gender='F', section=ede,
+            email='joe@example.org', deposite_date=date.today()
+        )
+
+        change_url = reverse('admin:candidats_candidate_changelist')
+        self.client.login(username='me', password='mepassword')
+        response = self.client.post(change_url, {
+            'action': 'export_candidates',
+            '_selected_action': Candidate.objects.values_list('pk', flat=True)
+        }, follow=True)
+        self.assertEqual(response['Content-Type'], openxml_contenttype)
