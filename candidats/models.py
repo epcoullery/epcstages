@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils.dateformat import format as django_format
 
 from stages.models import Corporation, CorpContact, Teacher
@@ -101,6 +102,10 @@ class Candidate(models.Model):
     marks_certificate = models.BooleanField("Bull. de notes", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
 
+    examination_teacher = models.ForeignKey(
+        Teacher, null=True, blank=True, on_delete=models.SET_NULL,
+        limit_choices_to=Q(abrev='MME') | Q(abrev='CLG'), verbose_name='Correct. dossier'
+    )
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
     interview_result = models.PositiveSmallIntegerField('Points entretien prof.', blank=True, null=True)
     file_result = models.PositiveSmallIntegerField('Points dossier', blank=True, null=True)
@@ -177,7 +182,7 @@ class Interview(models.Model):
         ordering = ('date',)
 
     def __str__(self):
-        return '{0} : {1}/{2} - ({3}) -salle:{4}-{5}'.format(
+        return '{0} : {1} (Ent.) / {2} (Dos.) - ({3}) -salle:{4}-{5}'.format(
             self.date_formatted,
             self.teacher_int.abrev if self.teacher_int else '?',
             self.teacher_file.abrev if self.teacher_file else '?',
