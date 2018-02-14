@@ -178,6 +178,10 @@ class Student(models.Model):
         on_delete=models.SET_NULL, verbose_name='Employeur')
     instructor = models.ForeignKey('CorpContact', null=True, blank=True,
         on_delete=models.SET_NULL, verbose_name='FEE/FPP')
+    supervisor = models.ForeignKey('CorpContact', related_name='rel_supervisor', verbose_name='Superviseur',
+        null=True, blank=True, on_delete=models.SET_NULL)
+    mentor = models.ForeignKey('CorpContact', related_name='rel_mentor', verbose_name='Mentor',
+        null=True, blank=True, on_delete=models.SET_NULL)
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
         on_delete=models.PROTECT)
     report_sem1 = models.FileField('Bulletin 1er sem.', null=True, blank=True, upload_to='bulletins')
