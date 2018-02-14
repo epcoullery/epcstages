@@ -45,8 +45,7 @@ class CandidateAdmin(admin.ModelAdmin):
     list_filter = ('section', 'option')
     search_fields = ('last_name', 'city')
     readonly_fields = (
-        'total_result_points', 'total_result_mark', 'confirmation_date',
-        'convocation_date', 'candidate_actions',
+        'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions',
     )
     actions = [export_candidates]
     fieldsets = (
@@ -74,8 +73,7 @@ class CandidateAdmin(admin.ModelAdmin):
                         ('promise', 'contract', 'activity_rate'),
                         ('inscr_other_school',),
                         ('interview', 'examination_teacher'),
-                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
-                            'total_result_mark'),
+                        ('examination_result', 'interview_result', 'file_result', 'total_result'),
                         ('confirmation_date', 'validation_date', 'convocation_date'),
             ),
         }),

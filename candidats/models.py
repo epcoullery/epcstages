@@ -109,8 +109,6 @@ class Candidate(models.Model):
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
     interview_result = models.PositiveSmallIntegerField('Points entretien prof.', blank=True, null=True)
     file_result = models.PositiveSmallIntegerField('Points dossier', blank=True, null=True)
-    total_result_points = models.PositiveSmallIntegerField('Total points', blank=True, null=True)
-    total_result_mark = models.PositiveSmallIntegerField('Note finale', blank=True, null=True)
 
     inscr_other_school = models.CharField("Inscr. autre école", max_length=30, blank=True)
     certif_of_800_childhood = models.BooleanField("Attest. 800h. enfance", default=False)
@@ -151,6 +149,10 @@ class Candidate(models.Model):
             return self.get_section_display()
         else:
             return '{0}, option «{1}»'.format(self.get_section_display(), self.get_option_display())
+
+    @property
+    def total_result(self):
+        return (self.examination_result or 0) + (self.interview_result or 0) + (self.file_result or 0)
 
     def get_ok(self, fieldname):
         return 'OK' if getattr(self, fieldname) is True else 'NON'

@@ -17,9 +17,21 @@ class CandidateTests(TestCase):
             'me', 'me@example.org', 'mepassword', first_name='Hans', last_name='Schmid',
         )
 
+    def test_total_result(self):
+        ede = Section.objects.create(name='EDE')
+        cand = Candidate(
+            first_name='Henri', last_name='Dupond', gender='M', section=ede,
+            email='henri@example.org', deposite_date=date.today()
+        )
+        self.assertEqual(cand.total_result, 0)
+        cand.examination_result = 7
+        cand.interview_result = 4
+        cand.file_result = 5
+        self.assertEqual(cand.total_result, 16)
+
     def test_interview(self):
         inter = Interview.objects.create(date=datetime(2018, 3, 10, 10, 30), room='B103')
-        self.assertEqual(str(inter), 'samedi 10 mars 2018 à 10h30 : ?/? - (N) -salle:B103-???')
+        self.assertEqual(str(inter), 'samedi 10 mars 2018 à 10h30 : ? (Ent.) / ? (Dos.) - (N) -salle:B103-???')
         ede = Section.objects.create(name='EDE')
         cand = Candidate.objects.create(
             first_name='Henri', last_name='Dupond', gender='M', section=ede,
@@ -33,7 +45,7 @@ class CandidateTests(TestCase):
         inter.save()
         self.assertEqual(
             str(inter),
-            'samedi 10 mars 2018 à 10h30 : JCA/JDU - (N) -salle:B103-Dupond Henri'
+            'samedi 10 mars 2018 à 10h30 : JCA (Ent.) / JDU (Dos.) - (N) -salle:B103-Dupond Henri'
         )
         self.assertEqual(cand.interview, inter)
 
