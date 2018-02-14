@@ -1,29 +1,21 @@
-{{ candidate.civility }} {{candidate.first_name }} {{ candidate.last_name }},
+{{ candidate_name }},
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière
-{{ candidate.section_option }}.
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES, option «{{ option }}».
 
-Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds
-aux dates suivantes:
+Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
 
- - {{ date_lieu_examen }}, pour l’examen écrit (analyse de texte d'une durée de 2h30 env.);
+ - {{ date_lieu_examen }}, pour l’examen écrit (analyse de texte d’une durée de 2h30 env.);
 
- - {{ candidate.interview.date_formatted }}, en salle {{ candidate.interview.room }}, pour l’entretien d’admission (durée 20 min.).
+ - {{ date_entretien }}, en salle {{ salle_entretien }}, pour l’entretien d’admission (durée 20 min.).
 
-En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat
-(Tél. 032 886 33 00).
+En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
 
-Si vous rencontrez des difficultés d'apprentissage (dyslexie, dysorthographie, etc.), nous vous rappelons que
-vous pouvez bénéficier d'un temps supplémentaire d'une heure au maximum pour l'examen d'admission. Si vous n'avez pas
-déjà joint à votre dossier de candidature un document officiel (rapport d'orthophonie par exemple), vous devez impérativement
-nous le faire parvenir au moins 5 jours ouvrables avant la date du premier examen.
+Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), nous vous rappelons que vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Si vous n’avez pas déjà joint à votre dossier de candidature un document officiel (rapport d’orthophonie par exemple), vous devez impérativement nous le faire parvenir au moins 5 jours ouvrables avant la date du premier examen.
 
 {{ rappel }}
-
-Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l'attente
-du plaisir de vous rencontrer prochainement, nous vous prions d'agréer, {{ candidate.civility }}, nos salutations les meilleures.
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, {{ candidate.civility }}, nos salutations les meilleures.
 
 Secrétariat de la filière Education de l’enfance, dipl. ES
-{{ sender.first_name }} {{ sender.last_name }}
-{{ sender.email }}
+{{ sender_name }}
+{{ sender_email }}
 tél. 032 886 33 00

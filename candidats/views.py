@@ -164,8 +164,8 @@ class ConvocationView(EmailConfirmationBaseView):
         ])}
 
         msg_context = {
+            'candidate': candidate,
             'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
-            'candidate_civility': candidate.civility,
             'option': candidate.get_option_display(),
             'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE,
             'date_entretien': candidate.interview.date_formatted,

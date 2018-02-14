@@ -196,24 +196,24 @@ tél. 032 886 33 00"""
 
 Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES, option «Enfance».
 
-Vous êtes attendu-e à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
+Vous êtes attendu à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
 
- - mercredi 7 mars 2018, à 13h30, salle 405, pour l’examen écrit (analyse de texte d’une durée de 2h30);
+ - mercredi 7 mars 2018, à 13h30, salle 405, pour l’examen écrit (analyse de texte d’une durée de 2h30 env.);
 
- - samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 45 min.).
+ - samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 20 min.).
 
 En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
 
-Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Vous devrez alors nous faire parvenir par retour de courriel votre demande avec une preuve officielle (rapport d’orthophonie par exemple), avant le 2 mars 2018.
+Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), nous vous rappelons que vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Si vous n’avez pas déjà joint à votre dossier de candidature un document officiel (rapport d’orthophonie par exemple), vous devez impérativement nous le faire parvenir au moins 5 jours ouvrables avant la date du premier examen.
 
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
  - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
 
 Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
 
-Sans nouvelles de votre part jusqu’au 3 mars prochain, votre dossier ne sera pas pris en considération et vous ne pourrez pas vous présenter à l’examen d’admission.
+Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, votre dossier ne sera pas pris en considération et vous ne pourrez pas vous présenter à l’examen d’admission.
 
-Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente de vous rencontrer prochainement, nous vous prions d’agréer, Monsieur, nos salutations les meilleures.
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, Monsieur, nos salutations les meilleures.
 
 Secrétariat de la filière Education de l’enfance, dipl. ES
 Hans Schmid
