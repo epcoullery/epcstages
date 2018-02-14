@@ -7,7 +7,8 @@ from django.utils.html import format_html
 
 from stages.exports import OpenXMLExport
 from .forms import CandidateForm
-from .models import Candidate, Interview, GENDER_CHOICES
+from .models import (Candidate, Interview, GENDER_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
+                     SECTION_CHOICES, OPTION_CHOICES, AES_ACCORDS_CHOICES, RESIDENCE_PERMITS_CHOICES)
 
 
 def export_candidates(modeladmin, request, queryset):
@@ -20,8 +21,14 @@ def export_candidates(modeladmin, request, queryset):
     ])
     boolean_fields = [f.name for f in Candidate._meta.get_fields() if isinstance(f, BooleanField)]
     export_fields['Employeur'] = 'corporation__name'
-    export_fields['Employeur_localite'] = 'corporation__city'
     export_fields['FEE/FPP'] = 'instructor__last_name'
+    export_fields['Prof. entretien'] = 'interview__teacher_int__abrev'
+    export_fields['Correct. dossier'] = 'examination_teacher__abrev'
+    export_fields['Prof. dossier'] = 'interview__teacher_file__abrev'
+    export_fields['Date entretien'] = 'interview__date'
+    export_fields['Salle entretien'] = 'interview__room'
+    del export_fields['interview']
+
 
     export = OpenXMLExport('Exportation')
     export.write_line(export_fields.keys(), bold=True)
@@ -30,6 +37,18 @@ def export_candidates(modeladmin, request, queryset):
         for value, field_name in zip(cand, export_fields.values()):
             if field_name == 'gender':
                 value = dict(GENDER_CHOICES)[value]
+            if field_name == 'section':
+                value = dict(SECTION_CHOICES)[value]
+            if field_name == 'option':
+                value = dict(OPTION_CHOICES)[value]
+            if field_name == 'diploma':
+                value = dict(DIPLOMA_CHOICES)[value]
+            if field_name == 'diploma_status':
+                value = dict(DIPLOMA_STATUS_CHOICES)[value]
+            if field_name == 'aes_accords':
+                value = dict(AES_ACCORDS_CHOICES)[value]
+            if field_name == 'residence_permits':
+                value = dict(RESIDENCE_PERMITS_CHOICES)[value]
             if field_name in boolean_fields:
                 value = 'Oui' if value else ''
             values.append(value)
@@ -45,7 +64,7 @@ class CandidateAdmin(admin.ModelAdmin):
     list_filter = ('section', 'option')
     readonly_fields = (
         'total_result_points', 'total_result_mark', 'confirmation_date', 'validation_date',
-        'convocation_date', 'candidate_actions',
+        'convocation_date', 'candidate_actions', 'total_result',
     )
     actions = [export_candidates]
     fieldsets = (
@@ -71,9 +90,9 @@ class CandidateAdmin(admin.ModelAdmin):
                         'marks_certificate', 'residence_permits', 'aes_accords'),
                         ('certif_of_800_childhood', 'certif_of_800_general', 'work_certificate'),
                         ('promise', 'contract', 'activity_rate'),
-                        ('interview',),
-                        ('examination_result', 'interview_result', 'file_result', 'total_result_points',
-                            'total_result_mark'),
+                        ('inscr_other_school',),
+                        ('interview', 'examination_teacher'),
+                        ('examination_result', 'interview_result', 'file_result', 'total_result',),
                         ('confirmation_date', 'validation_date', 'convocation_date'),
             ),
         }),
@@ -93,7 +112,7 @@ class CandidateAdmin(admin.ModelAdmin):
             return obj.interview
         else:
             url = reverse('candidate-convocation', args=[obj.pk])
-            return '<a href="' + url  + '">Envoyer convocation</a>'
+            return format_html('<a href="' + url  + '">Envoyer convocation</a>')
     convocation.short_description = 'Convoc. aux examens'
     convocation.allow_tags = True
 
@@ -110,6 +129,19 @@ class CandidateAdmin(admin.ModelAdmin):
         )
     candidate_actions.short_description = 'Actions pour candidats'
     candidate_actions.allow_tags = True
+
+    def total_result(self, obj):
+        if obj.examination_result is None:
+            obj.examination_result = 0
+        if obj.interview_result is None:
+            obj.interview_result = 0
+        if obj.file_result is None:
+            obj.file_result = 0
+        tot =  obj.examination_result + obj.interview_result + obj.file_result
+        obj.tot_result_points = tot
+        return tot
+    total_result.short_description = 'Total des points'
+
 
 
 class InterviewAdmin(admin.ModelAdmin):

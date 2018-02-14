@@ -1,9 +1,10 @@
 from django import forms
 from django.conf import settings
+from django.contrib import admin
 
 from tabimport import FileFactory, UnsupportedFileFormat
 
-from .models import Section, Period
+from .models import Section, LogBook, Teacher, Period
 
 
 class StudentImportForm(forms.Form):
@@ -48,3 +49,21 @@ class EmailStudentBaseForm(forms.Form):
     cci = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
     subject = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
     message = forms.CharField(widget=forms.Textarea(attrs={'rows': 20, 'cols': 120}))
+
+
+class TeacherAdminForm(forms.ModelForm):
+    abrev = forms.CharField(widget=forms.TextInput(attrs={'size':10}))
+    civility = forms.CharField(widget=forms.TextInput(attrs={'size': 20}))
+
+    class Meta:
+        model = Teacher
+        fields = '__all__'
+
+
+class LogBookForm(forms.ModelForm):
+    comment = forms.CharField(widget=forms.TextInput(attrs={'size': 70}))
+
+
+    class Meta:
+        model = LogBook
+        fields = ('start_date', 'end_date', 'reason', 'comment', 'period')
