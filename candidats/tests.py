@@ -164,7 +164,9 @@ tél. 032 886 33 00"""
         self.assertEqual(mail.outbox[0].recipients(), ['joe@example.org', 'me@example.org'])
         self.assertEqual(mail.outbox[0].body, """Madame, Monsieur,
 
-Nous vous confirmons la bonne réception de l’inscription de Madame Joé Glatz dans la filière Assist. socio-éducatif-ve CFC pour l’année scolaire à venir.
+Nous vous confirmons la bonne réception de l’inscription de Madame Joé Glatz dans la filière Assist. socio-éducatif-ve CFC pour la prochaine rentrée scolaire.
+
+Le nom de la classe ainsi que les jours de cours vous seront communiqués dès que toutes les inscriptions seront rentrées, mais au plus tard durant la 1ère semaine de juillet.
 
 Nous nous tenons à votre disposition pour tout renseignement complémentaire et vous prions de recevoir, Madame, Monsieur, nos salutations les plus cordiales.
 

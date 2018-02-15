@@ -57,13 +57,15 @@ class ConfirmationView(EmailConfirmationBaseView):
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        if candidate.confirmation_date:
+        if candidate.section != 'EDE' and not candidate.section.is_fe():
+            messages.error(request, "Ce formulaire n'est disponible que pour les candidats EDE ou FE")
+        elif candidate.confirmation_date:
             messages.error(request, 'Une confirmation a déjà été envoyée!')
-            return redirect(reverse("admin:candidats_candidate_change", args=(candidate.pk,)))
         elif candidate.canceled_file:
             messages.error(request, 'Ce dossier a été annulé!')
-            return redirect(reverse("admin:candidats_candidate_change", args=(candidate.pk,)))
-        return super().get(request, *args, **kwargs)
+        else:
+            return super().get(request, *args, **kwargs)
+        return redirect(reverse("admin:candidats_candidate_change", args=(candidate.pk,)))
 
     def get_initial(self):
         initial = super().get_initial()
@@ -72,7 +74,7 @@ class ConfirmationView(EmailConfirmationBaseView):
         to = [candidate.email]
         if candidate.section == 'EDE':
             src_email = 'email/candidate_confirm_EDE.txt'
-        else:
+        elif candidate.section.is_fe():
             src_email = 'email/candidate_confirm_FE.txt'
             if candidate.corporation and candidate.corporation.email:
                 to.append(candidate.corporation.email)
