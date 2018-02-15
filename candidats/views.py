@@ -72,7 +72,7 @@ class ConfirmationView(EmailConfirmationBaseView):
         to = [candidate.email]
         if candidate.section == 'EDE':
             src_email = 'email/candidate_confirm_EDE.txt'
-        else:
+        if candidate.section.is_fe():
             src_email = 'email/candidate_confirm_FE.txt'
             if candidate.corporation and candidate.corporation.email:
                 to.append(candidate.corporation.email)
