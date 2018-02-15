@@ -15,11 +15,8 @@ class CandidateForm(forms.ModelForm):
         fields = '__all__'
 
     def __init__(self, *args, **kwargs):
-        if kwargs.get('instance'):
-            try:
-                kwargs['initial'] = {'interview': kwargs['instance'].interview}
-            except Interview.DoesNotExist:
-                pass
+        if kwargs.get('instance') and kwargs['instance'].has_interview:
+            kwargs['initial'] = {'interview': kwargs['instance'].interview}
         return super().__init__(*args, **kwargs)
 
     def save(self, **kwargs):

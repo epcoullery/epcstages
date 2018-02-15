@@ -151,6 +151,14 @@ class Candidate(models.Model):
             return '{0}, option «{1}»'.format(self.get_section_display(), self.get_option_display())
 
     @property
+    def has_interview(self):
+        try:
+            self.interview
+            return True
+        except Interview.DoesNotExist:
+            return False
+
+    @property
     def total_result(self):
         return (self.examination_result or 0) + (self.interview_result or 0) + (self.file_result or 0)
 

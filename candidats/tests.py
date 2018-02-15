@@ -270,11 +270,10 @@ Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, 
 
     def test_validation_enseignant_ede(self):
         self.maxDiff = None
-        ede = Section.objects.create(name='EDE')
         henri = Candidate.objects.create(
             first_name='Henri', last_name='Dupond', gender='M', birth_date=date(2000, 5, 15),
             street="Rue Neuve 3", pcode='2222', city='Petaouchnok',
-            section=ede, option='ENF',
+            section='EDE', option='ENF',
             email='henri@example.org', deposite_date=date.today()
         )
         t1 = Teacher.objects.create(
@@ -283,11 +282,14 @@ Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, 
         t2 = Teacher.objects.create(
             first_name='Jeanne', last_name='Dubois', abrev="JDU", email="jeanne@example.org"
         )
+        self.client.login(username='me', password='mepassword')
+        response = self.client.get(reverse('candidate-validation', args=[henri.pk]), follow=True)
+        self.assertContains(response, "Aucun interview attribué à ce candidat pour l’instant")
+
         inter = Interview.objects.create(
             date=datetime(2018, 3, 10, 10, 30), room='B103', candidat=henri,
             teacher_int=t1, teacher_file=t2,
         )
-        self.client.login(username='me', password='mepassword')
         response = self.client.get(reverse('candidate-validation', args=[henri.pk]))
         expected_message = """Bonjour,
 

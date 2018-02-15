@@ -57,7 +57,7 @@ class ConfirmationView(EmailConfirmationBaseView):
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        if candidate.section != 'EDE' and not candidate.section.is_fe():
+        if candidate.section != 'EDE' and not candidate.section in {'ASA', 'ASE', 'ASSC'}:
             messages.error(request, "Ce formulaire n'est disponible que pour les candidats EDE ou FE")
         elif candidate.confirmation_date:
             messages.error(request, 'Une confirmation a déjà été envoyée!')
@@ -74,7 +74,7 @@ class ConfirmationView(EmailConfirmationBaseView):
         to = [candidate.email]
         if candidate.section == 'EDE':
             src_email = 'email/candidate_confirm_EDE.txt'
-        elif candidate.section.is_fe():
+        elif candidate.section in {'ASA', 'ASE', 'ASSC'}:
             src_email = 'email/candidate_confirm_FE.txt'
             if candidate.corporation and candidate.corporation.email:
                 to.append(candidate.corporation.email)
@@ -106,6 +106,9 @@ class ValidationView(EmailConfirmationBaseView):
         if candidate.validation_date:
             messages.error(request, 'Une validation a déjà été envoyée!')
             return redirect(reverse("admin:candidats_candidate_change", args=(candidate.pk,)))
+        elif not candidate.has_interview:
+            messages.error(request, "Aucun interview attribué à ce candidat pour l’instant")
+            return redirect(reverse("admin:candidats_candidate_change", args=(candidate.pk,)))
         return super().get(request, *args, **kwargs)
 
     def get_initial(self):
@@ -136,9 +139,7 @@ class ConvocationView(EmailConfirmationBaseView):
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        try:
-            candidate.interview
-        except Interview.DoesNotExist:
+        if not candidate.has_interview:
             messages.error(request, "Impossible de convoquer sans d'abord définir un interview!")
             return redirect(reverse("admin:candidats_candidate_change", args=(candidate.pk,)))
         return super().get(request, *args, **kwargs)
