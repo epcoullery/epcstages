@@ -95,7 +95,7 @@ class StudentAdmin(admin.ModelAdmin):
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
-    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor')
+    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
     readonly_fields = ('report_sem1_sent', 'report_sem2_sent')
     fields = (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
               ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
@@ -103,7 +103,8 @@ class StudentAdmin(admin.ModelAdmin):
               ('klass', 'option_ase'),
               ('report_sem1', 'report_sem1_sent'),
               ('report_sem2', 'report_sem2_sent'),
-              ('corporation', 'instructor', 'supervisor', 'mentor'))
+              ('corporation', 'instructor',),
+              ('supervisor', 'mentor', 'expert'))
     actions = ['archive']
 
     def archive(self, request, queryset):
@@ -134,6 +135,7 @@ class CorpContactAdmin(admin.ModelAdmin):
     def get_search_results(self, request, qs, term):
         qs, distinct = super().get_search_results(request, qs, term)
         return qs.exclude(archived=True), distinct
+
 
 class ContactInline(admin.StackedInline):
     model = CorpContact
