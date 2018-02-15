@@ -195,9 +195,8 @@ tél. 032 886 33 00"""
         self.assertIsNone(henri.confirmation_date)
 
     def test_convocation_ede(self):
-        ede = Section.objects.create(name='EDE')
         henri = Candidate.objects.create(
-            first_name='Henri', last_name='Dupond', gender='M', section=ede, option='ENF',
+            first_name='Henri', last_name='Dupond', gender='M', section='EDE', option='ENF',
             email='henri@example.org', deposite_date=date.today()
         )
         inter = Interview.objects.create(date=datetime(2018, 3, 10, 10, 30), room='B103', candidat=henri)
@@ -234,6 +233,24 @@ me@example.org
 tél. 032 886 33 00
 """
         self.assertEqual(response.context['form'].initial['message'], expected_message)
+        # Add missing documents and resend message
+        for field_name in [
+                'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'reflexive_text',
+                'has_photo', 'marks_certificate']:
+            setattr(henri, field_name, True)
+        henri.save()
+        response = self.client.get(reverse('candidate-convocation', args=[henri.pk]))
+        self.assertEqual(response.context['form'].initial['message'], expected_message.replace(
+            """
+De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
+ - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
+
+Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
+
+Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, votre dossier ne sera pas pris en considération et vous ne pourrez pas vous présenter à l’examen d’admission.""", "")
+        )
+
+        # Now send the message
         response = self.client.post(reverse('candidate-convocation', args=[henri.pk]), data={
             'id_candidate': str(henri.pk),
             'cci': 'me@example.org',

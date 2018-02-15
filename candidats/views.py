@@ -170,10 +170,12 @@ class ConvocationView(EmailConfirmationBaseView):
             'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE,
             'date_entretien': candidate.interview.date_formatted,
             'salle_entretien': candidate.interview.room,
-            'rappel': loader.render_to_string('email/rappel_document_EDE.txt', missing_documents),
             'sender_name': " ".join([self.request.user.first_name, self.request.user.last_name]),
             'sender_email': self.request.user.email,
         }
+
+        if missing_documents['documents']:
+            msg_context['rappel'] = loader.render_to_string('email/rappel_document_EDE.txt', missing_documents)
 
         initial.update({
             'id_candidate': candidate.pk,
