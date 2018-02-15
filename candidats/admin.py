@@ -24,7 +24,7 @@ def export_candidates(modeladmin, request, queryset):
     export_fields['Employeur'] = 'corporation__name'
     export_fields['FEE/FPP'] = 'instructor__last_name'
     export_fields['Prof. entretien'] = 'interview__teacher_int__abrev'
-    export_fields['Correct. dossier'] = 'examination_teacher__abrev'
+    export_fields['Correct. examen'] = 'examination_teacher__abrev'
     export_fields['Prof. dossier'] = 'interview__teacher_file__abrev'
     export_fields['Date entretien'] = 'interview__date'
     export_fields['Salle entretien'] = 'interview__room'
