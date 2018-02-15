@@ -3,7 +3,7 @@ Madame, Monsieur,
 Nous vous confirmons la bonne réception de l’inscription de {{ candidate.civility }} {{ candidate.first_name }} {{candidate.last_name}} dans la filière {{ candidate.section_option }}
 pour la prochaine rentrée scolaire.
 
-le nom de la classe ainsi que les jours de cours vous seront communiqués dès que toutes les inscriptions seront rentrées, mais au plus tard durant la 1ère semaine de juillet.
+Le nom de la classe ainsi que les jours de cours vous seront communiqués dès que toutes les inscriptions seront rentrées, mais au plus tard durant la 1ère semaine de juillet.
 
 Nous nous tenons à votre disposition pour tout renseignement complémentaire et vous prions de recevoir, Madame, Monsieur, nos salutations les plus cordiales.
 
