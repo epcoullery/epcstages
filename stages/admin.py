@@ -85,14 +85,23 @@ class KlassAdmin(admin.ModelAdmin):
     inlines = [StudentInline]
 
 
+class LogBookInline(admin.TabularInline):
+    model = LogBook
+    ordering = ('input_date',)
+    fields = ('start_date', 'end_date', 'reason', 'comment', 'nb_period')
+    extra = 0
+
+
 class TeacherAdmin(admin.ModelAdmin):
-    list_display = ('__str__', 'abrev', 'email', 'contract', 'rate', 'archived')
+    list_display = ('__str__', 'abrev', 'email', 'contract', 'rate', 'total_logbook', 'archived')
     list_filter = (('archived', ArchivedListFilter), 'contract')
     fields = (('civility', 'last_name', 'first_name', 'abrev'),
               ('birth_date', 'email', 'ext_id'),
               ('contract', 'rate', 'archived'),
-              ('previous_report', 'next_report'))
+              ('previous_report', 'next_report', 'total_logbook'))
+    readonly_fields = ('total_logbook',)
     actions = [print_charge_sheet]
+    inlines = [LogBookInline]
 
 
 class StudentAdmin(admin.ModelAdmin):

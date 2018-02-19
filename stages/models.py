@@ -143,6 +143,10 @@ class Teacher(models.Model):
 
         return (self.calc_activity(), imputations)
 
+    def total_logbook(self):
+        return LogBook.objects.filter(teacher=self).aggregate(models.Sum('nb_period'))['nb_period__sum']
+    total_logbook.short_description = 'Solde du carnet du lait'
+
 
 class LogBookReason(models.Model):
     name = models.CharField('Motif', max_length=50, unique=True)
