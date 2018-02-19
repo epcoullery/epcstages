@@ -2,11 +2,7 @@
 {% load i18n admin_static %}
 
 {% block extrastyle %}{{ block.super }}
-  <link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">
-  <style>
-    ul#main { margin: 1em; }
-    ul#main li { font-size: 14px; }
-  </style>
+  <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
 {% endblock %}
 
 {% block coltype %}colMS{% endblock %}

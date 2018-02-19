@@ -1,0 +1,5 @@
+/* Menu above apps on index page */
+ul#main li { font-size: 14px; }
+
+form#teacher_form input#id_abrev { width: 3em; }
+form#teacher_form input#id_civility { width: 5em; }

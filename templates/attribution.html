@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static %}
 
-{% block extrastyle %}
+{% block extrastyle %}{{ block.super }}
 <style>
   div#period_choice { margin: 0 auto; text-align: center; width: 60%; padding: 0.5em; margin-bottom: 1em; background-color: #EDF3FE;}
   select#section_select { width: 8em; margin-right: 2em; }
