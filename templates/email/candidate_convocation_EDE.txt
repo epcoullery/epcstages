@@ -1,6 +1,6 @@
 {{ candidate_name }},
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES, option «{{ option }}».
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
 
 Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
 
