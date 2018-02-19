@@ -208,11 +208,11 @@ tél. 032 886 33 00"""
         self.assertContains(response, '<input type="text" name="to" value="henri@example.org" size="60" id="id_to" required>', html=True)
         expected_message = """Monsieur Henri Dupond,
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES, option «Enfance».
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
 
 Vous êtes attendu à l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds aux dates suivantes:
 
- - mercredi 7 mars 2018, à 13h30, salle 405, pour l’examen écrit (analyse de texte d’une durée de 2h30 env.);
+ - mercredi 7 mars 2018, à 13h30, salle A405, pour l’examen écrit (analyse de texte d’une durée de 2h30 env.);
 
  - samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 20 min.).
 
