@@ -183,7 +183,7 @@ class ConvocationView(EmailConfirmationBaseView):
             'id_candidate': candidate.pk,
             'cci': self.request.user.email,
             'to': candidate.email,
-            'subject': "Procédure de qualification",
+            'subject': "Procédure d'admission",
             'message': loader.render_to_string('email/candidate_convocation_EDE.txt', msg_context),
             'sender': self.request.user.email,
         })
