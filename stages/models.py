@@ -311,7 +311,10 @@ class Corporation(models.Model):
 
 
 class CorpContact(models.Model):
-    corporation = models.ForeignKey(Corporation, verbose_name='Institution', on_delete=models.CASCADE)
+    corporation = models.ForeignKey(
+        Corporation, verbose_name='Institution', null=True, blank=True,
+        on_delete=models.CASCADE
+    )
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     is_main = models.BooleanField(default=False, verbose_name='Contact principal')
     always_cc = models.BooleanField(default=False, verbose_name='Toujours en copie')
@@ -328,7 +331,7 @@ class CorpContact(models.Model):
         verbose_name = "Contact"
 
     def __str__(self):
-        return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation)
+        return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation or '-')
 
 
 class Domain(models.Model):

@@ -751,7 +751,8 @@ def stages_export(request, scope=None):
         (c, {s: [] for s in section_names})
         for c in Corporation.objects.all().values_list('name', flat=True)
     )
-    for contact in CorpContact.objects.all().select_related('corporation'
+    for contact in CorpContact.objects.filter(corporation__isnull=False
+            ).select_related('corporation'
             ).prefetch_related('sections').order_by('corporation'):
         for section in contact.sections.all():
             if not default_contacts[contact.corporation.name][section.name] or contact.is_main is True:
