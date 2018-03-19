@@ -244,7 +244,7 @@ class Student(models.Model):
     date_exam = models.DateTimeField(blank=True, null=True, default=None)
     last_appointment = models.DateField(blank=True, null=True)
     room = models.CharField('salle', max_length=15, blank=True, default='')
-    mark = models.FloatField('note', blank=True, default=None)
+    mark = models.FloatField('note', blank=True)
     #  ============== Fields for examination ======================
 
     support_tabimport = True
@@ -349,6 +349,13 @@ class CorpContact(models.Model):
     email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
+
+    ccp = models.CharField('Compte de chèque postal', max_length=10, blank=True, default='')
+    bank = models.CharField('Banque', max_length=200, blank=True, default='')
+    clearing = models.CharField('No clearing', max_length=5, blank=True, default='')
+    iban = models.CharField('iban', max_length=21, blank=True, default='')
+    qualification = models.TextField('Titres obtenus', blank=True)
+    fields_of_interest = models.TextField("Domaines d'intérêts", blank=True)
 
     class Meta:
         verbose_name = "Contact"
