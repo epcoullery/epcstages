@@ -11,7 +11,7 @@ from django.http import HttpResponse
 from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
-    LogBookReason, LogBook,
+    LogBookReason, LogBook, ExamEDESession
 )
 from .pdf import ChargeSheetPDF
 
@@ -273,3 +273,4 @@ admin.site.register(Availability, AvailabilityAdmin)
 admin.site.register(Training, TrainingAdmin)
 admin.site.register(LogBookReason)
 admin.site.register(LogBook)
+admin.site.register(ExamEDESession)

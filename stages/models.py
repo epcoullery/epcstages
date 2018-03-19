@@ -182,6 +182,14 @@ class Option(models.Model):
         return self.name
 
 
+class ExamEDESession(models.Model):
+    year = models.PositiveIntegerField()
+    season = models.CharField('saison', max_length=10)
+
+    def __str__(self):
+        return '{0} {1}'.format(self.year, self.season)
+
+
 GENDER_CHOICES = (
     ('M', 'Masculin'),
     ('F', 'Féminin'),
@@ -213,7 +221,7 @@ class Student(models.Model):
         null=True, blank=True, on_delete=models.SET_NULL)
     mentor = models.ForeignKey('CorpContact', related_name='rel_mentor', verbose_name='Mentor',
         null=True, blank=True, on_delete=models.SET_NULL)
-    expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert',
+    expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert externe',
         null=True, blank=True, on_delete=models.SET_NULL)
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
         on_delete=models.PROTECT)
@@ -223,6 +231,21 @@ class Student(models.Model):
     report_sem2_sent = models.DateTimeField('Date envoi bull. sem 2', null=True, blank=True)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
+    #  ============== Fields for examination ======================
+    subject = models.TextField('Résumé TD', blank=True)
+    title = models.TextField('Titre du TD', blank=True)
+    training_referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_training_referent',
+                                          on_delete=models.SET_NULL, verbose_name='Référent de stage')
+    referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_referent',
+                                 on_delete=models.SET_NULL, verbose_name='Référent avant-projet')
+    internal_expert = models.ForeignKey('CorpContact', related_name='rel_internal_expert', verbose_name='Expert interne',
+                                null=True, blank=True, on_delete=models.SET_NULL)
+    session = models.ForeignKey('ExamEDESession', null=True, blank=True, on_delete=models.SET_NULL)
+    date_exam = models.DateTimeField(blank=True, null=True, default=None)
+    last_appointment = models.DateField(blank=True, null=True)
+    room = models.CharField('salle', max_length=15, blank=True, default='')
+    mark = models.FloatField('note', blank=True, default=None)
+    #  ============== Fields for examination ======================
 
     support_tabimport = True
 
@@ -456,7 +479,7 @@ IMPUTATION_CHOICES = (
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
-        verbose_name="Enseignant-e", on_delete=models.SET_NULL)
+                                verbose_name="Enseignant-e", on_delete=models.SET_NULL)
     public = models.CharField("Classe(s)", max_length=200, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
