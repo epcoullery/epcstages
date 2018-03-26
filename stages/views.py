@@ -7,6 +7,7 @@ import tempfile
 import zipfile
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
+import locale
 
 from tabimport import CSVImportedFile, FileFactory
 
@@ -20,11 +21,12 @@ from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template import loader
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.translation import ugettext as _
 from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
+from django.shortcuts import redirect
 
 from .exports import OpenXMLExport
 from .forms import EmailStudentBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
@@ -32,9 +34,10 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
-from .pdf import UpdateDataFormPDF
+from .pdf import UpdateDataFormPDF, ExpertEDEPDF
 from .utils import is_int
 
+locale.setlocale(locale.LC_TIME,'')
 
 def school_year_start():
     """ Return first official day of current school year """
@@ -363,7 +366,7 @@ class StudentImportView(ImportViewBase):
             except Student.DoesNotExist:
                 student = Student.objects.create(**defaults)
                 obj_created += 1
-        #FIXME: implement arch_staled
+        # FIXME: implement arch_staled
         return {'created': obj_created, 'modified': obj_modified}
 
     def get_corporation(self, corp_values):
@@ -523,8 +526,8 @@ class ImportReportsView(FormView):
 
         if self.klass.name != klass_name:
             messages.error(self.request,
-                "Le fichier téléchargé ne correspond pas à la classe {} !".format(self.klass.name)
-            )
+                           "Le fichier téléchargé ne correspond pas à la classe {} !".format(self.klass.name)
+                           )
             return HttpResponseRedirect(redirect_url)
 
         # Check poppler-utils presence on server
@@ -575,10 +578,9 @@ class ImportReportsView(FormView):
                 student = self.klass.student_set.exclude(archived=True
                     ).annotate(fullname=Concat('last_name', Value(' '), 'first_name')).get(fullname=student_name)
             except Student.DoesNotExist:
-                messages.warning(
-                    self.request,
-                    "Impossible de trouver l'étudiant {} dans la classe {}".format(student_name, self.klass.name)
-                )
+                messages.warning(self.request,
+                                 "Impossible de trouver l'étudiant {} dans la classe {}".format(student_name, self.klass.name)
+                                 )
                 continue
             with open(os.path.join(temp_dir, filename), 'rb') as pdf:
                 getattr(student, pdf_field).save(filename, File(pdf), save=True)
@@ -633,7 +635,7 @@ class SendStudentReportsView(FormView):
         # Attach PDF file to email
         student_filename = slugify('{0} {1}'.format(self.student.last_name, self.student.first_name))
         student_filename = '{0}.pdf'.format(student_filename)
-        #pdf_file = os.path.join(dir_klass, pdf_file_list[attach_idx])
+        # pdf_file = os.path.join(dir_klass, pdf_file_list[attach_idx])
         pdf_name = 'bulletin_scol_{0}'.format(student_filename)
         with open(getattr(self.student, 'report_sem%d' % self.semestre).path, 'rb') as pdf:
             email.attach(pdf_name, pdf.read(), 'application/pdf')
@@ -656,6 +658,104 @@ class SendStudentReportsView(FormView):
             'pdf_field': getattr(self.student, 'report_sem%d' % self.semestre),
         })
         return context
+
+
+class EmailConfirmationBaseView(FormView):
+    template_name = 'email_base.html'
+    form_class = EmailStudentBaseForm
+    success_url = reverse_lazy('admin:student_student_changelist')
+    success_message = "Le message a été envoyé !"
+    candidate_date_field = None
+
+    def form_valid(self, form):
+        email = EmailMessage(
+            subject=form.cleaned_data['subject'],
+            body=form.cleaned_data['message'],
+            from_email=form.cleaned_data['sender'],
+            to=form.cleaned_data['to'].split(';'),
+            bcc=form.cleaned_data['cci'].split(';'),
+        )
+        student = Student.objects.get(pk=self.kwargs['pk'])
+        try:
+            # email.send()
+            print(email)
+        except Exception as err:
+            messages.error(self.request, "Échec d’envoi pour l'étudiant {0} ({1})".format(student.full_name, err))
+        else:
+            messages.success(self.request, self.success_message)
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'candidat': Student.objects.get(pk=self.kwargs['pk']),
+            'title': self.title,
+        })
+        return context
+
+
+class StudentConvocationExaminationView(EmailConfirmationBaseView):
+    success_message = "Le message de convocation a été envoyé pour l'étudiant {student}"
+    candidate_date_field = 'convocation_date'
+    title = "Convocation à la soutenance du travail de diplôme"
+
+    def get(self, request, *args, **kwargs):
+        self.student = Student.objects.get(pk=self.kwargs['pk'])
+        if not self.student.is_examination_valid:
+            messages.error(request, "Toutes les informations ne sont pas disponibles pour la convocation!")
+            return redirect(reverse("admin:student_student_change", args=(self.student.pk,)))
+        return super().get(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        to = [self.student.email]
+        src_email = 'email/student_convocation_EDE.txt'
+        if self.student.expert.email != '':
+            to.append(self.student.expert.email)
+        else:
+            raise Exception("L'expert externe n'a pas d'email valide !")
+        if self.student.internal_expert.email != '':
+            to.append(self.student.internal_expert.email)
+        else:
+            raise Exception("L'expert interne n'a pas d'email valide !")
+
+        # Recipients  with ladies first!
+        rec = [self.student.civility_full_name,
+               self.student.expert.civility_full_name,
+               self.student.internal_expert.civility_full_name]
+        rec.sort()
+        foo = [self.student.civility, self.student.expert.title, self.student.internal_expert.civility]
+        bar = [(i, foo.count(i)) for i in set(foo) if i == 'Madame']
+        # Civilities, with ladies firt!
+        civilities = ''
+        if bar[0][1] == 0:
+            civilities = 'Messieurs'
+        elif bar[0][1] == 1:
+            civilities = 'Madame, Messieurs'
+        elif bar[0][1] == 2:
+            civilities = 'Mesdames, Monsieur'
+        elif bar[0][1] == 3:
+            civilities = 'Mesdames'
+
+        msg_context = {
+            'recipient1': rec[0],
+            'recipient2':rec[1],
+            'recipient3':rec[2],
+            'student': self.student,
+            'sender': self.request.user,
+            'global_civilities': civilities,
+            'date_examen': self.student.date_exam.strftime('%A %d %B %Y à %Hh%M'),
+            'salle': self.student.room
+        }
+        initial.update({
+            'id_student': self.student.pk,
+            'cci': self.request.user.email,
+            'to': '; '.join(to),
+            'subject': "Convocation à la soutenance de travail de diplôme",
+            'message': loader.render_to_string(src_email, msg_context),
+            'sender': self.request.user.email,
+        })
+        return initial
 
 
 EXPORT_FIELDS = [
@@ -835,6 +935,19 @@ def print_update_form(request):
     response['Content-Disposition'] = 'attachment; filename="modification.zip"'
     return response
 
+def print_pdf_to_expert_ede(request, pk):
+    """
+    Imprime le PDF à envoyer à l'expert EDE en accompagnement du
+    travail de diplôme
+    """
+    student = Student.objects.get(pk=pk)
+    pdf = ExpertEDEPDF(student)
+    pdf.produce(student)
+
+    with open(pdf.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
+    return response
 
 GENERAL_EXPORT_FIELDS = [
     ('Num_Ele', 'ext_id'),

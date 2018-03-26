@@ -22,12 +22,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='corpcontact',
             name='bank',
-            field=models.CharField(blank=True, default='', max_length=200, verbose_name='Banque'),
+            field=models.CharField(blank=True, default='', max_length=200, verbose_name='Banque (Nom et ville)'),
         ),
         migrations.AddField(
             model_name='corpcontact',
             name='ccp',
-            field=models.CharField(blank=True, default='', max_length=10, verbose_name='Compte de chèque postal'),
+            field=models.CharField(blank=True, default='', max_length=15, verbose_name='Compte de chèque postal'),
         ),
         migrations.AddField(
             model_name='corpcontact',
@@ -50,6 +50,21 @@ class Migration(migrations.Migration):
             field=models.TextField(blank=True, verbose_name='Titres obtenus'),
         ),
         migrations.AddField(
+            model_name='corpcontact',
+            name='city',
+            field=models.CharField(blank=True, max_length=40, verbose_name='Localité'),
+        ),
+        migrations.AddField(
+            model_name='corpcontact',
+            name='pcode',
+            field=models.CharField(blank=True, max_length=4, verbose_name='Code postal'),
+        ),
+        migrations.AddField(
+            model_name='corpcontact',
+            name='street',
+            field=models.CharField(blank=True, max_length=100, verbose_name='Rue'),
+        ),
+        migrations.AddField(
             model_name='student',
             name='date_exam',
             field=models.DateTimeField(blank=True, default=None, null=True),
@@ -57,7 +72,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='student',
             name='internal_expert',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rel_internal_expert', to='stages.CorpContact', verbose_name='Expert interne'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='rel_internal_expert', to='stages.Teacher', verbose_name='Expert interne'),
         ),
         migrations.AddField(
             model_name='student',

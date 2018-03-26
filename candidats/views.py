@@ -187,6 +187,7 @@ class ConvocationView(EmailConfirmationBaseView):
             'message': loader.render_to_string('email/candidate_convocation_EDE.txt', msg_context),
             'sender': self.request.user.email,
         })
+        print(loader.render_to_string('email/candidate_convocation_EDE.txt', msg_context),)
         return initial
 
 

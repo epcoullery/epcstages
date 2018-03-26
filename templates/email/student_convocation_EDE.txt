@@ -1,0 +1,22 @@
+{{ recipient1 }},
+{{ recipient2 }},
+{{ recipient3 }},
+
+
+Nous vous informons que la soutenance du travail de diplôme de {{ student.civility }} {{ student.full_name }} aura lieu
+dans les locaux de l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds en date du:
+
+ - {{ date_examen }} en salle {{ salle }}
+
+
+Nous informons également {{ student.expert.title }} {{ student.expert.last_name }} que le mémoire lui est adressé ce jour par courrier postal.
+
+
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, {{ global_civilities }}, nos salutations les meilleures.
+
+
+
+Secrétariat de la filière Education de l’enfance, dipl. ES
+{{ sender.first_name }} {{ sender.last_name }}
+{{ sender.email }}
+tél. 032 886 33 00

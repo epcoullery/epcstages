@@ -77,6 +77,18 @@ class Teacher(models.Model):
     def __str__(self):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
+
+    @property
+    def role(self):
+        return {'Monsieur': 'enseignant-formateur', 'Madame': 'enseignante-formatrice'}.get(self.civility, '')
+
     def calc_activity(self):
         """
         Return a dictionary of calculations relative to teacher courses.
@@ -189,6 +201,9 @@ class ExamEDESession(models.Model):
     def __str__(self):
         return '{0} {1}'.format(self.year, self.season)
 
+    class Meta:
+        verbose_name = "Session d'examen EDE"
+
 
 GENDER_CHOICES = (
     ('M', 'Masculin'),
@@ -238,7 +253,7 @@ class Student(models.Model):
                                           on_delete=models.SET_NULL, verbose_name='Référent de stage')
     referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_referent',
                                  on_delete=models.SET_NULL, verbose_name='Référent avant-projet')
-    internal_expert = models.ForeignKey('CorpContact', related_name='rel_internal_expert', verbose_name='Expert interne',
+    internal_expert = models.ForeignKey('Teacher', related_name='rel_internal_expert', verbose_name='Expert interne',
                                 null=True, blank=True, on_delete=models.SET_NULL)
     session = models.ForeignKey('ExamEDESession', null=True, blank=True, on_delete=models.SET_NULL)
     date_exam = models.DateTimeField(blank=True, null=True, default=None)
@@ -264,8 +279,27 @@ class Student(models.Model):
         return '{0} {1}'.format(self.first_name, self.last_name)
 
     @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
+
+    @property
     def pcode_city(self):
         return '{0} {1}'.format(self.pcode, self.city)
+
+    @property
+    def role(self):
+        if self.klass.section.is_fe():
+            return {'M': 'apprenti', 'F': 'apprentie'}.get(self.gender, '')
+        else:
+            return {'M': 'étudiant', 'F': 'étudiante'}.get(self.gender, '')
+
+    @property
+    def is_examination_valid(self):
+        if self.date_exam and self.room and self.expert and self.internal_expert:
+            return True
+        else:
+            return False
+
 
     def save(self, **kwargs):
         if self.archived and not self.archived_text:
@@ -345,13 +379,16 @@ class CorpContact(models.Model):
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     role = models.CharField(max_length=40, blank=True, verbose_name='Fonction')
+    street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
+    pcode = models.CharField(max_length=4, blank=True, verbose_name='Code postal')
+    city = models.CharField(max_length=40, blank=True, verbose_name='Localité')
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
 
-    ccp = models.CharField('Compte de chèque postal', max_length=10, blank=True, default='')
-    bank = models.CharField('Banque', max_length=200, blank=True, default='')
+    ccp = models.CharField('Compte de chèque postal', max_length=15, blank=True, default='')
+    bank = models.CharField('Banque (Nom et ville)', max_length=200, blank=True, default='')
     clearing = models.CharField('No clearing', max_length=5, blank=True, default='')
     iban = models.CharField('iban', max_length=21, blank=True, default='')
     qualification = models.TextField('Titres obtenus', blank=True)
@@ -363,6 +400,24 @@ class CorpContact(models.Model):
     def __str__(self):
         return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation or '-')
 
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.title, self.first_name, self.last_name)
+
+    @property
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
+
+    @property
+    def adjective_endings(self):
+        if self.title == 'Monsieur':
+            return ''
+        else:
+            return 'e'
 
 class Domain(models.Model):
     name = models.CharField(max_length=50, verbose_name='Nom')
