@@ -378,6 +378,7 @@ class CorpContact(models.Model):
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
+    birth_date = models.DateField(blank=True, null=True, default=None, verbose_name='Date de naissance')
     role = models.CharField(max_length=40, blank=True, verbose_name='Fonction')
     street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
     pcode = models.CharField(max_length=4, blank=True, verbose_name='Code postal')

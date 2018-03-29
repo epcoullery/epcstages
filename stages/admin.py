@@ -149,9 +149,11 @@ class StudentAdmin(admin.ModelAdmin):
         if obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
             return format_html(
                 '<a class="button" href="{}">Courrier pour l\'expert</a>&nbsp;'
-                '<a class="button" href="{}">Mail convocation soutenance</a>',
+                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
+                '<a class="button" href="{}">Indemnité aux experts</a>',
                 reverse('print-pdf-to-expert-ede', args=[obj.pk]),
-                reverse('student-ede-convocation', args=[obj.pk])
+                reverse('student-ede-convocation', args=[obj.pk]),
+                reverse('examination_compensation', args=[obj.pk])
             )
         else:
             return ''
@@ -166,6 +168,7 @@ class CorpContactAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('title', 'last_name', 'first_name'),
               ('street', 'pcode', 'city'),
+              ('birth_date',),
               ('corporation',),
               ('sections', 'is_main', 'always_cc', 'archived'),
               ('role', 'ext_id'), ('tel', 'email'),
