@@ -48,3 +48,4 @@ class EmailStudentBaseForm(forms.Form):
     cci = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
     subject = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
     message = forms.CharField(widget=forms.Textarea(attrs={'rows': 20, 'cols': 120}))
+

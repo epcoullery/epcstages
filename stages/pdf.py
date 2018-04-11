@@ -1,29 +1,77 @@
 import os
 import tempfile
 from datetime import date
+import locale
 
 from django.conf import settings
 from django.contrib.staticfiles.finders import find
 from django.utils.text import slugify
 
-from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.platypus import (
     Frame, Image, NextPageTemplate, PageBreak, PageTemplate, Paragraph,
-    SimpleDocTemplate, Spacer, Table, TableStyle,
+    SimpleDocTemplate, Spacer, Table, TableStyle, Preformatted
 )
 
-style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_LEFT)
-style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment = TA_LEFT)
-style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment = TA_LEFT, spaceBefore=1*cm)
-style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=10, alignment = TA_LEFT, leftIndent=280)
-style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_RIGHT)
+locale.setlocale(locale.LC_TIME, '')
+
+style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
+style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment=TA_LEFT)
+style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1*cm)
+style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=280)
+style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
+style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
+style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
+style_bold_center_12 = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alignment=TA_CENTER)
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
+
+class CifomBaseISO(SimpleDocTemplate):
+
+    def __init__(self, filename):
+        super().__init__(
+            filename, pagesize=A4, _pageBreakQuick=0,
+            lefMargin=1.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=1 * cm
+        )
+
+    def header(self, canvas, doc):
+        canvas.saveState()
+        canvas.setStrokeColor(colors.black)
+        canvas.setFillColorRGB(0,0,0, 0.2)
+        canvas.rect(1 * cm, doc.height - 0.5 * cm, doc.width + 1 * cm, 1.5 * cm, fill=True)
+        canvas.setFillColor(colors.black)
+        canvas.setFont('Helvetica-Bold', 11)
+        canvas.drawString(1.2*cm, doc.height+0.5*cm, "CIFOM")
+        canvas.setFont('Helvetica', 7)
+        canvas.drawString(1.2 * cm, doc.height+0.1*cm, 'Centre interrégional de formation' )
+        canvas.drawString(1.2 * cm, doc.height-0.15*cm, 'des montagnes neuchâteloises')
+        canvas.setFont('Helvetica-Bold', 12)
+        canvas.drawString(8*cm, doc.height + 0.5 * cm, "INDEMNISATION D'EXPERTS")
+        canvas.drawString(15*cm, doc.height + 0.5 * cm, "51.05 FO 05")
+        canvas.drawString(8*cm, doc.height - 0.3 * cm, "AUX EXAMENS")
+
+        canvas.restoreState()
+
+    def set_normal_template_page(self):
+        first_page_table_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 3 * cm,
+            id='first_table', showBoundary=0, leftPadding=0 * cm
+        )
+        later_pages_table_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 2 * cm,
+            id='later_table', showBoundary=0, leftPadding=0 * cm
+        )
+        # Page template
+        first_page = PageTemplate(id='FirstPage', frames=[first_page_table_frame], onPage=self.header)
+        # later_pages = PageTemplate(id='LaterPages', frames=[later_pages_table_frame], onPage=self.later_header)
+        self.addPageTemplates([first_page])
+        # self.story = [NextPageTemplate(['*', 'LaterPages'])]
+        self.story = []
 
 
 class EpcBaseDocTemplate(SimpleDocTemplate):
@@ -32,7 +80,7 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
     def __init__(self, filename, title='', pagesize=A4):
         super().__init__(
             filename, pagesize=pagesize, _pageBreakQuick=0,
-            lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=1.5 * cm
+            lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=2.5 * cm
         )
         self.story = []
         self.title = title
@@ -59,9 +107,9 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         canvas.line(doc.leftMargin, doc.height + 0.2 * cm, doc.width + doc.leftMargin, doc.height + 0.2 * cm)
         canvas.restoreState()
 
-    def setNormalTemplatePage(self):
+    def set_normal_template_page(self):
         first_page_table_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 4 * cm,
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 3 * cm,
             id='first_table', showBoundary=0, leftPadding=0 * cm
         )
         later_pages_table_frame = Frame(
@@ -75,6 +123,30 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         self.story = [NextPageTemplate(['*', 'LaterPages'])]
 
 
+class EpcBaseLetterTemplate(EpcBaseDocTemplate):
+    def __init__(self, filename, title=''):
+        super().__init__(filename)
+        self.story = []
+        self.title = title
+
+    def header(self, canvas, doc):
+        canvas.saveState()
+        canvas.drawImage(
+            LOGO_EPC, doc.leftMargin, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+        )
+        canvas.drawImage(
+            LOGO_ESNE, doc.width - 2 * cm, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+        )
+        # Footer
+        canvas.line(doc.leftMargin, 1 * cm, doc.width + doc.leftMargin, 1 * cm)
+        footer = Paragraph('Ecole Santé-social Pierre-Coullery | Prévoyance 82 - 2300 La Chaux-de-Fonds | '
+                           '032 886 33 00 | cifom-epc@rpn.ch', style_footer)
+        w, h = footer.wrap(doc.width, doc.bottomMargin)
+        footer.drawOn(canvas, doc.leftMargin, h)
+
+        canvas.restoreState()
+
+
 class ChargeSheetPDF(SimpleDocTemplate):
     """
     Génération des feuilles de charges en pdf.
@@ -85,9 +157,9 @@ class ChargeSheetPDF(SimpleDocTemplate):
         filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
         path = os.path.join(tempfile.gettempdir(), filename)
         super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
+        self.story = []
 
     def produce(self, activities):
-        self.story = []
         header = open(find('img/header.gif'), 'rb')
         self.story.append(Image(header, width=520, height=75))
         self.story.append(Spacer(0, 2*cm))
@@ -115,7 +187,7 @@ class ChargeSheetPDF(SimpleDocTemplate):
         t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                                ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
                                ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.black),
-                               ('LINEABOVE', (0, -3) ,(-1, -1), 0.5, colors.black),
+                               ('LINEABOVE', (0, -3), (-1, -1), 0.5, colors.black),
                                ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
                                ]))
         t.hAlign = TA_CENTER
@@ -127,12 +199,12 @@ class ChargeSheetPDF(SimpleDocTemplate):
         self.story.append(Paragraph('la direction', style_normal))
         max_total = settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION
         if activities['tot_paye'] == max_total and activities['tot_paye'] != activities['tot_trav']:
-             self.story.append(Spacer(0, 1 * cm))
-             d = 'Je soussigné-e déclare accepter les conditions ci-dessus pour la régularisation de mon salaire.'
-             self.story.append(Paragraph(d, style_normal))
-             self.story.append(Spacer(0, 1 * cm))
-             d = 'Lieu, date et signature: ___________________________________________________________________________'
-             self.story.append(Paragraph(d, style_normal))
+            self.story.append(Spacer(0, 1 * cm))
+            d = 'Je soussigné-e déclare accepter les conditions ci-dessus pour la régularisation de mon salaire.'
+            self.story.append(Paragraph(d, style_normal))
+            self.story.append(Spacer(0, 1 * cm))
+            d = 'Lieu, date et signature: ___________________________________________________________________________'
+            self.story.append(Paragraph(d, style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
         header.close()
@@ -244,3 +316,172 @@ class UpdateDataFormPDF(SimpleDocTemplate):
 
     def is_instr_required(self, klass_name):
         return any(el in klass_name for el in ['FE', 'EDS'])
+
+
+class ExpertEDEPDF(EpcBaseLetterTemplate):
+    """
+    PDF letter to expert EDE
+    """
+    def __init__(self, student, **kwargs):
+        filename = slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '.pdf'
+        path = os.path.join(tempfile.gettempdir(), filename)
+        super().__init__(path, title="", **kwargs)
+        self.set_normal_template_page()
+
+    def produce(self, student):
+        # Expert adress
+        self.story.append(Paragraph(student.expert.title, style_adress))
+        self.story.append(Paragraph(student.expert.full_name, style_adress))
+        self.story.append(Paragraph(student.expert.street, style_adress))
+        self.story.append((Paragraph(student.expert.pcode_city, style_adress)))
+        ptext = """
+                <br/><br/><br/>
+                La Chaux-de-Fonds, le {current_date}<br/>
+                N/réf.:ASH/val<br/>
+                <br/><br/><br/>
+                <strong>Travail de diplôme</strong>
+                <br/><br/><br/>
+                {expert_title},<br/><br/>
+                Vous avez accepté de fonctionner comme expert{expert_accord} pour un travail de diplôme de l'un-e de nos 
+                étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
+                En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
+                ainsi que la grille d'évaluation commune aux deux membres du jury.<br/><br/>
+                La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
+                """
+        self.story.append(Paragraph(ptext.format(current_date=date.today().strftime('%d %B %Y'),
+                                                 expert_title=student.expert.title,
+                                                 expert_accord=student.expert.adjective_endings,
+                                                 student_civility_full_name=student.civility_full_name), style_normal))
+        ptext = "<br/>{0} à l'Ecole Santé-social Pierre-Coullery, salle {1}<br/><br/>"
+        self.story.append(Paragraph(ptext.format(student.date_exam.strftime('%A %d %B %Y à %Hh%M'),
+                                                 student.room), style_bold_center))
+
+        ptext = """
+                <br/>
+                L'autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
+                <br/>
+                Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire "Indemnisation d'experts aux examens"
+                que vous voudrez bien compléter au niveau des "données privées / coordonnées de paiement" et nous retourner dans les meilleurs délais.
+                <br/><br/>
+                Restant à votre disposition pour tout complément d'information et en vous remerciant de
+                l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_title}, l'asurance de notre considération distinguée.<br/>
+                <br/><br/><br/>
+                La responsable de filière:<br/>
+                <br/><br/>
+                Ann Schaub-Murray
+                <br/><br/><br/>
+                Annexes: ment.
+                <br/><br/>
+                Copies pour information: <br/>
+                - {student_civility} {student_full_name}, {student_role} <br/>
+                - {internal_expert_civility2} {internal_expert_full_name2}, {internal_expert_role2}
+                """
+        self.story.append(Paragraph(ptext.format(internal_expert_civility=student.internal_expert.civility,
+                                                 internal_expert_full_name=student.internal_expert.full_name,
+                                                 internal_expert_role=student.internal_expert.role,
+                                                 expert_title=student.expert.title,
+                                                 student_civility=student.civility,
+                                                 student_full_name=student.full_name,
+                                                 student_role=student.role,
+                                                 internal_expert_civility2=student.internal_expert.civility,
+                                                 internal_expert_full_name2=student.internal_expert.full_name,
+                                                 internal_expert_role2=student.internal_expert.role), style_normal))
+        self.build(self.story)
+
+
+class ExaminationCompensationPdfForm(CifomBaseISO):
+
+    def __init__(self, student):
+        self.student = student
+        filename = slugify('{0}_{1}_Indemn_expert'.format(self.student.last_name, self.student.first_name)) + '.pdf'
+        path = os.path.join(tempfile.gettempdir(), filename)
+        super().__init__(path)
+        self.set_normal_template_page()
+
+    def formating(self, text):
+        return Preformatted(text, style_normal, maxLineLength=20)
+
+    def produce(self):
+
+        self.story.append(Spacer(0, 0.7 * cm))
+        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_center_12))
+        self.story.append(Spacer(0, 0.7 * cm))
+
+        self.story.append(Paragraph('DONNEES PRIVEES', style_bold))
+        data = []
+        data.append([self.formating('NOM : '), self.student.expert.last_name])
+        data.append([self.formating('Prénom :'), self.student.expert.first_name])
+        data.append([self.formating('Date de naissance :'), self.student.expert.birth_date.strftime('%d %B %Y')])
+        data.append([self.formating('N° de téléphone :'), self.student.expert.tel])
+        data.append([self.formating('Adresse complète :'), self.student.expert.street])
+        data.append(['', self.student.expert.pcode_city])
+        data.append(['',''])
+        data.append([self.formating('Employeur :'), self.student.expert.corporation.name])
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm])
+        t.hAlign = TA_LEFT
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 0.5 * cm))
+
+        self.story.append(Paragraph('COORDONNEES DE PAIEMENT', style_bold))
+        data = []
+        data.append([self.formating('N° de ccp ou compte bancaire :'), self.student.expert.ccp])
+        data.append([self.formating('Si banque, nom et adresse de celle-ci :'), self.student.expert.bank])
+        data.append([self.formating('ainsi que N° IBAN :'), self.student.expert.iban])
+        data.append(['', ''])
+        data.append([self.formating('Mandat :'), 'Soutenance de {0} {1}, classe {2}'.format(self.student.civility,
+                                                                                            self.student.full_name,
+                                                                                            self.student.klass)])
+        data.append([self.formating('Date des examens :'), self.student.date_exam.strftime('%A %d %B %Y')])
+
+        t = Table(data, colWidths=[4*cm, 12*cm])
+        t.hAlign = TA_LEFT
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                               ('BOX', (0, 0), (-1, -4), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 1.5 * cm))
+
+        data = []
+        data.append(['Indemnités', 'Fr.'])
+        data.append(['Frais de déplacements', 'Fr.'])
+        data.append(['Repas', 'Fr.'])
+        data.append(['TOTAL', 'Fr.'])
+        t = Table(data, colWidths=[4.5 * cm, 3 * cm])
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('LINEBELOW', (1, 2), (2, 2), 0.5, colors.black),
+                               ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 1.5 * cm))
+        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr.:"]]
+        t = Table(data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm, ))
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                               ('FONTSIZE', (0, 0), (-1, -1), 7),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+
+        data = [['No écriture', "Compte à débiter", "CC / OTP", " Montants"]]
+        data.append(["Pièces annexées",'','', 'Fr.'])
+        data.append(["Ordre", '', '', 'Fr.'])
+        data.append(["No fournisseur", '', '', 'Fr.'])
+        data.append(["Date scannage et visa", '', '', 'Fr.'])
+        t = Table(data, colWidths=[3 * cm, 3 * cm, 3 * cm, 3 * cm])
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                               ('FONTSIZE', (0, 0), (-1, -1), 7),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+
+        self.build(self.story)

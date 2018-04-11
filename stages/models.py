@@ -77,6 +77,18 @@ class Teacher(models.Model):
     def __str__(self):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
+
+    @property
+    def role(self):
+        return {'Monsieur': 'enseignant-formateur', 'Madame': 'enseignante-formatrice'}.get(self.civility, '')
+
     def calc_activity(self):
         """
         Return a dictionary of calculations relative to teacher courses.
@@ -182,6 +194,17 @@ class Option(models.Model):
         return self.name
 
 
+class ExamEDESession(models.Model):
+    year = models.PositiveIntegerField()
+    season = models.CharField('saison', max_length=10)
+
+    def __str__(self):
+        return '{0} {1}'.format(self.year, self.season)
+
+    class Meta:
+        verbose_name = "Session d'examen EDE"
+
+
 GENDER_CHOICES = (
     ('M', 'Masculin'),
     ('F', 'Féminin'),
@@ -213,7 +236,7 @@ class Student(models.Model):
         null=True, blank=True, on_delete=models.SET_NULL)
     mentor = models.ForeignKey('CorpContact', related_name='rel_mentor', verbose_name='Mentor',
         null=True, blank=True, on_delete=models.SET_NULL)
-    expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert',
+    expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert externe',
         null=True, blank=True, on_delete=models.SET_NULL)
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
         on_delete=models.PROTECT)
@@ -223,6 +246,21 @@ class Student(models.Model):
     report_sem2_sent = models.DateTimeField('Date envoi bull. sem 2', null=True, blank=True)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
+    #  ============== Fields for examination ======================
+    subject = models.TextField('Résumé TD', blank=True)
+    title = models.TextField('Titre du TD', blank=True)
+    training_referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_training_referent',
+                                          on_delete=models.SET_NULL, verbose_name='Référent de stage')
+    referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_referent',
+                                 on_delete=models.SET_NULL, verbose_name='Référent avant-projet')
+    internal_expert = models.ForeignKey('Teacher', related_name='rel_internal_expert', verbose_name='Expert interne',
+                                null=True, blank=True, on_delete=models.SET_NULL)
+    session = models.ForeignKey('ExamEDESession', null=True, blank=True, on_delete=models.SET_NULL)
+    date_exam = models.DateTimeField(blank=True, null=True, default=None)
+    last_appointment = models.DateField(blank=True, null=True)
+    room = models.CharField('salle', max_length=15, blank=True, default='')
+    mark = models.FloatField('note', blank=True)
+    #  ============== Fields for examination ======================
 
     support_tabimport = True
 
@@ -241,8 +279,27 @@ class Student(models.Model):
         return '{0} {1}'.format(self.first_name, self.last_name)
 
     @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
+
+    @property
     def pcode_city(self):
         return '{0} {1}'.format(self.pcode, self.city)
+
+    @property
+    def role(self):
+        if self.klass.section.is_fe():
+            return {'M': 'apprenti', 'F': 'apprentie'}.get(self.gender, '')
+        else:
+            return {'M': 'étudiant', 'F': 'étudiante'}.get(self.gender, '')
+
+    @property
+    def is_examination_valid(self):
+        if self.date_exam and self.room and self.expert and self.internal_expert:
+            return True
+        else:
+            return False
+
 
     def save(self, **kwargs):
         if self.archived and not self.archived_text:
@@ -321,11 +378,22 @@ class CorpContact(models.Model):
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
+    birth_date = models.DateField(blank=True, null=True, default=None, verbose_name='Date de naissance')
     role = models.CharField(max_length=40, blank=True, verbose_name='Fonction')
+    street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
+    pcode = models.CharField(max_length=4, blank=True, verbose_name='Code postal')
+    city = models.CharField(max_length=40, blank=True, verbose_name='Localité')
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
+
+    ccp = models.CharField('Compte de chèque postal', max_length=15, blank=True, default='')
+    bank = models.CharField('Banque (Nom et ville)', max_length=200, blank=True, default='')
+    clearing = models.CharField('No clearing', max_length=5, blank=True, default='')
+    iban = models.CharField('iban', max_length=21, blank=True, default='')
+    qualification = models.TextField('Titres obtenus', blank=True)
+    fields_of_interest = models.TextField("Domaines d'intérêts", blank=True)
 
     class Meta:
         verbose_name = "Contact"
@@ -333,6 +401,24 @@ class CorpContact(models.Model):
     def __str__(self):
         return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation or '-')
 
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.title, self.first_name, self.last_name)
+
+    @property
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
+
+    @property
+    def adjective_endings(self):
+        if self.title == 'Monsieur':
+            return ''
+        else:
+            return 'e'
 
 class Domain(models.Model):
     name = models.CharField(max_length=50, verbose_name='Nom')
@@ -456,7 +542,7 @@ IMPUTATION_CHOICES = (
 class Course(models.Model):
     """Cours et mandats attribués aux enseignants"""
     teacher = models.ForeignKey(Teacher, blank=True, null=True,
-        verbose_name="Enseignant-e", on_delete=models.SET_NULL)
+                                verbose_name="Enseignant-e", on_delete=models.SET_NULL)
     public = models.CharField("Classe(s)", max_length=200, default='')
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
