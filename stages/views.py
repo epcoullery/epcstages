@@ -365,7 +365,7 @@ class StudentImportView(ImportViewBase):
             except Student.DoesNotExist:
                 student = Student.objects.create(**defaults)
                 obj_created += 1
-        #FIXME: implement arch_staled
+        # FIXME: implement arch_staled
         return {'created': obj_created, 'modified': obj_modified}
 
     def get_corporation(self, corp_values):
@@ -634,7 +634,7 @@ class SendStudentReportsView(FormView):
         # Attach PDF file to email
         student_filename = slugify('{0} {1}'.format(self.student.last_name, self.student.first_name))
         student_filename = '{0}.pdf'.format(student_filename)
-        #pdf_file = os.path.join(dir_klass, pdf_file_list[attach_idx])
+        # pdf_file = os.path.join(dir_klass, pdf_file_list[attach_idx])
         pdf_name = 'bulletin_scol_{0}'.format(student_filename)
         with open(getattr(self.student, 'report_sem%d' % self.semestre).path, 'rb') as pdf:
             email.attach(pdf_name, pdf.read(), 'application/pdf')

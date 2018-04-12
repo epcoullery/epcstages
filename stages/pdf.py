@@ -17,11 +17,11 @@ from reportlab.platypus import (
     SimpleDocTemplate, Spacer, Table, TableStyle,
 )
 
-style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_LEFT)
-style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment = TA_LEFT)
-style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment = TA_LEFT, spaceBefore=1*cm)
-style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=10, alignment = TA_LEFT, leftIndent=280)
-style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment = TA_RIGHT)
+style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
+style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment=TA_LEFT)
+style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1*cm)
+style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=280)
+style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
 style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
 style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
 
@@ -35,7 +35,7 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
     def __init__(self, filename, title='', pagesize=A4):
         super().__init__(
             filename, pagesize=pagesize, _pageBreakQuick=0,
-            lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=1.5 * cm
+            lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=2.5 * cm
         )
         self.story = []
         self.title = title
@@ -142,7 +142,7 @@ class ChargeSheetPDF(SimpleDocTemplate):
         t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                                ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
                                ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.black),
-                               ('LINEABOVE', (0, -3) ,(-1, -1), 0.5, colors.black),
+                               ('LINEABOVE', (0, -3), (-1, -1), 0.5, colors.black),
                                ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
                                ]))
         t.hAlign = TA_CENTER
@@ -154,12 +154,12 @@ class ChargeSheetPDF(SimpleDocTemplate):
         self.story.append(Paragraph('la direction', style_normal))
         max_total = settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION
         if activities['tot_paye'] == max_total and activities['tot_paye'] != activities['tot_trav']:
-             self.story.append(Spacer(0, 1 * cm))
-             d = 'Je soussigné-e déclare accepter les conditions ci-dessus pour la régularisation de mon salaire.'
-             self.story.append(Paragraph(d, style_normal))
-             self.story.append(Spacer(0, 1 * cm))
-             d = 'Lieu, date et signature: ___________________________________________________________________________'
-             self.story.append(Paragraph(d, style_normal))
+            self.story.append(Spacer(0, 1 * cm))
+            d = 'Je soussigné-e déclare accepter les conditions ci-dessus pour la régularisation de mon salaire.'
+            self.story.append(Paragraph(d, style_normal))
+            self.story.append(Spacer(0, 1 * cm))
+            d = 'Lieu, date et signature: ___________________________________________________________________________'
+            self.story.append(Paragraph(d, style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
         header.close()
