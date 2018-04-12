@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import date
+from datetime import date, datetime
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -50,7 +50,10 @@ class StagesTest(TestCase):
             Student(first_name="Gil", last_name="Schmid", birth_date="1996-02-14",
                     pcode="2000", city="Neuchâtel", klass=klass3, corporation=corp),
         ])
-        ref1 = Teacher.objects.create(first_name="Julie", last_name="Caux", abrev="JCA")
+        ref1 = Teacher.objects.create(
+            first_name="Julie", last_name="Caux", abrev="JCA", email="julie@eample.org",
+            civility="Madame",
+        )
         cls.p1 = Period.objects.create(
             title="Stage de pré-sensibilisation", start_date="2012-11-26", end_date="2012-12-07",
             section=sect_ase, level=lev1,
@@ -77,7 +80,9 @@ class StagesTest(TestCase):
         Training.objects.create(
             availability=av3, student=Student.objects.get(first_name="André"), referent=ref1,
         )
-        cls.admin = User.objects.create_user('me', 'me@example.org', 'mepassword')
+        cls.admin = User.objects.create_user(
+            'me', 'me@example.org', 'mepassword', first_name='Jean', last_name='Valjean',
+        )
 
     def setUp(self):
         self.client.login(username='me', password='mepassword')
@@ -146,6 +151,46 @@ class StagesTest(TestCase):
             response['Content-Disposition'], 'attachment; filename="modification.zip"'
         )
         self.assertGreater(int(response['Content-Length']), 10)
+
+    def test_send_ede_convocation(self):
+        st = Student.objects.get(first_name="Albin")
+        self.client.login(username='me', password='mepassword')
+        url = reverse('student-ede-convocation', args=[st.pk])
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, "Toutes les informations ne sont pas disponibles pour la convocation!")
+        st.date_exam = datetime(2018, 6, 28, 12, 00)
+        st.room = "B123"
+        st.expert = CorpContact.objects.get(last_name="Horner")
+        st.internal_expert = Teacher.objects.get(last_name="Caux")
+        st.save()
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, "L’expert externe n’a pas de courriel valide !")
+        st.expert.email = "horner@example.org"
+        st.expert.save()
+        response = self.client.get(url)
+        expected_message = """ Albin Dupond,
+Madame Julie Caux,
+Monsieur Jean Horner,
+
+
+Nous vous informons que la soutenance du travail de diplôme de  Albin Dupond aura lieu dans les locaux de l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds en date du:
+
+ - jeudi 28 juin 2018 à 12h00 en salle B123
+
+
+Nous informons également Monsieur Horner que le mémoire lui est adressé ce jour par courrier postal.
+
+
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, Madame, Messieurs, nos salutations les meilleures.
+
+
+
+Secrétariat de la filière Education de l’enfance, dipl. ES
+Jean Valjean
+me@example.org
+tél. 032 886 33 00
+"""
+        self.assertEqual(response.context['form'].initial['message'], expected_message)
 
 
 class PeriodTest(TestCase):

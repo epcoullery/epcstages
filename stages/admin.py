@@ -7,6 +7,8 @@ from django.contrib import admin
 from django.db import models
 from django.db.models import Case, Count, When
 from django.http import HttpResponse
+from django.urls import reverse
+from django.utils.html import format_html
 
 from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
@@ -110,23 +112,48 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent')
-    fields = (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
-              ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
-              ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
-              ('klass', 'option_ase'),
-              ('report_sem1', 'report_sem1_sent'),
-              ('report_sem2', 'report_sem2_sent'),
-              ('corporation', 'instructor',),
-              ('supervisor', 'mentor', 'expert'))
+    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'examination_actions')
+    fieldsets = (
+        (None, {
+            'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
+                      ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
+                      ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
+                      ('klass', 'option_ase'),
+                      ('report_sem1', 'report_sem1_sent'),
+                      ('report_sem2', 'report_sem2_sent'),
+                      ('corporation', 'instructor',)
+                      )
+                }
+         ),
+        ("Examen Qualification EDE", {
+            'classes': ('collapse',),
+            'fields': (
+                        ('supervisor', ),
+                        ('subject', 'title'),
+                        ('training_referent', 'referent', 'mentor'),
+                        ('internal_expert', 'expert'),
+                        ('session', 'date_exam', 'room', 'mark'),
+                        ('examination_actions',)
+                      )
+        }),
+    )
     actions = ['archive']
-
     def archive(self, request, queryset):
         for student in queryset:
             # Save each item individually to allow for custom save() logic.
             student.archived = True
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
+
+    def examination_actions(self, obj):
+        if obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
+            return format_html(
+                '<a class="button" href="{}">Mail convocation soutenance</a>',
+                reverse('student-ede-convocation', args=[obj.pk])
+            )
+        else:
+            return ''
+    examination_actions.short_description = 'Actions pour les examens EDE'
 
 
 class CorpContactAdmin(admin.ModelAdmin):

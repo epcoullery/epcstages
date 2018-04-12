@@ -18,14 +18,16 @@ from django.db import transaction
 from django.db.models import Case, Count, Value, When, Q
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.dateformat import format as django_format
 from django.utils.translation import ugettext as _
 from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
+from .base_views import EmailConfirmationBaseView
 from .exports import OpenXMLExport
 from .forms import EmailBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
 from .models import (
@@ -655,6 +657,78 @@ class SendStudentReportsView(FormView):
             'pdf_field': getattr(self.student, 'report_sem%d' % self.semestre),
         })
         return context
+
+
+class EmailConfirmationView(EmailConfirmationBaseView):
+    person_model = Student
+    success_url = reverse_lazy('admin:stages_student_changelist')
+    error_message = "Échec d’envoi pour l’étudiant {person} ({err})"
+
+
+class StudentConvocationExaminationView(EmailConfirmationView):
+    success_message = "Le message de convocation a été envoyé pour l’étudiant {person}"
+    title = "Convocation à la soutenance du travail de diplôme"
+    candidate_date_field = 'convocation_date'
+
+    def get(self, request, *args, **kwargs):
+        self.student = Student.objects.get(pk=self.kwargs['pk'])
+        error = ''
+        if not self.student.is_examination_valid:
+            error = "Toutes les informations ne sont pas disponibles pour la convocation!"
+        elif not self.student.expert.email:
+            error = "L’expert externe n’a pas de courriel valide !"
+        elif not self.student.internal_expert.email:
+            error = "L’expert interne n'a pas de courriel valide !"
+        if error:
+            messages.error(request, error)
+            return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
+        return super().get(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        to = [self.student.email, self.student.expert.email, self.student.internal_expert.email]
+        src_email = 'email/student_convocation_EDE.txt'
+
+        # Recipients with ladies first!
+        recip_names = sorted([
+            self.student.civility_full_name,
+            self.student.expert.civility_full_name,
+            self.student.internal_expert.civility_full_name,
+        ])
+        titles = [
+            self.student.civility,
+            self.student.expert.title,
+            self.student.internal_expert.civility,
+        ]
+        mme_count = titles.count('Madame')
+        # Civilities, with ladies first!
+        if mme_count == 0:
+            civilities = 'Messieurs'
+        elif mme_count == 1:
+            civilities = 'Madame, Messieurs'
+        elif mme_count == 2:
+            civilities = 'Mesdames, Monsieur'
+        else:
+            civilities = 'Mesdames'
+
+        msg_context = {
+            'recipient1': recip_names[0],
+            'recipient2': recip_names[1],
+            'recipient3': recip_names[2],
+            'student': self.student,
+            'sender': self.request.user,
+            'global_civilities': civilities,
+            'date_examen': django_format(self.student.date_exam, 'l j F Y à H\hi'),
+            'salle': self.student.room,
+        }
+        initial.update({
+            'cci': self.request.user.email,
+            'to': '; '.join(to),
+            'subject': "Convocation à la soutenance de travail de diplôme",
+            'message': loader.render_to_string(src_email, msg_context),
+            'sender': self.request.user.email,
+        })
+        return initial
 
 
 EXPORT_FIELDS = [

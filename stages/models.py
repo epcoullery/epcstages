@@ -77,6 +77,14 @@ class Teacher(models.Model):
     def __str__(self):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
+
     def calc_activity(self):
         """
         Return a dictionary of calculations relative to teacher courses.
@@ -267,8 +275,16 @@ class Student(models.Model):
         return '{0} {1}'.format(self.first_name, self.last_name)
 
     @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
+
+    @property
     def pcode_city(self):
         return '{0} {1}'.format(self.pcode, self.city)
+
+    @property
+    def is_examination_valid(self):
+        return (self.date_exam and self.room and self.expert and self.internal_expert)
 
     def save(self, **kwargs):
         if self.archived and not self.archived_text:
@@ -369,6 +385,18 @@ class CorpContact(models.Model):
 
     def __str__(self):
         return '{0} {1}, {2}'.format(self.last_name, self.first_name, self.corporation or '-')
+
+    @property
+    def full_name(self):
+        return '{0} {1}'.format(self.first_name, self.last_name)
+
+    @property
+    def civility_full_name(self):
+        return '{0} {1} {2}'.format(self.title, self.first_name, self.last_name)
+
+    @property
+    def pcode_city(self):
+        return '{0} {1}'.format(self.pcode, self.city)
 
 
 class Domain(models.Model):
