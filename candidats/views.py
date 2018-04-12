@@ -2,56 +2,30 @@ import os
 
 from django.conf import settings
 from django.contrib import messages
-from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.shortcuts import redirect
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
-from django.views.generic import FormView
 
-from candidats.forms import EmailBaseForm
+from stages.base_views import EmailConfirmationBaseView
 from candidats.models import Candidate, Interview
 from .pdf import InscriptionSummaryPDF
 
 
-class EmailConfirmationBaseView(FormView):
-    template_name = 'email_base.html'
-    form_class = EmailBaseForm
+class CandidateConfirmationView(EmailConfirmationBaseView):
+    person_model = Candidate
     success_url = reverse_lazy('admin:candidats_candidate_changelist')
-    success_message = "Le message a été envoyé pour le candidat {candidate}"
+    error_message = "Échec d’envoi pour le candidat {person} ({err})"
     candidate_date_field = None
 
-    def form_valid(self, form):
-        email = EmailMessage(
-            subject=form.cleaned_data['subject'],
-            body=form.cleaned_data['message'],
-            from_email=form.cleaned_data['sender'],
-            to=form.cleaned_data['to'].split(';'),
-            bcc=form.cleaned_data['cci'].split(';'),
-        )
-        candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        try:
-            email.send()
-        except Exception as err:
-            messages.error(self.request, "Échec d’envoi pour le candidat {0} ({1})".format(candidate, err))
-        else:
-            setattr(candidate, self.candidate_date_field, timezone.now())
-            candidate.save()
-            messages.success(self.request, self.success_message.format(candidate=candidate))
-        return super().form_valid(form)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context.update({
-            'candidat': Candidate.objects.get(pk=self.kwargs['pk']),
-            'title': self.title,
-        })
-        return context
+    def on_success(self, candidate):
+        setattr(candidate, self.candidate_date_field, timezone.now())
+        candidate.save()
 
 
-class ConfirmationView(EmailConfirmationBaseView):
-    success_message = "Le message de confirmation a été envoyé pour le candidat {candidate}"
+class ConfirmationView(CandidateConfirmationView):
+    success_message = "Le message de confirmation a été envoyé pour le candidat {person}"
     candidate_date_field = 'confirmation_date'
     title = "Confirmation de réception de dossier"
 
@@ -86,7 +60,6 @@ class ConfirmationView(EmailConfirmationBaseView):
             'sender': self.request.user,
         }
         initial.update({
-            'id_candidate': candidate.pk,
             'cci': self.request.user.email,
             'to': '; '.join(to),
             'subject': "Inscription à la formation {0}".format(candidate.section_option),
@@ -96,8 +69,8 @@ class ConfirmationView(EmailConfirmationBaseView):
         return initial
 
 
-class ValidationView(EmailConfirmationBaseView):
-    success_message = "Le message de validation a été envoyé pour le candidat {candidate}"
+class ValidationView(CandidateConfirmationView):
+    success_message = "Le message de validation a été envoyé pour le candidat {person}"
     candidate_date_field = 'validation_date'
     title = "Validation des examens par les enseignant-e-s EDE"
 
@@ -120,7 +93,6 @@ class ValidationView(EmailConfirmationBaseView):
             'sender': self.request.user,
         }
         initial.update({
-            'id_candidate': candidate.pk,
             'cci': self.request.user.email,
             'to': ';'.join([
                 candidate.interview.teacher_int.email, candidate.interview.teacher_file.email
@@ -132,8 +104,8 @@ class ValidationView(EmailConfirmationBaseView):
         return initial
 
 
-class ConvocationView(EmailConfirmationBaseView):
-    success_message = "Le message de convocation a été envoyé pour le candidat {candidate}"
+class ConvocationView(CandidateConfirmationView):
+    success_message = "Le message de convocation a été envoyé pour le candidat {person}"
     candidate_date_field = 'convocation_date'
     title = "Convocation aux examens d'admission EDE"
 
@@ -180,7 +152,6 @@ class ConvocationView(EmailConfirmationBaseView):
             msg_context['rappel'] = loader.render_to_string('email/rappel_document_EDE.txt', missing_documents)
 
         initial.update({
-            'id_candidate': candidate.pk,
             'cci': self.request.user.email,
             'to': candidate.email,
             'subject': "Procédure d'admission",

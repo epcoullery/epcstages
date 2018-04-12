@@ -27,7 +27,7 @@ from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
 from .exports import OpenXMLExport
-from .forms import EmailStudentBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
+from .forms import EmailBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
 from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
@@ -596,7 +596,7 @@ class ImportReportsView(FormView):
 
 class SendStudentReportsView(FormView):
     template_name = 'email_report.html'
-    form_class = EmailStudentBaseForm
+    form_class = EmailBaseForm
 
     def get_initial(self):
         initial = super().get_initial()
@@ -613,7 +613,6 @@ class SendStudentReportsView(FormView):
         }
 
         initial.update({
-            'id_student': self.student.pk,
             'cci': self.request.user.email,
             'to': '; '.join(to),
             'subject': "Bulletin semestriel",

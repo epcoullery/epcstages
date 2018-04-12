@@ -41,8 +41,7 @@ class UploadReportForm(forms.Form):
     upload = forms.FileField(label='Bulletins CLOEE (pdf)')
 
 
-class EmailStudentBaseForm(forms.Form):
-    id_student = forms.CharField(widget=forms.HiddenInput())
+class EmailBaseForm(forms.Form):
     sender = forms.CharField(widget=forms.HiddenInput())
     to = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))
     cci = forms.CharField(widget=forms.TextInput(attrs={'size': '60'}))

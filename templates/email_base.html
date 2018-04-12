@@ -9,7 +9,7 @@
 {% endblock %}
 
 {% block content %}
-<h2>{{ candidat }}</h2>
+<h2>{{ person }}</h2>
 <form name="confirmation" action="." method="post">{% csrf_token %}
 <table>
 {{ form.as_table }}
