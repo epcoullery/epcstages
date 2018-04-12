@@ -347,11 +347,22 @@ class CorpContact(models.Model):
     title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
+    birth_date = models.DateField(blank=True, null=True, verbose_name='Date de naissance')
     role = models.CharField(max_length=40, blank=True, verbose_name='Fonction')
+    street = models.CharField(max_length=100, blank=True, verbose_name='Rue')
+    pcode = models.CharField(max_length=4, blank=True, verbose_name='Code postal')
+    city = models.CharField(max_length=40, blank=True, verbose_name='Localité')
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.CharField(max_length=100, blank=True, verbose_name='Courriel')
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
+
+    ccp = models.CharField('Compte de chèque postal', max_length=15, blank=True)
+    bank = models.CharField('Banque (nom et ville)', max_length=200, blank=True)
+    clearing = models.CharField('No clearing', max_length=5, blank=True)
+    iban = models.CharField('iban', max_length=21, blank=True)
+    qualification = models.TextField('Titres obtenus', blank=True)
+    fields_of_interest = models.TextField("Domaines d’intérêts", blank=True)
 
     class Meta:
         verbose_name = "Contact"

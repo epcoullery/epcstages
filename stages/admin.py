@@ -134,9 +134,16 @@ class CorpContactAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter),)
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
-    fields = (('corporation',), ('title', 'last_name', 'first_name'),
+    fields = (('title', 'last_name', 'first_name'),
+              ('street', 'pcode', 'city'),
+              ('birth_date',),
+              ('corporation',),
               ('sections', 'is_main', 'always_cc', 'archived'),
-              ('role', 'ext_id'), ('tel', 'email'))
+              ('role', 'ext_id'), ('tel', 'email'),
+              ('ccp', 'bank', 'clearing' ),
+              ('iban',),
+              ('qualification', 'fields_of_interest'),
+             )
     formfield_overrides = {
         models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
     }
