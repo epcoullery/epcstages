@@ -85,6 +85,10 @@ class Teacher(models.Model):
     def civility_full_name(self):
         return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
 
+    @property
+    def role(self):
+        return {'Monsieur': 'enseignant-formateur', 'Madame': 'enseignante-formatrice'}.get(self.civility, '')
+
     def calc_activity(self):
         """
         Return a dictionary of calculations relative to teacher courses.
@@ -283,6 +287,13 @@ class Student(models.Model):
         return '{0} {1}'.format(self.pcode, self.city)
 
     @property
+    def role(self):
+        if self.klass.section.is_fe():
+            return {'M': 'apprenti', 'F': 'apprentie'}.get(self.gender, '')
+        else:
+            return {'M': 'étudiant', 'F': 'étudiante'}.get(self.gender, '')
+
+    @property
     def is_examination_valid(self):
         return (self.date_exam and self.room and self.expert and self.internal_expert)
 
@@ -397,6 +408,10 @@ class CorpContact(models.Model):
     @property
     def pcode_city(self):
         return '{0} {1}'.format(self.pcode, self.city)
+
+    @property
+    def adjective_ending(self):
+        return 'e' if self.title == 'Madame' else ''
 
 
 class Domain(models.Model):

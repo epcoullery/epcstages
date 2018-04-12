@@ -27,7 +27,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
         path = os.path.join(tempfile.gettempdir(), filename)
         super().__init__(path, title="Dossier d'inscription", **kwargs)
-        self.setNormalTemplatePage()
+        self.set_normal_template_page()
 
     def produce(self, candidate):
         # personal data

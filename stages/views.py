@@ -34,7 +34,7 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
-from .pdf import UpdateDataFormPDF
+from .pdf import ExpertEDEPDF, UpdateDataFormPDF
 from .utils import is_int
 
 
@@ -906,6 +906,24 @@ def print_update_form(request):
     with open(filezip.filename, mode='rb') as fh:
         response = HttpResponse(fh.read(), content_type='application/zip')
     response['Content-Disposition'] = 'attachment; filename="modification.zip"'
+    return response
+
+
+def print_pdf_to_expert_ede(request, pk):
+    """
+    Imprime le PDF à envoyer à l'expert EDE en accompagnement du
+    travail de diplôme
+    """
+    student = get_object_or_404(Student, pk=pk)
+    if not student.is_examination_valid:
+        messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
+        return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+    pdf = ExpertEDEPDF(student)
+    pdf.produce(student)
+
+    with open(pdf.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
     return response
 
 
