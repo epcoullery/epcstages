@@ -39,6 +39,8 @@ urlpatterns = [
         name='student-ede-convocation'),
     path('student_ede/<int:pk>/pdf_to_expert', views.print_pdf_to_expert_ede,
         name='print-pdf-to-expert-ede'),
+    path('student/<int:pk>/examination_compensation', views.print_examination_compensation_form,
+        name='examination-compensation'),
 
     path('imputations/export/', views.imputations_export, name='imputations_export'),
     path('print/update_form/', views.print_update_form, name='print_update_form'),

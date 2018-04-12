@@ -211,6 +211,21 @@ tél. 032 886 33 00
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
 
+    def test_print_ede_expert_compensation(self):
+        st = Student.objects.get(first_name="Albin")
+        st.expert = CorpContact.objects.get(last_name="Horner")
+        st.date_exam = datetime(2018, 6, 28, 12, 00)
+        st.save()
+        self.client.login(username='me', password='mepassword')
+        url = reverse('examination-compensation', args=[st.pk])
+        response = self.client.post(url, follow=True)
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename="dupond_albin_Indemn_expert.pdf"'
+        )
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertGreater(len(response.content), 200)
+
 
 class PeriodTest(TestCase):
     def setUp(self):

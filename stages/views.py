@@ -34,7 +34,7 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
-from .pdf import ExpertEDEPDF, UpdateDataFormPDF
+from .pdf import ExaminationCompensationPdfForm, ExpertEDEPDF, UpdateDataFormPDF
 from .utils import is_int
 
 
@@ -920,6 +920,21 @@ def print_pdf_to_expert_ede(request, pk):
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
     pdf = ExpertEDEPDF(student)
     pdf.produce(student)
+
+    with open(pdf.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
+    return response
+
+
+def print_examination_compensation_form(request, pk):
+    """
+    Imprime le PDF à envoyer à l'expert EDE en accompagnement du
+    travail de diplôme
+    """
+    student = Student.objects.get(pk=pk)
+    pdf = ExaminationCompensationPdfForm(student)
+    pdf.produce()
 
     with open(pdf.filename, mode='rb') as fh:
         response = HttpResponse(fh.read(), content_type='application/pdf')

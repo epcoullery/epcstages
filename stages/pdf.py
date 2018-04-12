@@ -14,7 +14,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.platypus import (
     Frame, Image, NextPageTemplate, PageBreak, PageTemplate, Paragraph,
-    SimpleDocTemplate, Spacer, Table, TableStyle,
+    SimpleDocTemplate, Spacer, Table, TableStyle, Preformatted
 )
 
 style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
@@ -24,9 +24,50 @@ style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_L
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
 style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
 style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
+style_bold_center_12 = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alignment=TA_CENTER)
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
+
+
+class CifomBaseISO(SimpleDocTemplate):
+    def __init__(self, filename):
+        super().__init__(
+            filename, pagesize=A4, _pageBreakQuick=0,
+            lefMargin=1.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=1 * cm
+        )
+        self.story = []
+
+    def header(self, canvas, doc):
+        canvas.saveState()
+        canvas.setStrokeColor(colors.black)
+        canvas.setFillColorRGB(0,0,0, 0.2)
+        canvas.rect(1 * cm, doc.height - 0.5 * cm, doc.width + 1 * cm, 1.5 * cm, fill=True)
+        canvas.setFillColor(colors.black)
+        canvas.setFont('Helvetica-Bold', 11)
+        canvas.drawString(1.2*cm, doc.height+0.5*cm, "CIFOM")
+        canvas.setFont('Helvetica', 7)
+        canvas.drawString(1.2 * cm, doc.height+0.1*cm, 'Centre interrégional de formation' )
+        canvas.drawString(1.2 * cm, doc.height-0.15*cm, 'des montagnes neuchâteloises')
+        canvas.setFont('Helvetica-Bold', 12)
+        canvas.drawString(8*cm, doc.height + 0.5 * cm, "INDEMNISATION D'EXPERTS")
+        canvas.drawString(15*cm, doc.height + 0.5 * cm, "51.05 FO 05")
+        canvas.drawString(8*cm, doc.height - 0.3 * cm, "AUX EXAMENS")
+
+        canvas.restoreState()
+
+    def set_normal_template_page(self):
+        first_page_table_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 3 * cm,
+            id='first_table', showBoundary=0, leftPadding=0 * cm
+        )
+        later_pages_table_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 2 * cm,
+            id='later_table', showBoundary=0, leftPadding=0 * cm
+        )
+        # Page template
+        first_page = PageTemplate(id='FirstPage', frames=[first_page_table_frame], onPage=self.header)
+        self.addPageTemplates([first_page])
 
 
 class EpcBaseDocTemplate(SimpleDocTemplate):
@@ -64,7 +105,7 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
 
     def set_normal_template_page(self):
         first_page_table_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 4 * cm,
+            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 3 * cm,
             id='first_table', showBoundary=0, leftPadding=0 * cm
         )
         later_pages_table_frame = Frame(
@@ -277,7 +318,6 @@ class ExpertEDEPDF(EpcBaseLetterTemplate):
     """
     PDF letter to expert EDE
     """
-
     def __init__(self, student, **kwargs):
         filename = slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '.pdf'
         path = os.path.join(tempfile.gettempdir(), filename)
@@ -285,7 +325,7 @@ class ExpertEDEPDF(EpcBaseLetterTemplate):
         self.set_normal_template_page()
 
     def produce(self, student):
-        # Expert adresse
+        # Expert adress
         self.story.append(Paragraph(student.expert.title, style_adress))
         self.story.append(Paragraph(student.expert.full_name, style_adress))
         self.story.append(Paragraph(student.expert.street, style_adress))
@@ -348,4 +388,117 @@ class ExpertEDEPDF(EpcBaseLetterTemplate):
             internal_expert_full_name2=student.internal_expert.full_name,
             internal_expert_role2=student.internal_expert.role
         ), style_normal))
+        self.build(self.story)
+
+
+class ExaminationCompensationPdfForm(CifomBaseISO):
+
+    def __init__(self, student):
+        self.student = student
+        filename = slugify(
+            '{0}_{1}'.format(self.student.last_name, self.student.first_name)
+        ) + '_Indemn_expert.pdf'
+        path = os.path.join(tempfile.gettempdir(), filename)
+        super().__init__(path)
+        self.set_normal_template_page()
+
+    def formating(self, text):
+        return Preformatted(text, style_normal, maxLineLength=20)
+
+    def produce(self):
+        self.story.append(Spacer(0, 0.7 * cm))
+        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_center_12))
+        self.story.append(Spacer(0, 0.7 * cm))
+
+        self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
+        expert = self.student.expert
+        data = [
+            [self.formating('NOM : '), expert.last_name],
+            [self.formating('Prénom :'), expert.first_name],
+            [
+                self.formating('Date de naissance :'),
+                django_format(expert.birth_date, 'j F Y') if expert.birth_date else '?'
+            ],
+            [self.formating('N° de téléphone :'), expert.tel],
+            [self.formating('Adresse complète :'), expert.street],
+            ['', expert.pcode_city],
+            ['', ''],
+            [self.formating('Employeur :'), expert.corporation.name],
+        ]
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm])
+        t.hAlign = TA_LEFT
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 0.5 * cm))
+
+        self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
+        data = []
+        data.append([self.formating('N° de ccp ou compte bancaire :'), expert.ccp])
+        data.append([self.formating('Si banque, nom et adresse de celle-ci :'), expert.bank])
+        data.append([self.formating('ainsi que N° IBAN :'), expert.iban])
+        data.append(['', ''])
+        data.append([
+            self.formating('Mandat :'),
+            'Soutenance de {0} {1}, classe {2}'.format(
+                self.student.civility, self.student.full_name, self.student.klass
+            )
+        ])
+        data.append([
+            self.formating('Date des examens :'),
+            django_format(self.student.date_exam, 'l j F Y')
+        ])
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm])
+        t.hAlign = TA_LEFT
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                               ('BOX', (0, 0), (-1, -4), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 1.5 * cm))
+
+        data = [
+            ['Indemnités', 'Fr.'],
+            ['Frais de déplacements', 'Fr.'],
+            ['Repas', 'Fr.'],
+            ['TOTAL', 'Fr.'],
+        ]
+        t = Table(data, colWidths=[4.5 * cm, 3 * cm])
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('LINEBELOW', (1, 2), (2, 2), 0.5, colors.black),
+                               ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 1.5 * cm))
+        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr.:"]]
+        t = Table(data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm, ))
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                               ('FONTSIZE', (0, 0), (-1, -1), 7),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+
+        data = [
+            ['No écriture', "Compte à débiter", "CC / OTP", " Montants"],
+            ["Pièces annexées",'','', 'Fr.'],
+            ["Ordre", '', '', 'Fr.'],
+            ["No fournisseur", '', '', 'Fr.'],
+            ["Date scannage et visa", '', '', 'Fr.'],
+        ]
+        t = Table(data, colWidths=[3 * cm, 3 * cm, 3 * cm, 3 * cm])
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                               ('FONTSIZE', (0, 0), (-1, -1), 7),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+
         self.build(self.story)
