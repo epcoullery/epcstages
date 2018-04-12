@@ -360,15 +360,15 @@ class ExpertEDEPDF(EpcBaseLetterTemplate):
                 <br/>
                 L'autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
                 <br/>
-                Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire "Indemnisation d'experts aux examens"
-                que vous voudrez bien compléter au niveau des "données privées / coordonnées de paiement" et nous retourner dans les meilleurs délais.
+                Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d'experts aux examens»
+                que vous voudrez bien compléter au niveau des «données privées / coordonnées de paiement» et nous retourner dans les meilleurs délais.
                 <br/><br/>
                 Restant à votre disposition pour tout complément d'information et en vous remerciant de
                 l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_title}, l'asurance de notre considération distinguée.<br/>
                 <br/><br/><br/>
                 La responsable de filière:<br/>
                 <br/><br/>
-                Ann Schaub-Murray
+                {resp_filiere}
                 <br/><br/><br/>
                 Annexes: ment.
                 <br/><br/>
@@ -386,7 +386,8 @@ class ExpertEDEPDF(EpcBaseLetterTemplate):
             student_role=student.role,
             internal_expert_civility2=student.internal_expert.civility,
             internal_expert_full_name2=student.internal_expert.full_name,
-            internal_expert_role2=student.internal_expert.role
+            internal_expert_role2=student.internal_expert.role,
+            resp_filiere=settings.RESP_FILIERE_EDE,
         ), style_normal))
         self.build(self.story)
 

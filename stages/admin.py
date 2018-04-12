@@ -149,7 +149,7 @@ class StudentAdmin(admin.ModelAdmin):
         if obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
             return format_html(
                 '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
-                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;',
+                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
                 '<a class="button" href="{}">Indemnité aux experts</a>',
                 reverse('print-pdf-to-expert-ede', args=[obj.pk]),
                 reverse('student-ede-convocation', args=[obj.pk]),
