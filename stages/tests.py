@@ -213,11 +213,17 @@ tél. 032 886 33 00
 
     def test_print_ede_expert_compensation(self):
         st = Student.objects.get(first_name="Albin")
+        url = reverse('examination-compensation', args=[st.pk])
+        self.client.login(username='me', password='mepassword')
+        response = self.client.post(url, follow=True)
+        self.assertContains(response, "Toutes les informations ne sont pas disponibles")
+
         st.expert = CorpContact.objects.get(last_name="Horner")
+        st.internal_expert = Teacher.objects.get(last_name="Caux")
         st.date_exam = datetime(2018, 6, 28, 12, 00)
+        st.room = "B123"
         st.save()
         self.client.login(username='me', password='mepassword')
-        url = reverse('examination-compensation', args=[st.pk])
         response = self.client.post(url, follow=True)
         self.assertEqual(
             response['Content-Disposition'],

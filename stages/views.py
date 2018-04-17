@@ -933,6 +933,9 @@ def print_examination_compensation_form(request, pk):
     travail de diplôme
     """
     student = Student.objects.get(pk=pk)
+    if not student.is_examination_valid:
+        messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
+        return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
     pdf = ExaminationCompensationPdfForm(student)
     pdf.produce()
 
