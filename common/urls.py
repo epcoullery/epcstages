@@ -41,7 +41,8 @@ urlpatterns = [
         name='print-pdf-to-expert-ede'),
     path('student/<int:pk>/examination_compensation', views.print_examination_compensation_form,
         name='examination-compensation'),
-
+    path('student/<int:pk>/mentor-compensation', views.print_mentor_compensation_form,
+         name='mentor-compensation'),
     path('imputations/export/', views.imputations_export, name='imputations_export'),
     path('print/update_form/', views.print_update_form, name='print_update_form'),
     path('general_export/', views.general_export, name='general-export'),

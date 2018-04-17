@@ -295,6 +295,11 @@ class Student(models.Model):
 
     @property
     def is_examination_valid(self):
+        print(self.date_exam)
+        print(self.room)
+        print(self.expert)
+        print(self.internal_expert)
+
         return (self.date_exam and self.room and self.expert and self.internal_expert)
 
     def save(self, **kwargs):

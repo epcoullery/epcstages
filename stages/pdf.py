@@ -18,19 +18,22 @@ from reportlab.platypus import (
 )
 
 style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
+style_normal_center = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_CENTER)
 style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment=TA_LEFT)
 style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1*cm)
 style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=280)
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
 style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
 style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
-style_bold_center_12 = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alignment=TA_CENTER)
+style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alignment=TA_LEFT)
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
 
 
 class CifomBaseISO(SimpleDocTemplate):
+    points = "............................................................................................."
+
     def __init__(self, filename):
         super().__init__(
             filename, pagesize=A4, _pageBreakQuick=0,
@@ -68,6 +71,83 @@ class CifomBaseISO(SimpleDocTemplate):
         # Page template
         first_page = PageTemplate(id='FirstPage', frames=[first_page_table_frame], onPage=self.header)
         self.addPageTemplates([first_page])
+
+    def private_data(self, person):
+        self.story.append(Spacer(0, 0.5 * cm))
+        self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
+        self.story.append(Spacer(0, 0.2 * cm))
+        data = [
+            [self.formating('Nom : '), person.last_name or self.points],
+            [self.formating('Prénom :'), person.first_name or self.points],
+            [
+                self.formating('Date de naissance :'),
+                django_format(person.birth_date, 'j F Y') if person.birth_date else self.points
+            ],
+            [self.formating('N° de téléphone :'), person.tel or self.points],
+            [self.formating('Adresse complète :'), person.street or self.points],
+            ['', person.pcode_city if person.pcode else self.points],
+            ['', self.points],
+            [self.formating('Employeur :'), person.corporation.name or self.points],
+            [Spacer(0, 0.2 * cm)],
+        ]
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm])
+        t.hAlign = TA_LEFT
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 0.5 * cm))
+
+    def account_data(self, person):
+
+        self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
+        self.story.append(Spacer(0, 0.2 * cm))
+        data = []
+        data.append([self.formating('N° de ccp ou compte bancaire :'), person.ccp or self.points])
+        data.append([self.formating('Si banque, nom et adresse de celle-ci :'), person.bank or self.points])
+        data.append([self.formating('ainsi que N° IBAN :'), person.iban or self.points])
+
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm])
+        t.hAlign = TA_LEFT
+        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 0.5 * cm))
+
+    def formating(self, text):
+        return Preformatted(text, style_normal, maxLineLength=25)
+
+    def stamp_account(self):
+        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr.:"]]
+        t = Table(data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm,))
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                               ('FONTSIZE', (0, 0), (-1, -1), 7),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        self.story.append(t)
+
+        data = [
+            ['No écriture', "Compte à débiter", "CC / OTP", " Montants"],
+            ["Pièces annexées", '', '', 'Fr.'],
+            ["Ordre", '', '', 'Fr.'],
+            ["No fournisseur", '', '', 'Fr.'],
+            ["Date scannage et visa", '', '', 'Fr.'],
+        ]
+        t = Table(data, colWidths=[3 * cm, 3 * cm, 3 * cm, 3 * cm])
+        t.hAlign = TA_CENTER
+        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                               ('FONTSIZE', (0, 0), (-1, -1), 7),
+                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+                               ]))
+        return t
 
 
 class EpcBaseDocTemplate(SimpleDocTemplate):
@@ -403,62 +483,23 @@ class ExaminationCompensationPdfForm(CifomBaseISO):
         super().__init__(path)
         self.set_normal_template_page()
 
-    def formating(self, text):
-        return Preformatted(text, style_normal, maxLineLength=20)
-
     def produce(self):
+        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_title))
         self.story.append(Spacer(0, 0.7 * cm))
-        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_center_12))
-        self.story.append(Spacer(0, 0.7 * cm))
 
-        self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
-        expert = self.student.expert
-        data = [
-            [self.formating('NOM : '), expert.last_name],
-            [self.formating('Prénom :'), expert.first_name],
-            [
-                self.formating('Date de naissance :'),
-                django_format(expert.birth_date, 'j F Y') if expert.birth_date else '?'
-            ],
-            [self.formating('N° de téléphone :'), expert.tel],
-            [self.formating('Adresse complète :'), expert.street],
-            ['', expert.pcode_city],
-            ['', ''],
-            [self.formating('Employeur :'), expert.corporation.name],
-        ]
+        self.private_data(self.student.expert)
+        self.account_data(self.student.expert)
 
-        t = Table(data, colWidths=[4 * cm, 12 * cm])
-        t.hAlign = TA_LEFT
-        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
-        self.story.append(t)
-        self.story.append(Spacer(0, 0.5 * cm))
-
-        self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
-        data = []
-        data.append([self.formating('N° de ccp ou compte bancaire :'), expert.ccp])
-        data.append([self.formating('Si banque, nom et adresse de celle-ci :'), expert.bank])
-        data.append([self.formating('ainsi que N° IBAN :'), expert.iban])
-        data.append(['', ''])
-        data.append([
-            self.formating('Mandat :'),
-            'Soutenance de {0} {1}, classe {2}'.format(
+        self.story.append(Paragraph(
+            "Soutenance de {0} {1}, classe {2}".format(
                 self.student.civility, self.student.full_name, self.student.klass
-            )
-        ])
-        data.append([
-            self.formating('Date des examens :'),
-            django_format(self.student.date_exam, 'l j F Y')
-        ])
+            ), style_normal
+        ))
+        self.story.append(Paragraph(
+            "Date de l'examen : {}".format(django_format(self.student.date_exam, 'l j F Y')), style_normal
+        ))
 
-        t = Table(data, colWidths=[4 * cm, 12 * cm])
-        t.hAlign = TA_LEFT
-        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-                               ('BOX', (0, 0), (-1, -4), 0.25, colors.black),
-                               ]))
-        self.story.append(t)
-        self.story.append(Spacer(0, 1.5 * cm))
+        self.story.append(Spacer(0, 2 * cm))
 
         data = [
             ['Indemnités', 'Fr.'],
@@ -473,33 +514,41 @@ class ExaminationCompensationPdfForm(CifomBaseISO):
                                ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
                                ]))
         self.story.append(t)
-        self.story.append(Spacer(0, 1.5 * cm))
-        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr.:"]]
-        t = Table(data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm, ))
-        t.hAlign = TA_CENTER
-        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                               ('FONTSIZE', (0, 0), (-1, -1), 7),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
-        self.story.append(t)
+        self.story.append(Spacer(0, 1 * cm))
 
-        data = [
-            ['No écriture', "Compte à débiter", "CC / OTP", " Montants"],
-            ["Pièces annexées",'','', 'Fr.'],
-            ["Ordre", '', '', 'Fr.'],
-            ["No fournisseur", '', '', 'Fr.'],
-            ["Date scannage et visa", '', '', 'Fr.'],
-        ]
-        t = Table(data, colWidths=[3 * cm, 3 * cm, 3 * cm, 3 * cm])
-        t.hAlign = TA_CENTER
-        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                               ('FONTSIZE', (0, 0), (-1, -1), 7),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
-        self.story.append(t)
+        self.story.append(self.stamp_account())
+
+        self.build(self.story)
+
+
+class MentorCompensationPdfForm(CifomBaseISO):
+    # points = "............................................................................................."
+    def __init__(self, student):
+        self.student = student
+        filename = slugify(
+            '{0}_{1}'.format(self.student.last_name, self.student.first_name)
+        ) + '_Indemn_montor.pdf'
+        path = os.path.join(tempfile.gettempdir(), filename)
+        super().__init__(path)
+        self.set_normal_template_page()
+
+    def produce(self):
+        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_title))
+        self.story.append(Spacer(0, 0.7 * cm))
+        self.private_data(self.student.mentor)
+        self.account_data(self.student.mentor)
+        self.story.append(Spacer(0, 4 * cm))
+
+        self.story.append(Paragraph(
+            "Mandat : Mentoring de {0} {1}, classe {2}".format(
+                self.student.civility, self.student.full_name, self.student.klass
+            ), style_normal_center
+        ))
+        self.story.append(Paragraph(
+            "Montant forfaitaire de Fr 500.- payable à la fin de la session d'examen", style_normal_center
+        ))
+        self.story.append(Spacer(0, 1 * cm))
+
+        self.story.append(self.stamp_account())
 
         self.build(self.story)
