@@ -1,13 +1,12 @@
 import json
 import os
 import re
-from subprocess import PIPE, Popen, call
-
 import tempfile
 import zipfile
+
+from subprocess import PIPE, Popen, call
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
-
 from tabimport import CSVImportedFile, FileFactory
 
 from django.conf import settings
@@ -34,7 +33,7 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
-from .pdf import ExaminationCompensationPdfForm, ExpertEDEPDF, UpdateDataFormPDF
+from .pdf import ExpertEdeLetterPdf, MentorCompensationPdfForm, UpdateDataFormPDF
 from .utils import is_int
 
 
@@ -909,7 +908,7 @@ def print_update_form(request):
     return response
 
 
-def print_pdf_to_expert_ede(request, pk):
+def print_expert_ede_compensation_form(request, pk):
     """
     Imprime le PDF à envoyer à l'expert EDE en accompagnement du
     travail de diplôme
@@ -918,8 +917,8 @@ def print_pdf_to_expert_ede(request, pk):
     if not student.is_examination_valid:
         messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = ExpertEDEPDF(student)
-    pdf.produce(student)
+    pdf = ExpertEdeLetterPdf(student)
+    pdf.produce()
 
     with open(pdf.filename, mode='rb') as fh:
         response = HttpResponse(fh.read(), content_type='application/pdf')
@@ -927,7 +926,7 @@ def print_pdf_to_expert_ede(request, pk):
     return response
 
 
-def print_examination_compensation_form(request, pk):
+def print_mentor_ede_compensation_form(request, pk):
     """
     Imprime le PDF à envoyer à l'expert EDE en accompagnement du
     travail de diplôme
@@ -936,7 +935,7 @@ def print_examination_compensation_form(request, pk):
     if not student.is_examination_valid:
         messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = ExaminationCompensationPdfForm(student)
+    pdf = MentorCompensationPdfForm(student)
     pdf.produce()
 
     with open(pdf.filename, mode='rb') as fh:
