@@ -159,15 +159,17 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
     def header(self, canvas, doc):
         canvas.saveState()
         canvas.drawImage(
-            LOGO_EPC, doc.leftMargin, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+            LOGO_EPC, doc.leftMargin, doc.height - 1.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
         )
         canvas.drawImage(
-            LOGO_ESNE, doc.width - 2 * cm, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+            LOGO_ESNE, doc.width - 2.5 * cm, doc.height - 1.2 * cm, 5 * cm, 3.3 * cm, preserveAspectRatio=True
         )
-        canvas.line(doc.leftMargin, doc.height - 0.5 * cm, doc.width + doc.leftMargin, doc.height - 0.5 * cm)
-        canvas.drawString(doc.leftMargin, doc.height - 1.1 * cm, self.filiere)
-        canvas.drawRightString(doc.width + doc.leftMargin, doc.height - 1.1 * cm, self.title)
-        canvas.line(doc.leftMargin, doc.height - 1.3 * cm, doc.width + doc.leftMargin, doc.height - 1.3 * cm)
+
+        # Footer
+        canvas.line(doc.leftMargin, 1 * cm, doc.width + doc.leftMargin, 1 * cm)
+        footer = Paragraph(settings.PDF_FOOTER_TEXT, style_footer)
+        w, h = footer.wrap(doc.width, doc.bottomMargin)
+        footer.drawOn(canvas, doc.leftMargin, h)
         canvas.restoreState()
 
     def later_header(self, canvas, doc):
@@ -192,30 +194,6 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         later_pages = PageTemplate(id='LaterPages', frames=[later_pages_table_frame], onPage=self.later_header)
         self.addPageTemplates([first_page, later_pages])
         self.story = [NextPageTemplate(['*', 'LaterPages'])]
-
-
-class EpcBaseLetterTemplate(EpcBaseDocTemplate):
-    def __init__(self, filename, title=''):
-        super().__init__(filename)
-        self.story = []
-        self.title = title
-
-    def header(self, canvas, doc):
-        canvas.saveState()
-        canvas.drawImage(
-            LOGO_EPC, doc.leftMargin, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
-        )
-        canvas.drawImage(
-            LOGO_ESNE, doc.width - 2 * cm, doc.height - 0.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
-        )
-        # Footer
-        canvas.line(doc.leftMargin, 1 * cm, doc.width + doc.leftMargin, 1 * cm)
-        footer = Paragraph('Ecole Santé-social Pierre-Coullery | Prévoyance 82 - 2300 La Chaux-de-Fonds | '
-                           '032 886 33 00 | cifom-epc@rpn.ch', style_footer)
-        w, h = footer.wrap(doc.width, doc.bottomMargin)
-        footer.drawOn(canvas, doc.leftMargin, h)
-
-        canvas.restoreState()
 
 
 class ChargeSheetPDF(SimpleDocTemplate):
@@ -389,7 +367,7 @@ class UpdateDataFormPDF(SimpleDocTemplate):
         return any(el in klass_name for el in ['FE', 'EDS'])
 
 
-class ExpertEDEPDF(EpcBaseLetterTemplate):
+class ExpertEDEPDF(EpcBaseDocTemplate):
     """
     PDF letter to expert EDE
     """

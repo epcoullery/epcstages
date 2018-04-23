@@ -140,7 +140,8 @@ INSTRUCTOR_IMPORT_MAPPING = {
     'MAIL_FORMATEUR': 'email',
 }
 
-CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2017-2018"
+CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2018-2019"
+PDF_FOOTER_TEXT = 'Ecole Santé-social Pierre-Coullery | Prévoyance 82 - 2300 La Chaux-de-Fonds | 032 886 33 00 | cifom-epc@rpn.ch'
 
 # Maximum numbers of periods per teacher per year
 MAX_ENS_PERIODS = 1900
