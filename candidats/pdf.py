@@ -6,14 +6,11 @@ from reportlab.platypus import PageTemplate, Paragraph, Table, TableStyle
 from django.utils.dateformat import format as django_format
 from django.utils.text import slugify 
 
-from stages.pdf import EpcBaseDocTemplate, LOGO_EPC, LOGO_ESNE
+from stages.pdf import EpcBaseDocTemplate, LOGO_EPC, LOGO_ESNE, style_normal, style_bold
 from .models import (
     AES_ACCORDS_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
     OPTION_CHOICES, RESIDENCE_PERMITS_CHOICES,
 )
-
-style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=9, alignment=TA_LEFT)
-style_normal_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=9, alignment=TA_LEFT, spaceBefore=0.5 * cm)
 
 
 class InscriptionSummaryPDF(EpcBaseDocTemplate):
@@ -59,7 +56,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         ])
 
         # Personal data
-        self.story.append(Paragraph("Données personnelles", style_normal_bold))
+        self.story.append(Paragraph("Données personnelles", style_bold))
         data = [
             ['Nom: ', candidate.last_name,
              'Date de naissance:',
@@ -72,7 +69,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         self.story.append(t)
 
         # Inscription
-        self.story.append(Paragraph("Option choisie", style_normal_bold))
+        self.story.append(Paragraph("Option choisie", style_bold))
         data = [
             [candidate.get_section_display(), candidate.get_option_display()]
         ]
@@ -81,7 +78,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         self.story.append(t)
 
         # Diploma
-        self.story.append(Paragraph("Titres / diplôme / Attestations", style_normal_bold))
+        self.story.append(Paragraph("Titres / diplôme / Attestations", style_bold))
         detail = '({0})'.format(candidate.diploma_detail) if candidate.diploma_detail else ''
         data = [
             ['{0} {1}'.format(candidate.get_diploma_display(), detail),
@@ -132,7 +129,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         self.story.append(t)
 
         # Other documents
-        self.story.append(Paragraph("Autres documents", style_normal_bold))
+        self.story.append(Paragraph("Autres documents", style_bold))
         data = []
         docs_required = [
             'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'has_photo',
@@ -148,7 +145,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         self.story.append(t)
 
         # Remarks
-        self.story.append(Paragraph("Remarques", style_normal_bold))
+        self.story.append(Paragraph("Remarques", style_bold))
         self.story.append(Paragraph(candidate.comment, style_normal))
 
         self.build(self.story)
