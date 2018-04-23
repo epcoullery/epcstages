@@ -1,6 +1,3 @@
-import os
-import tempfile
-
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.units import cm
@@ -25,8 +22,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
     """
     def __init__(self, candidate, **kwargs):
         filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path, title="Dossier d'inscription", **kwargs)
+        super().__init__(filename, title="Dossier d'inscription", **kwargs)
         self.set_normal_template_page()
 
     def produce(self, candidate):

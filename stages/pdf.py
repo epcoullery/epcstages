@@ -149,8 +149,9 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
     filiere = 'Formation EDE'
 
     def __init__(self, filename, title='', pagesize=A4):
+        path = os.path.join(tempfile.gettempdir(), filename)
         super().__init__(
-            filename, pagesize=pagesize, _pageBreakQuick=0,
+            path, pagesize=pagesize, _pageBreakQuick=0,
             lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=2.5 * cm
         )
         self.story = []
@@ -373,8 +374,7 @@ class ExpertEDEPDF(EpcBaseDocTemplate):
     """
     def __init__(self, student, **kwargs):
         filename = slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path, title="", **kwargs)
+        super().__init__(filename, title="", **kwargs)
         self.set_normal_template_page()
 
     def produce(self, student):
