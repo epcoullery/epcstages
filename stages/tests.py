@@ -223,9 +223,9 @@ tél. 032 886 33 00
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
 
-    def test_print_ede_expert_compensation(self):
+    def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")
-        url = reverse('examination-compensation', args=[st.pk])
+        url = reverse('print-expert-compens-ede', args=[st.pk])
         self.client.login(username='me', password='mepassword')
         response = self.client.post(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
@@ -240,6 +240,17 @@ tél. 032 886 33 00
         self.assertEqual(
             response['Content-Disposition'],
             'attachment; filename="dupond_albin_Indemn_expert.pdf"'
+        )
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertGreater(len(response.content), 200)
+
+        # Mentor form
+        st.mentor = CorpContact.objects.get(last_name="Horner")
+        st.save()
+        response = self.client.post(reverse('print-mentor-compens-ede', args=[st.pk]), follow=True)
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename="dupond_albin_Indemn_mentor.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
