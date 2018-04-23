@@ -112,7 +112,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'examination_actions', )
+    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'examination_actions', 'date_soutenance_mailed', 'date_confirm_received')
     fieldsets = (
         (None, {
             'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
@@ -150,12 +150,10 @@ class StudentAdmin(admin.ModelAdmin):
             return format_html(
                 '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                 '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                '<a class="button" href="{}">Indemnité aux experts</a>&nbsp;'
                 '<a class="button" href="{}">Indemnité au mentor</a>',
-                reverse('print-pdf-to-expert-ede', args=[obj.pk]),
+                reverse('print-expert-ede', args=[obj.pk]),
                 reverse('student-ede-convocation', args=[obj.pk]),
-                reverse('examination-compensation', args=[obj.pk]),
-                reverse('mentor-compensation', args=[obj.pk]),
+                reverse('print-mentor-ede', args=[obj.pk])
             )
         else:
             return ''
@@ -167,16 +165,17 @@ class CorpContactAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter),)
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
-    fields = (('title', 'last_name', 'first_name'),
-              ('street', 'pcode', 'city'),
-              ('birth_date',),
-              ('corporation',),
-              ('sections', 'is_main', 'always_cc', 'archived'),
-              ('role', 'ext_id'), ('tel', 'email'),
-              ('ccp', 'bank', 'clearing' ),
-              ('iban',),
-              ('qualification', 'fields_of_interest'),
-             )
+    fields = (
+        ('title', 'last_name', 'first_name'),
+        ('street', 'pcode', 'city'),
+        ('birth_date',),
+        ('corporation',),
+        ('sections', 'is_main', 'always_cc', 'archived'),
+        ('role', 'ext_id'), ('tel', 'email'),
+        ('ccp', 'bank', 'clearing' ),
+        ('iban',),
+        ('qualification', 'fields_of_interest'),
+    )
     formfield_overrides = {
         models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
     }

@@ -1,22 +1,16 @@
-import os
-import tempfile
 
 from reportlab.lib.enums import TA_LEFT
-from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Table, TableStyle
+from reportlab.platypus import Paragraph, Table, TableStyle, PageTemplate, Spacer
 
 from django.utils.dateformat import format as django_format
 from django.utils.text import slugify 
 
-from stages.pdf import EpcBaseDocTemplate
+from stages.pdf import EpcBaseDocTemplate, style_normal, style_bold
 from .models import (
     AES_ACCORDS_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
     OPTION_CHOICES, RESIDENCE_PERMITS_CHOICES,
 )
-
-style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=9, alignment=TA_LEFT)
-style_normal_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=9, alignment=TA_LEFT, spaceBefore=0.5 * cm)
 
 
 class InscriptionSummaryPDF(EpcBaseDocTemplate):
@@ -25,9 +19,10 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
     """
     def __init__(self, candidate, **kwargs):
         filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path, title="Dossier d'inscription", **kwargs)
-        self.set_normal_template_page()
+        super().__init__(filename)
+        first_page = PageTemplate(id='FisrtPage', frames=[self.page_frame], onPage=self.header_ede_summary)
+        self.addPageTemplates([first_page])
+
 
     def produce(self, candidate):
         # personal data
@@ -38,35 +33,39 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         residence_permits = dict(RESIDENCE_PERMITS_CHOICES)
 
         ts = TableStyle([
-            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONT', (0, 0), (-1, -1), 'Helvetica'),
-            ('SIZE', (0, 0), (0, -1), 9)
+            ('FONTSIZE', (0, 0), (-1, -1), 8)
         ])
 
         # Personal data
-        self.story.append(Paragraph("Données personnelles", style_normal_bold))
+        self.story.append(Spacer(0, 2*cm))
+        self.story.append(Paragraph("Données personnelles", style_bold))
         data = [
             ['Nom: ', candidate.last_name,
              'Date de naissance:',
-             django_format(candidate.birth_date, 'j F Y') if candidate.birth_date else '?'],
+             django_format(candidate.birth_date, 'j F Y') if candidate.birth_date else '?'
+            ],
             ['Prénom:', candidate.first_name, 'Canton:', candidate.district],
-            ['N° de tél.:', candidate.mobile, '',''],
+            ['N° de tél.:', candidate.mobile, '','']
         ]
-        t = Table(data, colWidths=[4 * cm, 5 * cm, 4 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[4 * cm, 5 * cm, 4 * cm, 4 * cm])
+        t.hAlign = TA_LEFT
         t.setStyle(ts)
         self.story.append(t)
 
         # Inscription
-        self.story.append(Paragraph("Option choisie", style_normal_bold))
+        self.story.append(Paragraph("Option choisie", style_bold))
         data = [
             [candidate.get_section_display(), candidate.get_option_display()]
         ]
-        t = Table(data, colWidths=[6 * cm, 11 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[6 * cm, 11 * cm])
+        t.hAlign = TA_LEFT
         t.setStyle(ts)
         self.story.append(t)
 
         # Diploma
-        self.story.append(Paragraph("Titres / diplôme / Attestations", style_normal_bold))
+        self.story.append(Paragraph("Titres / diplôme / Attestations", style_bold))
         detail = '({0})'.format(candidate.diploma_detail) if candidate.diploma_detail else ''
         data = [
             ['{0} {1}'.format(candidate.get_diploma_display(), detail),
@@ -112,12 +111,13 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             data.append(["Contrat de travail", candidate.get_ok('contract')])
             data.append(["Promesse d'engagement", candidate.get_ok('promise')])
             data.append(["Taux d'activité", candidate.activity_rate])
-        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[13 * cm, 4 * cm])
+        t.hAlign = TA_LEFT
         t.setStyle(ts)
         self.story.append(t)
 
         # Other documents
-        self.story.append(Paragraph("Autres documents", style_normal_bold))
+        self.story.append(Paragraph("Autres documents", style_bold))
         data = []
         docs_required = [
             'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'has_photo',
@@ -128,12 +128,13 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         data.append(['Validation des accords AES', aes_accords[candidate.aes_accords]])
         data.append(['Autorisation de séjour (pour les personnes étrangères)', residence_permits[candidate.residence_permits]])
 
-        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[13 * cm, 4 * cm])
+        t.hAlign = TA_LEFT
         t.setStyle(ts)
         self.story.append(t)
 
         # Remarks
-        self.story.append(Paragraph("Remarques", style_normal_bold))
+        self.story.append(Paragraph("Remarques", style_bold))
         self.story.append(Paragraph(candidate.comment, style_normal))
 
         self.build(self.story)
