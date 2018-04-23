@@ -197,7 +197,7 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         self.story = [NextPageTemplate(['*', 'LaterPages'])]
 
 
-class ChargeSheetPDF(SimpleDocTemplate):
+class ChargeSheetPDF(EpcBaseDocTemplate):
     """
     Génération des feuilles de charges en pdf.
     """
@@ -205,14 +205,10 @@ class ChargeSheetPDF(SimpleDocTemplate):
     def __init__(self, teacher):
         self.teacher = teacher
         filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
-        self.story = []
+        super().__init__(filename)
+        self.set_normal_template_page()
 
     def produce(self, activities):
-        header = open(find('img/header.gif'), 'rb')
-        self.story.append(Image(header, width=520, height=75))
-        self.story.append(Spacer(0, 2*cm))
         destinataire = '{0}<br/>{1}'.format(self.teacher.civility, str(self.teacher))
         self.story.append(Paragraph(destinataire, style_adress))
         self.story.append(Spacer(0, 2*cm))
@@ -257,15 +253,14 @@ class ChargeSheetPDF(SimpleDocTemplate):
             self.story.append(Paragraph(d, style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
-        header.close()
 
 
-class UpdateDataFormPDF(SimpleDocTemplate):
+class UpdateDataFormPDF(EpcBaseDocTemplate):
     """
     Génération des formulaires PDF de mise à jour des données.
     """
-    def __init__(self, path):
-        super().__init__(path, pagesize=A4, topMargin=0*cm, leftMargin=2*cm)
+    def __init__(self, filename):
+        super().__init__(filename)
         self.text = (
             "Afin de mettre à jour nos bases de données, nous vous serions reconnaissant "
             "de contrôler les données ci-dessous qui vous concernent selon votre filière "

@@ -901,8 +901,7 @@ def print_update_form(request):
     tmp_file = tempfile.NamedTemporaryFile()
     with zipfile.ZipFile(tmp_file, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
         for klass in Klass.objects.filter(level__gte=2).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
-            path = os.path.join(tempfile.gettempdir(), '{0}.pdf'.format(klass.name))
-            pdf = UpdateDataFormPDF(path)
+            pdf = UpdateDataFormPDF('{0}.pdf'.format(klass.name))
             pdf.produce(klass)
             filezip.write(pdf.filename)
 
