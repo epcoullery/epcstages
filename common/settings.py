@@ -146,6 +146,8 @@ PDF_FOOTER_TEXT = 'Ecole Santé-social Pierre-Coullery | Prévoyance 82 - 2300 L
 # Maximum numbers of periods per teacher per year
 MAX_ENS_PERIODS = 1900
 MAX_ENS_FORMATION = 250
+GLOBAL_CHARGE_TOTAL = 2150
+GLOBAL_CHARGE_PERCENT = 21.5
 
 RESP_FILIERE_EDE = "Ann Schaub-Murray"
 DATE_LIEU_EXAMEN_EDE = "mercredi 7 mars 2018, à 13h30, salle A405"

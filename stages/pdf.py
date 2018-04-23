@@ -13,7 +13,7 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 from reportlab.lib import colors
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.platypus import (
-    Frame, Image, NextPageTemplate, PageBreak, PageTemplate, Paragraph,
+    Flowable, Frame, Image, NextPageTemplate, PageBreak, PageTemplate, Paragraph,
     SimpleDocTemplate, Spacer, Table, TableStyle, Preformatted
 )
 
@@ -30,6 +30,20 @@ style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alig
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
 LOGO_EPC_LONG = find('img/header.gif')
+
+
+class HorLine(Flowable):
+    """Line flowable --- draws a line in a flowable"""
+
+    def __init__(self, width):
+        Flowable.__init__(self)
+        self.width = width
+
+    def __repr__(self):
+        return "Line(w=%s)" % self.width
+
+    def draw(self):
+        self.canv.line(0, 0, self.width, 0)
 
 
 class EpcBaseDocTemplate(SimpleDocTemplate):
@@ -183,44 +197,55 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
     def produce(self, activities):
         self.add_address(self.teacher)
 
-        data = [[settings.CHARGE_SHEET_TITLE]]
+        self.story.append(Paragraph(settings.CHARGE_SHEET_TITLE, style_bold))
+        self.story.append(HorLine(450))
 
-        data.append(["Report de l'année précédente", '{0:3d} pér.'.format(self.teacher.previous_report)])
-        data.append(['Mandats', '{0:3d} pér.'.format(activities['tot_mandats'])])
+        data = [
+            ["Report de l'année précédente", '{0:3d} pér.'.format(self.teacher.previous_report)],
+            ['Mandats', '{0:3d} pér.'.format(activities['tot_mandats'])],
+        ]
 
         for act in activities['mandats']:
             data.append(['    * {0} ({1} pér.)'.format(act.subject, act.period)])
 
-        data.append(['Enseignement (coef.2)', '{0:3d} pér.'.format(activities['tot_ens'])])
-        data.append(['Formation continue et autres tâches', '{0:3d} pér.'.format(activities['tot_formation'])])
-        data.append(['Total des heures travaillées', '{0:3d} pér.'.format(activities['tot_trav']),
-                     '{0:4.1f} %'.format(activities['tot_trav']/21.50)])
-        data.append(['Total des heures payées', '{0:3d} pér.'.format(activities['tot_paye']),
-                     '{0:4.1f} %'.format(activities['tot_paye']/21.50)])
-        data.append(["Report à l'année prochaine", '{0:3d} pér.'.format(activities['report'])])
+        data.extend([
+            ['Enseignement (coef.2)',
+             '{0:3d} pér.'.format(activities['tot_ens'])],
+            ['Formation continue et autres tâches',
+             '{0:3d} pér.'.format(activities['tot_formation'])],
+            ['Total des heures travaillées', '{0:3d} pér.'.format(activities['tot_trav']),
+             '{0:4.1f} %'.format(activities['tot_trav'] / settings.GLOBAL_CHARGE_PERCENT)],
+            ['Total des heures payées',
+             '{0:3d} pér.'.format(activities['tot_paye']),
+             '{0:4.1f} %'.format(activities['tot_paye'] / settings.GLOBAL_CHARGE_PERCENT)],
+            ["Report à l'année prochaine",
+             '{0:3d} pér.'.format(activities['report'])],
+        ])
 
-        t = Table(data, colWidths=[12*cm, 2*cm, 2*cm])
-        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
-                               ('FONT', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                               ('LINEBELOW', (0, 0), (-1, 0), 0.5, colors.black),
-                               ('LINEABOVE', (0, -3), (-1, -1), 0.5, colors.black),
-                               ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
-                               ]))
-        t.hAlign = TA_CENTER
+        t = Table(
+            data, colWidths=[12 * cm, 2 * cm, 2 * cm], hAlign=TA_CENTER,
+            rowHeights=(0.6 * cm), spaceBefore=0.7 * cm, spaceAfter=1.5 * cm
+        )
+        t.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('LINEABOVE', (0, -3), (-1, -1), 0.5, colors.black),
+            ('FONT', (0, -2), (-1, -2), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
+        ]))
         self.story.append(t)
-        self.story.append(Spacer(0, 2*cm))
+
         d = 'La Chaux-de-Fonds, le {0}'.format(django_format(date.today(), 'j F Y'))
         self.story.append(Paragraph(d, style_normal))
-        self.story.append(Spacer(0, 0.5*cm))
+        self.story.append(Spacer(0, 0.5 * cm))
         self.story.append(Paragraph('la direction', style_normal))
-        max_total = settings.MAX_ENS_PERIODS + settings.MAX_ENS_FORMATION
-        if activities['tot_paye'] == max_total and activities['tot_paye'] != activities['tot_trav']:
+
+        if (activities['tot_paye'] == settings.GLOBAL_CHARGE_TOTAL and
+                activities['tot_paye'] != activities['tot_trav']):
             self.story.append(Spacer(0, 1 * cm))
             d = 'Je soussigné-e déclare accepter les conditions ci-dessus pour la régularisation de mon salaire.'
             self.story.append(Paragraph(d, style_normal))
             self.story.append(Spacer(0, 1 * cm))
-            d = 'Lieu, date et signature: ___________________________________________________________________________'
-            self.story.append(Paragraph(d, style_normal))
+            self.story.append(Paragraph('Lieu, date et signature: ' + self.points, style_normal))
         self.story.append(PageBreak())
         self.build(self.story)
 
