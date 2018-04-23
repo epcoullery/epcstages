@@ -260,8 +260,9 @@ class Student(models.Model):
     last_appointment = models.DateField(blank=True, null=True)
     room = models.CharField('Salle', max_length=15, blank=True)
     mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
+    date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
+    date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
     #  ============== Fields for examination ======================
-
     support_tabimport = True
 
     class Meta:

@@ -40,7 +40,8 @@ class StagesTest(TestCase):
         )
         Student.objects.bulk_create([
             Student(first_name="Albin", last_name="Dupond", birth_date="1994-05-12",
-                    pcode="2300", city="La Chaux-de-Fonds", klass=klass1),
+                    pcode="2300", city="La Chaux-de-Fonds", email="albin@example.org",
+                    klass=klass1),
             Student(first_name="Justine", last_name="Varrin", birth_date="1994-07-12",
                     pcode="2000", city="Neuchâtel", klass=klass1),
             Student(first_name="Elvire", last_name="Hickx", birth_date="1994-05-20",
@@ -191,6 +192,17 @@ me@example.org
 tél. 032 886 33 00
 """
         self.assertEqual(response.context['form'].initial['message'], expected_message)
+        # Now send the message
+        response = self.client.post(url, data={
+            'cci': 'me@example.org',
+            'to': st.email,
+            'subject': "Convocation",
+            'message': "Monsieur Albin, ...",
+            'sender': 'me@example.org',
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        st.refresh_from_db()
+        self.assertIsNotNone(st.date_soutenance_mailed)
 
     def test_print_letter_ede_expert(self):
         st = Student.objects.get(first_name="Albin")

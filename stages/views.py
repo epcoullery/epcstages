@@ -668,9 +668,8 @@ class EmailConfirmationView(EmailConfirmationBaseView):
 class StudentConvocationExaminationView(EmailConfirmationView):
     success_message = "Le message de convocation a été envoyé pour l’étudiant {person}"
     title = "Convocation à la soutenance du travail de diplôme"
-    candidate_date_field = 'convocation_date'
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         self.student = Student.objects.get(pk=self.kwargs['pk'])
         error = ''
         if not self.student.is_examination_valid:
@@ -682,7 +681,7 @@ class StudentConvocationExaminationView(EmailConfirmationView):
         if error:
             messages.error(request, error)
             return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
-        return super().get(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_initial(self):
         initial = super().get_initial()
@@ -729,6 +728,10 @@ class StudentConvocationExaminationView(EmailConfirmationView):
             'sender': self.request.user.email,
         })
         return initial
+
+    def on_success(self, student):
+        student.date_soutenance_mailed = timezone.now()
+        student.save()
 
 
 EXPORT_FIELDS = [
