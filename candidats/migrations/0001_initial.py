@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('mobile', models.CharField(blank=True, max_length=40, verbose_name='Portable')),
                 ('email', models.EmailField(blank=True, max_length=254, verbose_name='Courriel')),
                 ('avs', models.CharField(blank=True, max_length=15, verbose_name='No AVS')),
-                ('handicap', models.BooleanField(default=False)),
+                ('handicap', models.BooleanField(default=False, verbose_name='Handicap/besoins part.')),
                 ('section', models.CharField(choices=[('ASA', 'Aide en soin et accompagnement AFP'), ('ASE', 'Assist. socio-éducatif-ve CFC'), ('ASSC', 'Assist. en soin et santé communautaire CFC'), ('EDE', "Education de l'enfance, dipl. ES"), ('EDS', 'Education sociale, dipl. ES')], max_length=10, verbose_name='Filière')),
                 ('option', models.CharField(blank=True, choices=[('GEN', 'Généraliste'), ('ENF', 'Enfance'), ('PAG', 'Personnes âgées'), ('HAN', 'Handicap'), ('PE-5400h', 'Parcours Emploi 5400h.'), ('PE-3600h', 'Parcours Emploi 3600h.'), ('PS', 'Parcours stage')], max_length=20, verbose_name='Option')),
                 ('exemption_ecg', models.BooleanField(default=False)),
