@@ -55,6 +55,12 @@ class Klass(models.Model):
     def __str__(self):
         return self.name
 
+    def is_Ede_pe(self):
+        return 'EDEpe' in self.name
+
+    def is_Ede_ps(self):
+        return 'EDEps' in self.name
+
 
 class Teacher(models.Model):
     civility = models.CharField(max_length=10, verbose_name='Civilité')

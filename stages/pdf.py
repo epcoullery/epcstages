@@ -98,78 +98,8 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         canvas.drawString(8 * cm, doc.height - 2.5 * cm, "Ecole Santé-social Pierre-Coullery")
         canvas.restoreState()
 
-    def add_private_data(self, person):
-        self.story.append(Spacer(0, 0.5 * cm))
-        self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
-        self.story.append(Spacer(0, 0.2 * cm))
-        data = [
-            [self.formating('Nom : '), person.last_name or self.points],
-            [self.formating('Prénom :'), person.first_name or self.points],
-            [
-                self.formating('Date de naissance :'),
-                django_format(person.birth_date, 'j F Y') if person.birth_date else self.points
-            ],
-            [self.formating('N° de téléphone :'), person.tel or self.points],
-            [self.formating('Adresse complète :'), person.street or self.points],
-            ['', person.pcode_city if person.pcode else self.points],
-            ['', self.points],
-            [self.formating('Employeur :'), person.corporation.name or self.points],
-            [Spacer(0, 0.2 * cm)],
-        ]
-
-        t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
-        t.setStyle(TableStyle([
-            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-        ]))
-        self.story.append(t)
-        self.story.append(Spacer(0, 0.5 * cm))
-
-        self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
-        self.story.append(Spacer(0, 0.2 * cm))
-        data = [
-            [self.formating('N° de ccp ou compte bancaire :'), person.ccp or self.points],
-            [self.formating('Si banque, nom et adresse de celle-ci :'), person.bank or self.points],
-            [self.formating('ainsi que N° IBAN :'), person.iban or self.points],
-        ]
-
-        t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
-        t.setStyle(TableStyle([
-            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-        ]))
-        self.story.append(t)
-        self.story.append(Spacer(0, 0.5 * cm))
-
     def formating(self, text):
         return Preformatted(text, style_normal, maxLineLength=25)
-
-    def stamp_account(self):
-        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr.:"]]
-        t = Table(data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm,), hAlign=TA_CENTER)
-        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                               ('FONTSIZE', (0, 0), (-1, -1), 7),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
-        self.story.append(t)
-
-        data = [
-            ['No écriture', "Compte à débiter", "CC / OTP", " Montants"],
-            ["Pièces annexées", '', '', 'Fr.'],
-            ["Ordre", '', '', 'Fr.'],
-            ["No fournisseur", '', '', 'Fr.'],
-            ["Date scannage et visa", '', '', 'Fr.'],
-        ]
-        t = Table(data, colWidths=[3 * cm, 3 * cm, 3 * cm, 3 * cm], hAlign=TA_CENTER)
-        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                               ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                               ('FONTSIZE', (0, 0), (-1, -1), 7),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
-        self.story.append(t)
 
     def add_address(self, person):
         self.story.append(Spacer(0, 2 * cm))
@@ -358,7 +288,114 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
         return any(el in klass_name for el in ['FE', 'EDS'])
 
 
-class ExpertEdeLetterPdf(EpcBaseDocTemplate):
+class CompensationForm:
+    """Mixin class to host paiement formdata."""
+    EXPERT_MANDAT = 'EXPERT'
+    MENTOR_MANDAT = 'MENTOR'
+    EXPERT_ACCOUNT = "3'130'0003"
+    MENTOR_ACCOUNT = "3'000'0000"
+    OTP_EDE_PS_OTP = "CIFO01.03.02.07.02.01"
+    OTP_EDE_PE_OTP = "CIFO01.03.02.07.01.01"
+
+    def add_private_data(self, person):
+        self.story.append(Spacer(0, 0.5 * cm))
+        self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
+        self.story.append(Spacer(0, 0.2 * cm))
+        data = [
+            [self.formating('Nom : '), person.last_name or self.points],
+            [self.formating('Prénom :'), person.first_name or self.points],
+            [
+                self.formating('Date de naissance :'),
+                django_format(person.birth_date, 'j F Y') if person.birth_date else self.points
+            ],
+            [self.formating('N° de téléphone :'), person.tel or self.points],
+            [self.formating('Adresse complète :'), person.street or self.points],
+            ['', person.pcode_city if person.pcode else self.points],
+            ['', self.points],
+            [self.formating('Employeur :'), person.corporation.name or self.points],
+            [Spacer(0, 0.2 * cm)],
+        ]
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
+        t.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+        ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 0.5 * cm))
+
+        self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
+        self.story.append(Spacer(0, 0.2 * cm))
+        data = [
+            [self.formating('N° de ccp ou compte bancaire :'), person.ccp or self.points],
+            [self.formating('Si banque, nom et adresse de celle-ci :'), person.bank or self.points],
+            [self.formating('ainsi que N° IBAN :'), person.iban or self.points],
+        ]
+
+        t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
+        t.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+        ]))
+        self.story.append(t)
+        self.story.append(Spacer(0, 0.5 * cm))
+
+    def add_accounting_stamp(self, mandat=None):
+        account = otp = total = ''
+        if mandat == self.EXPERT_MANDAT:
+            account = self.EXPERT_ACCOUNT
+        elif mandat == self.MENTOR_MANDAT:
+            account = self.MENTOR_ACCOUNT
+            total = '500.-'
+
+        if self.student.klass.is_Ede_pe():
+            otp = self.OTP_EDE_PE_OTP
+        elif self.student.klass.is_Ede_ps():
+            otp = self.OTP_EDE_PS_OTP
+
+        self.story.append((Paragraph(self.points * 2, style_normal)))
+        self.story.append((Paragraph("À remplir par la comptabilité", style_normal)))
+        self.story.append(Spacer(0, 0.5 * cm))
+        if mandat == self.EXPERT_MANDAT:
+            data = [
+                ['Indemnités', 'Fr.'],
+                ['Frais de déplacement', 'Fr.'],
+                ['Repas', 'Fr.'],
+                ['TOTAL', 'Fr.'],
+            ]
+            t = Table(
+                data, colWidths=[4.5 * cm, 3 * cm], hAlign=TA_CENTER,
+                spaceBefore=0.5 * cm, spaceAfter=0.2 * cm
+            )
+            t.setStyle(TableStyle(
+                [
+                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                    ('LINEBELOW', (1, 2), (2, 2), 0.5, colors.black),
+                    ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
+                    ('FONTSIZE', (0, 0), (-1, -1), 7),
+                ]
+            ))
+            self.story.append(t)
+        else:
+            self.story.append(Spacer(0, 2 * cm))
+
+        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr:"]]
+        t = Table(
+            data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm,), hAlign=TA_CENTER
+        )
+        t.setStyle(TableStyle(
+            [
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONTSIZE', (0, 0), (-1, -1), 7),
+                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+            ]
+        ))
+        self.story.append(t)
+
+
+class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
     def __init__(self, student):
         self.student = student
         filename = slugify(
@@ -447,29 +484,14 @@ class ExpertEdeLetterPdf(EpcBaseDocTemplate):
         self.story.append(Paragraph(
             "Date de l'examen : {}".format(django_format(self.student.date_exam, 'l j F Y')), style_normal
         ))
+        self.story.append(Spacer(0, 3 * cm))
 
-        self.story.append(Spacer(0, 2 * cm))
-
-        data = [
-            ['Indemnités', 'Fr.'],
-            ['Frais de déplacements', 'Fr.'],
-            ['Repas', 'Fr.'],
-            ['TOTAL', 'Fr.'],
-        ]
-        t = Table(data, colWidths=[4.5 * cm, 3 * cm], hAlign=TA_CENTER)
-        t.setStyle(TableStyle([('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                               ('LINEBELOW', (1, 2), (2, 2), 0.5, colors.black),
-                               ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
-                               ]))
-        self.story.append(t)
-        self.story.append(Spacer(0, 1 * cm))
-
-        self.stamp_account()
+        self.add_accounting_stamp(self.EXPERT_MANDAT)
 
         self.build(self.story)
 
 
-class MentorCompensationPdfForm(EpcBaseDocTemplate):
+class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
     def __init__(self, student):
         self.student = student
         filename = slugify(
@@ -481,10 +503,7 @@ class MentorCompensationPdfForm(EpcBaseDocTemplate):
         ])
 
     def produce(self):
-        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_title))
-        self.story.append(Spacer(0, 0.7 * cm))
         self.add_private_data(self.student.mentor)
-        self.story.append(Spacer(0, 4 * cm))
 
         self.story.append(Paragraph(
             "Mandat : Mentoring de {0} {1}, classe {2}".format(
@@ -494,8 +513,8 @@ class MentorCompensationPdfForm(EpcBaseDocTemplate):
         self.story.append(Paragraph(
             "Montant forfaitaire de Fr 500.- payable à la fin de la session d'examen", style_normal_center
         ))
-        self.story.append(Spacer(0, 1 * cm))
+        self.story.append(Spacer(0, 3 * cm))
 
-        self.stamp_account()
+        self.add_accounting_stamp(self.MENTOR_MANDAT)
 
         self.build(self.story)
