@@ -50,12 +50,13 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         residence_permits = dict(RESIDENCE_PERMITS_CHOICES)
 
         ts = TableStyle([
-            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
             ('FONT', (0, 0), (-1, -1), 'Helvetica'),
-            ('SIZE', (0, 0), (0, -1), 9)
+            ('FONTSIZE', (0, 0), (-1, -1), 8),
         ])
 
         # Personal data
+        self.story.append(Spacer(0, 2 * cm))
         self.story.append(Paragraph("Données personnelles", style_bold))
         data = [
             ['Nom: ', candidate.last_name,
