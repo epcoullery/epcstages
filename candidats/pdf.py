@@ -1,12 +1,12 @@
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.units import cm
-from reportlab.platypus import Paragraph, Table, TableStyle
+from reportlab.platypus import PageTemplate, Paragraph, Table, TableStyle
 
 from django.utils.dateformat import format as django_format
 from django.utils.text import slugify 
 
-from stages.pdf import EpcBaseDocTemplate
+from stages.pdf import EpcBaseDocTemplate, LOGO_EPC, LOGO_ESNE
 from .models import (
     AES_ACCORDS_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
     OPTION_CHOICES, RESIDENCE_PERMITS_CHOICES,
@@ -22,8 +22,27 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
     """
     def __init__(self, candidate, **kwargs):
         filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
-        super().__init__(filename, title="Dossier d'inscription", **kwargs)
-        self.set_normal_template_page()
+        super().__init__(filename, **kwargs)
+        self.addPageTemplates([
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header)
+        ])
+
+    def header(self, canvas, doc):
+        section = "Filière EDE"
+        title = "Dossier d'inscription"
+
+        canvas.saveState()
+        canvas.drawImage(
+            LOGO_EPC, doc.leftMargin, doc.height - 1.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+        )
+        canvas.drawImage(
+            LOGO_ESNE, doc.width - 2.5 * cm, doc.height - 1.2 * cm, 5 * cm, 3.3 * cm, preserveAspectRatio=True
+        )
+        canvas.line(doc.leftMargin, doc.height - 2 * cm, doc.width + doc.leftMargin, doc.height - 2 * cm)
+        canvas.drawString(doc.leftMargin, doc.height - 2.5 * cm, section)
+        canvas.drawRightString(doc.width + doc.leftMargin, doc.height - 2.5 * cm, title)
+        canvas.line(doc.leftMargin, doc.height - 2.7 * cm, doc.width + doc.leftMargin, doc.height - 2.7 * cm)
+        canvas.restoreState()
 
     def produce(self, candidate):
         # personal data

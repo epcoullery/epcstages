@@ -146,13 +146,16 @@ class CifomBaseISO(SimpleDocTemplate):
 
 
 class EpcBaseDocTemplate(SimpleDocTemplate):
-    filiere = 'Formation EDE'
-
-    def __init__(self, filename, title='', pagesize=A4):
+    def __init__(self, filename, title=''):
         path = os.path.join(tempfile.gettempdir(), filename)
         super().__init__(
-            path, pagesize=pagesize, _pageBreakQuick=0,
-            lefMargin=1.5 * cm, bottomMargin=1.5 * cm, topMargin=1.5 * cm, rightMargin=2.5 * cm
+            path,
+            pagesize=A4,
+            lefMargin=2.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=2.5 * cm
+        )
+        self.page_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width - 2.5, self.height - 3 * cm,
+            id='first_table', showBoundary=0, leftPadding=0 * cm
         )
         self.story = []
         self.title = title
@@ -173,29 +176,6 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         footer.drawOn(canvas, doc.leftMargin, h)
         canvas.restoreState()
 
-    def later_header(self, canvas, doc):
-        canvas.saveState()
-        canvas.line(doc.leftMargin, doc.height + 1 * cm, doc.width + doc.leftMargin, doc.height + 1 * cm)
-        canvas.drawString(doc.leftMargin, doc.height + 0.5 * cm, self.filiere)
-        canvas.drawRightString(doc.width + doc.leftMargin, doc.height + 0.5 * cm, self.title)
-        canvas.line(doc.leftMargin, doc.height + 0.2 * cm, doc.width + doc.leftMargin, doc.height + 0.2 * cm)
-        canvas.restoreState()
-
-    def set_normal_template_page(self):
-        first_page_table_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 3 * cm,
-            id='first_table', showBoundary=0, leftPadding=0 * cm
-        )
-        later_pages_table_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 2 * cm,
-            id='later_table', showBoundary=0, leftPadding=0 * cm
-        )
-        # Page template
-        first_page = PageTemplate(id='FirstPage', frames=[first_page_table_frame], onPage=self.header)
-        later_pages = PageTemplate(id='LaterPages', frames=[later_pages_table_frame], onPage=self.later_header)
-        self.addPageTemplates([first_page, later_pages])
-        self.story = [NextPageTemplate(['*', 'LaterPages'])]
-
 
 class ChargeSheetPDF(EpcBaseDocTemplate):
     """
@@ -206,7 +186,9 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
         self.teacher = teacher
         filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
         super().__init__(filename)
-        self.set_normal_template_page()
+        self.addPageTemplates([
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header)
+        ])
 
     def produce(self, activities):
         destinataire = '{0}<br/>{1}'.format(self.teacher.civility, str(self.teacher))
@@ -370,7 +352,9 @@ class ExpertEDEPDF(EpcBaseDocTemplate):
     def __init__(self, student, **kwargs):
         filename = slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '.pdf'
         super().__init__(filename, title="", **kwargs)
-        self.set_normal_template_page()
+        self.addPageTemplates([
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header)
+        ])
 
     def produce(self, student):
         # Expert adress
