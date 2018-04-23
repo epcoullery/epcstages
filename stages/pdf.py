@@ -19,9 +19,9 @@ from reportlab.platypus import (
 
 style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
 style_normal_center = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_CENTER)
-style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=10, alignment=TA_LEFT)
-style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1*cm)
-style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=280)
+style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=8, spaceBefore=0.3 * cm, alignment=TA_LEFT)
+style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1 * cm)
+style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=10 * cm)
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
 style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
 style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
@@ -201,7 +201,7 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
         header = open(LOGO_EPC_LONG, 'rb')
         for student in klass.student_set.filter(archived=False):
             self.story.append(Image(header, width=520, height=75))
-            self.story.append(Spacer(0, 2*cm))
+            self.story.append(Spacer(0, 2 *cm))
             destinataire = '{0}<br/>{1}<br/>{2}'.format(student.civility, student.full_name, student.klass)
             self.story.append(Paragraph(destinataire, style_adress))
             self.story.append(Spacer(0, 2*cm))

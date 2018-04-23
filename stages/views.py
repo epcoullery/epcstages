@@ -678,6 +678,8 @@ class StudentConvocationExaminationView(EmailConfirmationView):
             error = "L’expert externe n’a pas de courriel valide !"
         elif not self.student.internal_expert.email:
             error = "L’expert interne n'a pas de courriel valide !"
+        elif self.student.date_soutenance_mailed is not None:
+            error = "Une convocation a déjà été envoyée !"
         if error:
             messages.error(request, error)
             return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
