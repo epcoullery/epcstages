@@ -29,50 +29,62 @@ style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alig
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
+LOGO_EPC_LONG = find('img/header.gif')
 
 
-class CifomBaseISO(SimpleDocTemplate):
+class EpcBaseDocTemplate(SimpleDocTemplate):
     points = '.' * 93
 
-    def __init__(self, filename):
+    def __init__(self, filename, title=''):
+        path = os.path.join(tempfile.gettempdir(), filename)
         super().__init__(
-            filename, pagesize=A4, _pageBreakQuick=0,
-            lefMargin=1.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=1 * cm
+            path,
+            pagesize=A4,
+            lefMargin=2.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=2.5 * cm
+        )
+        self.page_frame = Frame(
+            self.leftMargin, self.bottomMargin, self.width - 2.5, self.height - 3 * cm,
+            id='first_table', showBoundary=0, leftPadding=0 * cm
         )
         self.story = []
+        self.title = title
 
     def header(self, canvas, doc):
         canvas.saveState()
-        canvas.setStrokeColor(colors.black)
-        canvas.setFillColorRGB(0,0,0, 0.2)
-        canvas.rect(1 * cm, doc.height - 0.5 * cm, doc.width + 1 * cm, 1.5 * cm, fill=True)
-        canvas.setFillColor(colors.black)
-        canvas.setFont('Helvetica-Bold', 11)
-        canvas.drawString(1.2*cm, doc.height+0.5*cm, "CIFOM")
-        canvas.setFont('Helvetica', 7)
-        canvas.drawString(1.2 * cm, doc.height+0.1*cm, 'Centre interrégional de formation' )
-        canvas.drawString(1.2 * cm, doc.height-0.15*cm, 'des montagnes neuchâteloises')
-        canvas.setFont('Helvetica-Bold', 12)
-        canvas.drawString(8*cm, doc.height + 0.5 * cm, "INDEMNISATION D'EXPERTS")
-        canvas.drawString(15*cm, doc.height + 0.5 * cm, "51.05 FO 05")
-        canvas.drawString(8*cm, doc.height - 0.3 * cm, "AUX EXAMENS")
+        canvas.drawImage(
+            LOGO_EPC, doc.leftMargin, doc.height - 1.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+        )
+        canvas.drawImage(
+            LOGO_ESNE, doc.width - 2.5 * cm, doc.height - 1.2 * cm, 5 * cm, 3.3 * cm, preserveAspectRatio=True
+        )
 
+        # Footer
+        canvas.line(doc.leftMargin, 1 * cm, doc.width + doc.leftMargin, 1 * cm)
+        footer = Paragraph(settings.PDF_FOOTER_TEXT, style_footer)
+        w, h = footer.wrap(doc.width, doc.bottomMargin)
+        footer.drawOn(canvas, doc.leftMargin, h)
         canvas.restoreState()
 
-    def set_normal_template_page(self):
-        first_page_table_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 3 * cm,
-            id='first_table', showBoundary=0, leftPadding=0 * cm
-        )
-        later_pages_table_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width + 1 * cm, self.height - 2 * cm,
-            id='later_table', showBoundary=0, leftPadding=0 * cm
-        )
-        # Page template
-        first_page = PageTemplate(id='FirstPage', frames=[first_page_table_frame], onPage=self.header)
-        self.addPageTemplates([first_page])
+    def header_iso(self, canvas, doc):
+        canvas.saveState()
+        canvas.setStrokeColor(colors.black)
+        canvas.setFillColorRGB(0, 0, 0, 0.2)
+        canvas.rect(2.5 * cm, doc.height - 0.5 * cm, doc.width, 1.5 * cm, fill=True)
+        canvas.setFillColor(colors.black)
+        canvas.setFont('Helvetica-Bold', 11)
+        canvas.drawString(2.7 * cm, doc.height + 0.5 * cm, "CIFOM")
+        canvas.setFont('Helvetica', 7)
+        canvas.drawString(2.7 * cm, doc.height + 0.1 * cm, "Centre interrégional de formation")
+        canvas.drawString(2.7 * cm, doc.height - 0.15 * cm, "des montagnes neuchâteloises")
+        canvas.setFont('Helvetica-Bold', 12)
+        canvas.drawString(8 * cm, doc.height + 0.5 * cm, "INDEMNISATION D'EXPERTS")
+        canvas.drawString(16 * cm, doc.height + 0.5 * cm, "51.05 FO 05")
+        canvas.drawString(8 * cm, doc.height - 0.1 * cm, "AUX EXAMENS")
+        canvas.setFont('Helvetica-Bold', 11)
+        canvas.drawString(8 * cm, doc.height - 2.5 * cm, "Ecole Santé-social Pierre-Coullery")
+        canvas.restoreState()
 
-    def private_data(self, person):
+    def add_private_data(self, person):
         self.story.append(Spacer(0, 0.5 * cm))
         self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
         self.story.append(Spacer(0, 0.2 * cm))
@@ -92,13 +104,13 @@ class CifomBaseISO(SimpleDocTemplate):
         ]
 
         t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
-        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
+        t.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+        ]))
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
 
-    def account_data(self, person):
         self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
         self.story.append(Spacer(0, 0.2 * cm))
         data = [
@@ -108,9 +120,10 @@ class CifomBaseISO(SimpleDocTemplate):
         ]
 
         t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
-        t.setStyle(TableStyle([('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-                               ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                               ]))
+        t.setStyle(TableStyle([
+            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+        ]))
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
 
@@ -145,43 +158,10 @@ class CifomBaseISO(SimpleDocTemplate):
         self.story.append(t)
 
 
-class EpcBaseDocTemplate(SimpleDocTemplate):
-    def __init__(self, filename, title=''):
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(
-            path,
-            pagesize=A4,
-            lefMargin=2.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=2.5 * cm
-        )
-        self.page_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width - 2.5, self.height - 3 * cm,
-            id='first_table', showBoundary=0, leftPadding=0 * cm
-        )
-        self.story = []
-        self.title = title
-
-    def header(self, canvas, doc):
-        canvas.saveState()
-        canvas.drawImage(
-            LOGO_EPC, doc.leftMargin, doc.height - 1.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
-        )
-        canvas.drawImage(
-            LOGO_ESNE, doc.width - 2.5 * cm, doc.height - 1.2 * cm, 5 * cm, 3.3 * cm, preserveAspectRatio=True
-        )
-
-        # Footer
-        canvas.line(doc.leftMargin, 1 * cm, doc.width + doc.leftMargin, 1 * cm)
-        footer = Paragraph(settings.PDF_FOOTER_TEXT, style_footer)
-        w, h = footer.wrap(doc.width, doc.bottomMargin)
-        footer.drawOn(canvas, doc.leftMargin, h)
-        canvas.restoreState()
-
-
 class ChargeSheetPDF(EpcBaseDocTemplate):
     """
     Génération des feuilles de charges en pdf.
     """
-
     def __init__(self, teacher):
         self.teacher = teacher
         filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
@@ -255,7 +235,7 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
 
     def produce(self, klass):
         self.story = []
-        header = open(find('img/header.gif'), 'rb')
+        header = open(LOGO_EPC_LONG, 'rb')
         for student in klass.student_set.filter(archived=False):
             self.story.append(Image(header, width=520, height=75))
             self.story.append(Spacer(0, 2*cm))
@@ -424,23 +404,23 @@ class ExpertEDEPDF(EpcBaseDocTemplate):
         self.build(self.story)
 
 
-class ExpertCompensationPdfForm(CifomBaseISO):
+class ExpertCompensationPdfForm(EpcBaseDocTemplate):
 
     def __init__(self, student):
         self.student = student
         filename = slugify(
             '{0}_{1}'.format(self.student.last_name, self.student.first_name)
         ) + '_Indemn_expert.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path)
-        self.set_normal_template_page()
+        super().__init__(filename)
+        self.addPageTemplates([
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_iso)
+        ])
 
     def produce(self):
         self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_title))
         self.story.append(Spacer(0, 0.7 * cm))
 
-        self.private_data(self.student.expert)
-        self.account_data(self.student.expert)
+        self.add_private_data(self.student.expert)
 
         self.story.append(Paragraph(
             "Soutenance de {0} {1}, classe {2}".format(
@@ -472,21 +452,21 @@ class ExpertCompensationPdfForm(CifomBaseISO):
         self.build(self.story)
 
 
-class MentorCompensationPdfForm(CifomBaseISO):
+class MentorCompensationPdfForm(EpcBaseDocTemplate):
     def __init__(self, student):
         self.student = student
         filename = slugify(
             '{0}_{1}'.format(self.student.last_name, self.student.first_name)
         ) + '_Indemn_mentor.pdf'
-        path = os.path.join(tempfile.gettempdir(), filename)
-        super().__init__(path)
-        self.set_normal_template_page()
+        super().__init__(filename)
+        self.addPageTemplates([
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_iso)
+        ])
 
     def produce(self):
         self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_title))
         self.story.append(Spacer(0, 0.7 * cm))
-        self.private_data(self.student.mentor)
-        self.account_data(self.student.mentor)
+        self.add_private_data(self.student.mentor)
         self.story.append(Spacer(0, 4 * cm))
 
         self.story.append(Paragraph(
