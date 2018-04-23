@@ -1,7 +1,7 @@
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.styles import ParagraphStyle as PS
 from reportlab.lib.units import cm
-from reportlab.platypus import PageTemplate, Paragraph, Table, TableStyle
+from reportlab.platypus import PageTemplate, Paragraph, Spacer, Table, TableStyle
 
 from django.utils.dateformat import format as django_format
 from django.utils.text import slugify 
