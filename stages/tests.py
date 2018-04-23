@@ -204,25 +204,6 @@ tél. 032 886 33 00
         st.refresh_from_db()
         self.assertIsNotNone(st.date_soutenance_mailed)
 
-    def test_print_letter_ede_expert(self):
-        st = Student.objects.get(first_name="Albin")
-        self.client.login(username='me', password='mepassword')
-        url = reverse('print-pdf-to-expert-ede', args=[st.pk])
-        response = self.client.post(url, follow=True)
-        self.assertContains(response, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
-        st.date_exam = datetime(2018, 6, 28, 12, 00)
-        st.room = "B123"
-        st.expert = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert = Teacher.objects.get(last_name="Caux")
-        st.save()
-        response = self.client.post(url, follow=True)
-        self.assertEqual(
-            response['Content-Disposition'],
-            'attachment; filename="dupond_albin.pdf"'
-        )
-        self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertGreater(len(response.content), 200)
-
     def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")
         url = reverse('print-expert-compens-ede', args=[st.pk])
@@ -239,7 +220,7 @@ tél. 032 886 33 00
         response = self.client.post(url, follow=True)
         self.assertEqual(
             response['Content-Disposition'],
-            'attachment; filename="dupond_albin_Indemn_expert.pdf"'
+            'attachment; filename="dupond_albin_Expert.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)

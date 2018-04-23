@@ -157,6 +157,16 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
                                ]))
         self.story.append(t)
 
+    def add_address(self, person):
+        self.story.append(Spacer(0, 2 * cm))
+        self.story.append(Paragraph(person.title, style_adress))
+        self.story.append(Paragraph(person.full_name, style_adress))
+        try:
+            self.story.append(Paragraph(person.street, style_adress))
+            self.story.append((Paragraph(person.pcode_city or '', style_adress)))
+        except AttributeError:
+            self.story.append(Spacer(0, 1.8 * cm))
+
 
 class ChargeSheetPDF(EpcBaseDocTemplate):
     """
@@ -171,9 +181,7 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
         ])
 
     def produce(self, activities):
-        destinataire = '{0}<br/>{1}'.format(self.teacher.civility, str(self.teacher))
-        self.story.append(Paragraph(destinataire, style_adress))
-        self.story.append(Spacer(0, 2*cm))
+        self.add_address(self.teacher)
 
         data = [[settings.CHARGE_SHEET_TITLE]]
 
@@ -325,47 +333,45 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
         return any(el in klass_name for el in ['FE', 'EDS'])
 
 
-class ExpertEDEPDF(EpcBaseDocTemplate):
-    """
-    PDF letter to expert EDE
-    """
-    def __init__(self, student, **kwargs):
-        filename = slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '.pdf'
-        super().__init__(filename, title="", **kwargs)
+class ExpertEdeLetterPdf(EpcBaseDocTemplate):
+    def __init__(self, student):
+        self.student = student
+        filename = slugify(
+            '{0}_{1}'.format(self.student.last_name, self.student.first_name)
+        ) + '_Expert.pdf'
+        super().__init__(filename)
         self.addPageTemplates([
-            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header)
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
+            PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_iso),
         ])
 
-    def produce(self, student):
-        # Expert adress
-        self.story.append(Paragraph(student.expert.title, style_adress))
-        self.story.append(Paragraph(student.expert.full_name, style_adress))
-        self.story.append(Paragraph(student.expert.street, style_adress))
-        self.story.append((Paragraph(student.expert.pcode_city, style_adress)))
+    def produce(self):
+        self.add_address(self.student.expert)
+
         ptext = """
-                <br/><br/><br/>
-                La Chaux-de-Fonds, le {current_date}<br/>
-                N/réf.:ASH/val<br/>
-                <br/><br/><br/>
-                <strong>Travail de diplôme</strong>
-                <br/><br/><br/>
-                {expert_title},<br/><br/>
-                Vous avez accepté de fonctionner comme expert{expert_accord} pour un travail de diplôme de l'un-e de nos
-                étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
-                En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
-                ainsi que la grille d'évaluation commune aux deux membres du jury.<br/><br/>
-                La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
-                """
+            <br/><br/><br/>
+            La Chaux-de-Fonds, le {current_date}<br/>
+            N/réf.:ASH/val<br/>
+            <br/><br/><br/>
+            <strong>Travail de diplôme</strong>
+            <br/><br/><br/>
+            {expert_title},<br/><br/>
+            Vous avez accepté de fonctionner comme expert{expert_accord} pour un travail de diplôme de l'un-e de nos
+            étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
+            En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
+            ainsi que la grille d'évaluation commune aux deux membres du jury.<br/><br/>
+            La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
+        """
         self.story.append(Paragraph(ptext.format(
             current_date=django_format(date.today(), 'j F Y'),
-            expert_title=student.expert.title,
-            expert_accord=student.expert.adjective_ending,
-            student_civility_full_name=student.civility_full_name,
+            expert_title=self.student.expert.title,
+            expert_accord=self.student.expert.adjective_ending,
+            student_civility_full_name=self.student.civility_full_name,
         ), style_normal))
         ptext = "<br/>{0} à l'Ecole Santé-social Pierre-Coullery, salle {1}<br/><br/>"
         self.story.append(Paragraph(ptext.format(
-            django_format(student.date_exam, 'l j F Y à H\hi'),
-            student.room
+            django_format(self.student.date_exam, 'l j F Y à H\hi'),
+            self.student.room
         ), style_bold_center))
 
         ptext = """
@@ -389,41 +395,27 @@ class ExpertEDEPDF(EpcBaseDocTemplate):
                 - {internal_expert_civility2} {internal_expert_full_name2}, {internal_expert_role2}
                 """
         self.story.append(Paragraph(ptext.format(
-            internal_expert_civility=student.internal_expert.civility,
-            internal_expert_full_name=student.internal_expert.full_name,
-            internal_expert_role=student.internal_expert.role,
-            expert_title=student.expert.title,
-            student_civility=student.civility,
-            student_full_name=student.full_name,
-            student_role=student.role,
-            internal_expert_civility2=student.internal_expert.civility,
-            internal_expert_full_name2=student.internal_expert.full_name,
-            internal_expert_role2=student.internal_expert.role,
+            internal_expert_civility=self.student.internal_expert.civility,
+            internal_expert_full_name=self.student.internal_expert.full_name,
+            internal_expert_role=self.student.internal_expert.role,
+            expert_title=self.student.expert.title,
+            student_civility=self.student.civility,
+            student_full_name=self.student.full_name,
+            student_role=self.student.role,
+            internal_expert_civility2=self.student.internal_expert.civility,
+            internal_expert_full_name2=self.student.internal_expert.full_name,
+            internal_expert_role2=self.student.internal_expert.role,
             resp_filiere=settings.RESP_FILIERE_EDE,
         ), style_normal))
-        self.build(self.story)
 
-
-class ExpertCompensationPdfForm(EpcBaseDocTemplate):
-
-    def __init__(self, student):
-        self.student = student
-        filename = slugify(
-            '{0}_{1}'.format(self.student.last_name, self.student.first_name)
-        ) + '_Indemn_expert.pdf'
-        super().__init__(filename)
-        self.addPageTemplates([
-            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_iso)
-        ])
-
-    def produce(self):
-        self.story.append(Paragraph('Ecole Santé-social Pierre-Coullery', style_bold_title))
-        self.story.append(Spacer(0, 0.7 * cm))
+        # ISO page
+        self.story.append(PageBreak())
+        self.story.append(NextPageTemplate('ISOPage'))
 
         self.add_private_data(self.student.expert)
 
         self.story.append(Paragraph(
-            "Soutenance de {0} {1}, classe {2}".format(
+            "Mandat: Soutenance de {0} {1}, classe {2}".format(
                 self.student.civility, self.student.full_name, self.student.klass
             ), style_normal
         ))

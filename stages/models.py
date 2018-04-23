@@ -78,6 +78,10 @@ class Teacher(models.Model):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
     @property
+    def title(self):
+        return self.civility
+
+    @property
     def full_name(self):
         return '{0} {1}'.format(self.first_name, self.last_name)
 

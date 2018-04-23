@@ -37,8 +37,6 @@ urlpatterns = [
     # Qualification EDE
     path('student_ede/<int:pk>/send_convocation', views.StudentConvocationExaminationView.as_view(),
         name='student-ede-convocation'),
-    path('student_ede/<int:pk>/pdf_to_expert', views.print_pdf_to_expert_ede,
-        name='print-pdf-to-expert-ede'),
     path('student_ede/<int:pk>/examination/expert', views.print_expert_ede_compensation_form,
         name='print-expert-compens-ede'),
     path('student_ede/<int:pk>/examination/mentor', views.print_mentor_ede_compensation_form,

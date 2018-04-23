@@ -34,7 +34,7 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
-from .pdf import ExpertCompensationPdfForm, ExpertEDEPDF, UpdateDataFormPDF, MentorCompensationPdfForm
+from .pdf import ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm
 from .utils import is_int
 
 
@@ -938,7 +938,7 @@ def print_expert_ede_compensation_form(request, pk):
     if not student.is_examination_valid:
         messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = ExpertCompensationPdfForm(student)
+    pdf = ExpertEdeLetterPdf(student)
     pdf.produce()
 
     with open(pdf.filename, mode='rb') as fh:
