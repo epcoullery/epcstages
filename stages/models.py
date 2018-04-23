@@ -55,6 +55,12 @@ class Klass(models.Model):
     def __str__(self):
         return self.name
 
+    def is_Ede_pe(self):
+        return 'EDEpe' in self.name
+
+    def is_Ede_ps(self):
+        return 'EDEps' in self.name
+
 
 class Teacher(models.Model):
     civility = models.CharField(max_length=10, verbose_name='Civilité')
@@ -76,6 +82,10 @@ class Teacher(models.Model):
 
     def __str__(self):
         return '{0} {1}'.format(self.last_name, self.first_name)
+
+    @property
+    def title(self):
+        return self.civility
 
     @property
     def full_name(self):
@@ -261,6 +271,9 @@ class Student(models.Model):
     room = models.CharField('Salle', max_length=15, blank=True)
     mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
     #  ============== Fields for examination ======================
+    date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
+    date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
+
 
     support_tabimport = True
 

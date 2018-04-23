@@ -1,13 +1,12 @@
 import json
 import os
 import re
-from subprocess import PIPE, Popen, call
-
 import tempfile
 import zipfile
+
+from subprocess import PIPE, Popen, call
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
-
 from tabimport import CSVImportedFile, FileFactory
 
 from django.conf import settings
@@ -34,7 +33,8 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability,
 )
-from .pdf import ExaminationCompensationPdfForm, ExpertEDEPDF, UpdateDataFormPDF
+
+from .pdf import ExpertEdeLetterPdf, MentorCompensationPdfForm, UpdateDataFormPDF
 from .utils import is_int
 
 
@@ -664,11 +664,14 @@ class EmailConfirmationView(EmailConfirmationBaseView):
     success_url = reverse_lazy('admin:stages_student_changelist')
     error_message = "Échec d’envoi pour l’étudiant {person} ({err})"
 
+    def on_success(self, student):
+        student.date_soutenance_mailed = timezone.now()
+        student.save()
+
 
 class StudentConvocationExaminationView(EmailConfirmationView):
     success_message = "Le message de convocation a été envoyé pour l’étudiant {person}"
     title = "Convocation à la soutenance du travail de diplôme"
-    candidate_date_field = 'convocation_date'
 
     def get(self, request, *args, **kwargs):
         self.student = Student.objects.get(pk=self.kwargs['pk'])
@@ -679,6 +682,8 @@ class StudentConvocationExaminationView(EmailConfirmationView):
             error = "L’expert externe n’a pas de courriel valide !"
         elif not self.student.internal_expert.email:
             error = "L’expert interne n'a pas de courriel valide !"
+        if self.student.date_soutenance_mailed is not None:
+            error = "Une convocation a déjà été envoyée!"
         if error:
             messages.error(request, error)
             return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
@@ -686,6 +691,7 @@ class StudentConvocationExaminationView(EmailConfirmationView):
 
     def get_initial(self):
         initial = super().get_initial()
+        self.student = Student.objects.get(pk=self.kwargs['pk'])
         to = [self.student.email, self.student.expert.email, self.student.internal_expert.email]
         src_email = 'email/student_convocation_EDE.txt'
 
@@ -909,7 +915,7 @@ def print_update_form(request):
     return response
 
 
-def print_pdf_to_expert_ede(request, pk):
+def print_expert_ede_compensation_form(request, pk):
     """
     Imprime le PDF à envoyer à l'expert EDE en accompagnement du
     travail de diplôme
@@ -918,8 +924,8 @@ def print_pdf_to_expert_ede(request, pk):
     if not student.is_examination_valid:
         messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = ExpertEDEPDF(student)
-    pdf.produce(student)
+    pdf = ExpertEdeLetterPdf(student)
+    pdf.produce()
 
     with open(pdf.filename, mode='rb') as fh:
         response = HttpResponse(fh.read(), content_type='application/pdf')
@@ -927,7 +933,7 @@ def print_pdf_to_expert_ede(request, pk):
     return response
 
 
-def print_examination_compensation_form(request, pk):
+def print_mentor_ede_compensation_form(request, pk):
     """
     Imprime le PDF à envoyer à l'expert EDE en accompagnement du
     travail de diplôme
@@ -936,7 +942,21 @@ def print_examination_compensation_form(request, pk):
     if not student.is_examination_valid:
         messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = ExaminationCompensationPdfForm(student)
+    pdf = MentorCompensationPdfForm(student)
+    pdf.produce()
+
+    with open(pdf.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
+    return response
+
+
+def print_mentor_compensation_form(request, pk):
+    """
+    Imprime le PDF à envoyer au mentor EDE pour le mentoring
+    """
+    student = Student.objects.get(pk=pk)
+    pdf = MentorCompensationPdfForm(student)
     pdf.produce()
 
     with open(pdf.filename, mode='rb') as fh:
