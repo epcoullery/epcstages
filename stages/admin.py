@@ -112,7 +112,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'examination_actions', 'date_soutenance_mailed', 'date_confirm_received')
+    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'examination_actions', 'date_soutenance_mailed')
     fieldsets = (
         (None, {
             'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
@@ -133,6 +133,7 @@ class StudentAdmin(admin.ModelAdmin):
                         ('training_referent', 'referent', 'mentor'),
                         ('internal_expert', 'expert'),
                         ('session', 'date_exam', 'room', 'mark'),
+                        ('date_soutenance_mailed', 'date_confirm_received'),
                         ('examination_actions',)
                       )
         }),

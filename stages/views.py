@@ -664,11 +664,14 @@ class EmailConfirmationView(EmailConfirmationBaseView):
     success_url = reverse_lazy('admin:stages_student_changelist')
     error_message = "Échec d’envoi pour l’étudiant {person} ({err})"
 
+    def on_success(self, student):
+        student.date_soutenance_mailed = timezone.now()
+        student.save()
+
 
 class StudentConvocationExaminationView(EmailConfirmationView):
     success_message = "Le message de convocation a été envoyé pour l’étudiant {person}"
     title = "Convocation à la soutenance du travail de diplôme"
-    candidate_date_field = 'convocation_date'
 
     def get(self, request, *args, **kwargs):
         self.student = Student.objects.get(pk=self.kwargs['pk'])
@@ -679,6 +682,8 @@ class StudentConvocationExaminationView(EmailConfirmationView):
             error = "L’expert externe n’a pas de courriel valide !"
         elif not self.student.internal_expert.email:
             error = "L’expert interne n'a pas de courriel valide !"
+        if self.student.date_soutenance_mailed is not None:
+            error = "Une convocation a déjà été envoyée!"
         if error:
             messages.error(request, error)
             return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
@@ -686,6 +691,7 @@ class StudentConvocationExaminationView(EmailConfirmationView):
 
     def get_initial(self):
         initial = super().get_initial()
+        self.student = Student.objects.get(pk=self.kwargs['pk'])
         to = [self.student.email, self.student.expert.email, self.student.internal_expert.email]
         src_email = 'email/student_convocation_EDE.txt'
 

@@ -32,13 +32,13 @@ LOGO_EPC_LONG = find('img/header.gif')
 
 EXPERT_MANDAT = 'EXPERT'
 MENTOR_MANDAT = 'MENTOR'
-EXPERT_ACCOUNT = "3'000'XXXX"
-MENTOR_ACCOUNT = "3'000'YYYY"
-OTP_EDE_PS_OTP = "CIFO 000.000.XXXX"
-OTP_EDE_PE_OTP = "CIFO 000.000.YYYY"
+EXPERT_ACCOUNT = "3'130'0003"
+MENTOR_ACCOUNT = "3'000'0000"
+OTP_EDE_PS_OTP = "CIFO01.03.02.07.02.01"
+OTP_EDE_PE_OTP = "CIFO01.03.02.07.01.01"
 
 
-class MCLine(Flowable):
+class HorLine(Flowable):
     """Line flowable --- draws a line in a flowable"""
 
     def __init__(self, width):
@@ -297,12 +297,8 @@ class ExpertEdeLetterPdf(EpcBaseDocTemplate):
                 La responsable de filière:<br/>
                 <br/><br/>
                 {resp_filiere}
-                <br/><br/><br/>
+                <br/><br/><br/><br/>
                 Annexes: ment.
-                <br/><br/>
-                Copies pour information: <br/>
-                - {student_civility} {student_full_name}, {student_role} <br/>
-                - {internal_expert_civility2} {internal_expert_full_name2}, {internal_expert_role2}
                 """
 
         self.story.append(Paragraph(ptext.format(
@@ -379,7 +375,7 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
         self.add_adress(self.teacher)
 
         self.story.append(Paragraph(settings.CHARGE_SHEET_TITLE, style_bold))
-        line = MCLine(450)
+        line = HorLine(450)
         self.story.append(line)
 
         data = list()
