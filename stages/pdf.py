@@ -471,8 +471,8 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         ), style_normal))
 
         # ISO page
-        self.story.append(PageBreak())
         self.story.append(NextPageTemplate('ISOPage'))
+        self.story.append(PageBreak())
 
         self.add_private_data(self.student.expert)
 
