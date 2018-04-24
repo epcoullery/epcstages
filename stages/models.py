@@ -304,10 +304,6 @@ class Student(models.Model):
         else:
             return {'M': 'étudiant', 'F': 'étudiante'}.get(self.gender, '')
 
-    @property
-    def is_examination_valid(self):
-        return (self.date_exam and self.room and self.expert and self.internal_expert)
-
     def save(self, **kwargs):
         if self.archived and not self.archived_text:
             # Fill archived_text with training data, JSON-formatted
@@ -325,6 +321,18 @@ class Student(models.Model):
         age_y = int(age)
         age_m = int((age - age_y) * 12)
         return '%d ans%s' % (age_y, ' %d m.' % age_m if age_m > 0 else '')
+
+    def missing_examination_data(self):
+        missing = []
+        if not self.date_exam:
+            missing.append("La date d’examen est manquante")
+        if not self.room:
+            missing.append("La salle d’examen n’est pas définie")
+        if not self.expert:
+            missing.append("L’expert externe n’est pas défini")
+        if not self.internal_expert:
+            missing.append("L’expert interne n’est pas défini")
+        return missing
 
     @classmethod
     def prepare_import(cls, student_values):

@@ -671,17 +671,15 @@ class StudentConvocationExaminationView(EmailConfirmationView):
 
     def dispatch(self, request, *args, **kwargs):
         self.student = Student.objects.get(pk=self.kwargs['pk'])
-        error = ''
-        if not self.student.is_examination_valid:
-            error = "Toutes les informations ne sont pas disponibles pour la convocation!"
-        elif not self.student.expert.email:
-            error = "L’expert externe n’a pas de courriel valide !"
-        elif not self.student.internal_expert.email:
-            error = "L’expert interne n'a pas de courriel valide !"
-        elif self.student.date_soutenance_mailed is not None:
-            error = "Une convocation a déjà été envoyée !"
-        if error:
-            messages.error(request, error)
+        errors = self.student.missing_examination_data()
+        if self.student.expert and not self.student.expert.email:
+            errors.append("L’expert externe n’a pas de courriel valide !")
+        if self.student.internal_expert and not self.student.internal_expert.email:
+            errors.append("L’expert interne n'a pas de courriel valide !")
+        if self.student.date_soutenance_mailed is not None:
+            errors.append("Une convocation a déjà été envoyée !")
+        if errors:
+            messages.error(request, "\n".join(errors))
             return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
         return super().dispatch(request, *args, **kwargs)
 
@@ -919,8 +917,12 @@ def print_expert_ede_compensation_form(request, pk):
     travail de diplôme
     """
     student = Student.objects.get(pk=pk)
-    if not student.is_examination_valid:
-        messages.error(request, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
+    missing = student.missing_examination_data()
+    if missing:
+        messages.error(request, "\n".join(
+            ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]
+            + missing
+        ))
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
     pdf = ExpertEdeLetterPdf(student)
     pdf.produce()

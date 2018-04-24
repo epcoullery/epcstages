@@ -158,7 +158,11 @@ class StagesTest(TestCase):
         self.client.login(username='me', password='mepassword')
         url = reverse('student-ede-convocation', args=[st.pk])
         response = self.client.get(url, follow=True)
-        self.assertContains(response, "Toutes les informations ne sont pas disponibles pour la convocation!")
+        for err in ("La date d’examen est manquante",
+                    "La salle d’examen n’est pas définie",
+                    "L’expert externe n’est pas défini",
+                    "L’expert interne n’est pas défini"):
+            self.assertContains(response, err)
         st.date_exam = datetime(2018, 6, 28, 12, 00)
         st.room = "B123"
         st.expert = CorpContact.objects.get(last_name="Horner")
