@@ -166,7 +166,7 @@ class CorpContactAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter),)
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
-    fields = (('title', 'last_name', 'first_name'),
+    fields = (('civility', 'last_name', 'first_name'),
               ('street', 'pcode', 'city'),
               ('birth_date',),
               ('corporation',),
@@ -192,7 +192,7 @@ class CorpContactAdmin(admin.ModelAdmin):
 
 class ContactInline(admin.StackedInline):
     model = CorpContact
-    fields = (('title', 'last_name', 'first_name'),
+    fields = (('civility', 'last_name', 'first_name'),
               ('sections', 'is_main', 'always_cc', 'archived'),
               ('role', 'tel', 'email'))
     extra = 1

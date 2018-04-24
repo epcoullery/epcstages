@@ -103,7 +103,7 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
 
     def add_address(self, person):
         self.story.append(Spacer(0, 2 * cm))
-        self.story.append(Paragraph(person.title, style_adress))
+        self.story.append(Paragraph(person.civility, style_adress))
         self.story.append(Paragraph(person.full_name, style_adress))
         try:
             self.story.append(Paragraph(person.street, style_adress))
@@ -436,7 +436,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             <br/><br/><br/>
             <strong>Travail de diplôme</strong>
             <br/><br/><br/>
-            {expert_title},<br/><br/>
+            {expert_civility},<br/><br/>
             Vous avez accepté de fonctionner comme expert{expert_accord} pour un travail de diplôme de l'un-e de nos
             étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
             En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
@@ -445,7 +445,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         """
         self.story.append(Paragraph(ptext.format(
             current_date=django_format(date.today(), 'j F Y'),
-            expert_title=self.student.expert.title,
+            expert_civility=self.student.expert.civility,
             expert_accord=self.student.expert.adjective_ending,
             student_civility_full_name=self.student.civility_full_name,
         ), style_normal))
@@ -463,7 +463,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
                 que vous voudrez bien compléter au niveau des «données privées / coordonnées de paiement» et nous retourner dans les meilleurs délais.
                 <br/><br/>
                 Restant à votre disposition pour tout complément d'information et en vous remerciant de
-                l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_title}, l'asurance de notre considération distinguée.<br/>
+                l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_civility}, l'asurance de notre considération distinguée.<br/>
                 <br/><br/><br/>
                 La responsable de filière:<br/>
                 <br/><br/>
@@ -475,7 +475,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             internal_expert_civility=self.student.internal_expert.civility,
             internal_expert_full_name=self.student.internal_expert.full_name,
             internal_expert_role=self.student.internal_expert.role,
-            expert_title=self.student.expert.title,
+            expert_civility=self.student.expert.civility,
             resp_filiere=settings.RESP_FILIERE_EDE,
         ), style_normal))
 

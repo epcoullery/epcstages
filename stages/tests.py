@@ -35,7 +35,7 @@ class StagesTest(TestCase):
             city="Moulineaux", pcode="2500",
         )
         contact = CorpContact.objects.create(
-            corporation=corp, title="Monsieur", first_name="Jean", last_name="Horner",
+            corporation=corp, civility="Monsieur", first_name="Jean", last_name="Horner",
             is_main=True, role="Responsable formation",
         )
         Student.objects.bulk_create([

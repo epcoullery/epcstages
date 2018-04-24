@@ -493,11 +493,11 @@ class HPContactsImportView(ImportViewBase):
             if contact is None:
                 contact = CorpContact.objects.create(
                     corporation=corp, first_name=line['PRENOMMDS'].strip(),
-                    last_name=line['NOMMDS'].strip(), title=line['CIVMDS'], email=line['EMAILMDS']
+                    last_name=line['NOMMDS'].strip(), civility=line['CIVMDS'], email=line['EMAILMDS']
                 )
             else:
-                if line['CIVMDS'] and contact.title != line['CIVMDS']:
-                    contact.title = line['CIVMDS']
+                if line['CIVMDS'] and contact.civility != line['CIVMDS']:
+                    contact.civility = line['CIVMDS']
                     contact.save()
                 if line['EMAILMDS'] and contact.email != line['EMAILMDS']:
                     contact.email = line['EMAILMDS']
@@ -696,7 +696,7 @@ class StudentConvocationExaminationView(EmailConfirmationView):
         ])
         titles = [
             self.student.civility,
-            self.student.expert.title,
+            self.student.expert.civility,
             self.student.internal_expert.civility,
         ]
         mme_count = titles.count('Madame')
@@ -762,7 +762,7 @@ EXPORT_FIELDS = [
     ('Tél Inst', 'availability__corporation__tel'),
     ('Domaine', 'availability__domain__name'),
     ('Remarques Inst', 'availability__comment'),
-    ('Civilité contact', 'availability__contact__title'),
+    ('Civilité contact', 'availability__contact__civility'),
     ('Prénom contact', 'availability__contact__first_name'),
     ('Nom contact', 'availability__contact__last_name'),
     ('ID externe contact', 'availability__contact__ext_id'),
@@ -783,7 +783,7 @@ NON_ATTR_EXPORT_FIELDS = [
     ('Tél Inst', 'corporation__tel'),
     ('Domaine', 'domain__name'),
     ('Remarques Inst', 'comment'),
-    ('Civilité contact', 'contact__title'),
+    ('Civilité contact', 'contact__civility'),
     ('Prénom contact', 'contact__first_name'),
     ('Nom contact', 'contact__last_name'),
     ('Tél contact', 'contact__tel'),
@@ -856,7 +856,7 @@ def stages_export(request, scope=None):
             contact = default_contacts.get(line[corp_name_field], {}).get(line[export_fields['Filière']])
             if contact:
                 values = values[:-6] + [
-                    contact.title, contact.first_name, contact.last_name, contact.ext_id,
+                    contact.civility, contact.first_name, contact.last_name, contact.ext_id,
                     contact.tel, contact.email
                 ]
         if always_ccs[line[corp_name_field]].get(line[export_fields['Filière']]):
@@ -984,7 +984,7 @@ GENERAL_EXPORT_FIELDS = [
     ('Tel_Emp', 'corporation__tel'),
 
     ('Num_Form', 'instructor__ext_id'),
-    ('Titre_Form', 'instructor__title'),
+    ('Titre_Form', 'instructor__civility'),
     ('Prenom_Form', 'instructor__first_name'),
     ('Nom_Form', 'instructor__last_name'),
     ('Tel_Form', 'instructor__tel'),
@@ -1042,7 +1042,7 @@ ORTRA_EXPORT_FIELDS = [
     ('Ville_Emp', 'corporation__city'),
     ('Tel_Emp', 'corporation__tel'),
 
-    ('Titre_Form', 'instructor__title'),
+    ('Titre_Form', 'instructor__civility'),
     ('Prenom_Form', 'instructor__first_name'),
     ('Nom_Form', 'instructor__last_name'),
     ('Tel_Form', 'instructor__tel'),

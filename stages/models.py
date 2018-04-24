@@ -84,10 +84,6 @@ class Teacher(models.Model):
         return '{0} {1}'.format(self.last_name, self.first_name)
 
     @property
-    def title(self):
-        return self.civility
-
-    @property
     def full_name(self):
         return '{0} {1}'.format(self.first_name, self.last_name)
 
@@ -390,7 +386,7 @@ class CorpContact(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     is_main = models.BooleanField(default=False, verbose_name='Contact principal')
     always_cc = models.BooleanField(default=False, verbose_name='Toujours en copie')
-    title = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
+    civility = models.CharField(max_length=40, blank=True, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, blank=True, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     birth_date = models.DateField(blank=True, null=True, verbose_name='Date de naissance')
@@ -422,7 +418,7 @@ class CorpContact(models.Model):
 
     @property
     def civility_full_name(self):
-        return '{0} {1} {2}'.format(self.title, self.first_name, self.last_name)
+        return '{0} {1} {2}'.format(self.civility, self.first_name, self.last_name)
 
     @property
     def pcode_city(self):
@@ -430,7 +426,7 @@ class CorpContact(models.Model):
 
     @property
     def adjective_ending(self):
-        return 'e' if self.title == 'Madame' else ''
+        return 'e' if self.civility == 'Madame' else ''
 
 
 class Domain(models.Model):
