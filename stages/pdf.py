@@ -394,6 +394,25 @@ class CompensationForm:
         ))
         self.story.append(t)
 
+        data = [
+            ['No écriture', "Compte à débiter", "CC / OTP", " Montants"],
+            ["Pièces annexées", account, otp, 'Fr.  {0}'.format(total)],
+            ["Ordre", '', '', 'Fr.'],
+            ["No fournisseur", '', '', 'Fr.'],
+            ["Date scannage et visa", '', '', 'Fr.'],
+        ]
+        t = Table(data, colWidths=[3 * cm] * 4, hAlign=TA_CENTER)
+        t.setStyle(TableStyle(
+            [
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONTSIZE', (0, 0), (-1, -1), 7),
+                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+                ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
+            ]
+        ))
+        self.story.append(t)
+
 
 class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
     def __init__(self, student):
@@ -484,7 +503,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         self.story.append(Paragraph(
             "Date de l'examen : {}".format(django_format(self.student.date_exam, 'l j F Y')), style_normal
         ))
-        self.story.append(Spacer(0, 3 * cm))
+        self.story.append(Spacer(0, 2 * cm))
 
         self.add_accounting_stamp(self.EXPERT_MANDAT)
 
