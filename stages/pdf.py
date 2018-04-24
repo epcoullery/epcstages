@@ -470,22 +470,12 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
                 {resp_filiere}
                 <br/><br/><br/>
                 Annexes: ment.
-                <br/><br/>
-                Copies pour information: <br/>
-                - {student_civility} {student_full_name}, {student_role} <br/>
-                - {internal_expert_civility2} {internal_expert_full_name2}, {internal_expert_role2}
                 """
         self.story.append(Paragraph(ptext.format(
             internal_expert_civility=self.student.internal_expert.civility,
             internal_expert_full_name=self.student.internal_expert.full_name,
             internal_expert_role=self.student.internal_expert.role,
             expert_title=self.student.expert.title,
-            student_civility=self.student.civility,
-            student_full_name=self.student.full_name,
-            student_role=self.student.role,
-            internal_expert_civility2=self.student.internal_expert.civility,
-            internal_expert_full_name2=self.student.internal_expert.full_name,
-            internal_expert_role2=self.student.internal_expert.role,
             resp_filiere=settings.RESP_FILIERE_EDE,
         ), style_normal))
 
