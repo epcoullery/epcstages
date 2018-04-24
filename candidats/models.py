@@ -70,7 +70,7 @@ class Candidate(models.Model):
     mobile = models.CharField('Portable', max_length=40, blank=True)
     email = models.EmailField('Courriel', blank=True)
     avs = models.CharField('No AVS', max_length=15, blank=True)
-    handicap = models.BooleanField(default=False)
+    handicap = models.BooleanField('Handicap/besoins part.', default=False)
 
     section = models.CharField('Filière', max_length=10, choices=SECTION_CHOICES)
     option = models.CharField('Option', max_length=20, choices=OPTION_CHOICES, blank=True)

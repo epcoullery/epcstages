@@ -254,7 +254,6 @@ Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, 
 
         # Now send the message
         response = self.client.post(reverse('candidate-convocation', args=[henri.pk]), data={
-            'id_candidate': str(henri.pk),
             'cci': 'me@example.org',
             'to': henri.email,
             'subject': "Procédure de qualification",

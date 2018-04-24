@@ -40,7 +40,8 @@ class StagesTest(TestCase):
         )
         Student.objects.bulk_create([
             Student(first_name="Albin", last_name="Dupond", birth_date="1994-05-12",
-                    pcode="2300", city="La Chaux-de-Fonds", klass=klass1),
+                    pcode="2300", city="La Chaux-de-Fonds", email="albin@example.org",
+                    klass=klass1),
             Student(first_name="Justine", last_name="Varrin", birth_date="1994-07-12",
                     pcode="2000", city="Neuchâtel", klass=klass1),
             Student(first_name="Elvire", last_name="Hickx", birth_date="1994-05-20",
@@ -191,29 +192,21 @@ me@example.org
 tél. 032 886 33 00
 """
         self.assertEqual(response.context['form'].initial['message'], expected_message)
+        # Now send the message
+        response = self.client.post(url, data={
+            'cci': 'me@example.org',
+            'to': st.email,
+            'subject': "Convocation",
+            'message': "Monsieur Albin, ...",
+            'sender': 'me@example.org',
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        st.refresh_from_db()
+        self.assertIsNotNone(st.date_soutenance_mailed)
 
-    def test_print_letter_ede_expert(self):
+    def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")
-        self.client.login(username='me', password='mepassword')
-        url = reverse('print-pdf-to-expert-ede', args=[st.pk])
-        response = self.client.post(url, follow=True)
-        self.assertContains(response, "Toutes les informations ne sont pas disponibles pour la lettre à l’expert!")
-        st.date_exam = datetime(2018, 6, 28, 12, 00)
-        st.room = "B123"
-        st.expert = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert = Teacher.objects.get(last_name="Caux")
-        st.save()
-        response = self.client.post(url, follow=True)
-        self.assertEqual(
-            response['Content-Disposition'],
-            'attachment; filename="dupond_albin.pdf"'
-        )
-        self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertGreater(len(response.content), 200)
-
-    def test_print_ede_expert_compensation(self):
-        st = Student.objects.get(first_name="Albin")
-        url = reverse('examination-compensation', args=[st.pk])
+        url = reverse('print-expert-compens-ede', args=[st.pk])
         self.client.login(username='me', password='mepassword')
         response = self.client.post(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
@@ -227,7 +220,18 @@ tél. 032 886 33 00
         response = self.client.post(url, follow=True)
         self.assertEqual(
             response['Content-Disposition'],
-            'attachment; filename="dupond_albin_Indemn_expert.pdf"'
+            'attachment; filename="dupond_albin_Expert.pdf"'
+        )
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertGreater(len(response.content), 200)
+
+        # Mentor form
+        st.mentor = CorpContact.objects.get(last_name="Horner")
+        st.save()
+        response = self.client.post(reverse('print-mentor-compens-ede', args=[st.pk]), follow=True)
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename="dupond_albin_Indemn_mentor.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
