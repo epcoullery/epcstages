@@ -240,6 +240,8 @@ class Student(models.Model):
         on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     supervisor = models.ForeignKey('CorpContact', related_name='rel_supervisor', verbose_name='Superviseur',
         null=True, blank=True, on_delete=models.SET_NULL)
+    supervision_attest_received = models.BooleanField('Attest. supervision reçue',
+        default=False)
     mentor = models.ForeignKey('CorpContact', related_name='rel_mentor', verbose_name='Mentor',
         null=True, blank=True, on_delete=models.SET_NULL)
     expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert externe',

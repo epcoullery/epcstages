@@ -133,7 +133,7 @@ class StudentAdmin(admin.ModelAdmin):
         ("Examen Qualification EDE", {
             'classes': ('collapse',),
             'fields': (
-                        ('supervisor', ),
+                        ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
                         ('training_referent', 'referent', 'mentor'),
                         ('internal_expert', 'expert'),
