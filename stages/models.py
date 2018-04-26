@@ -268,6 +268,7 @@ class Student(models.Model):
     mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
     date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
     date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
+    supervision_attest_received = models.BooleanField(blank=True, default=False, verbose_name="attest. supervision reçue")
     #  ============== Fields for examination ======================
     support_tabimport = True
 
