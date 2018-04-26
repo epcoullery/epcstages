@@ -566,3 +566,17 @@ class Course(models.Model):
         return '{0} - {1} - {2} - {3}'.format(
             self.teacher, self.public, self.subject, self.period
         )
+
+class SupervisionBill(models.Model):
+    student = models.ForeignKey(Student, verbose_name='étudiant', on_delete=models.CASCADE)
+    supervisor = models.ForeignKey(CorpContact, verbose_name='superviseur', on_delete=models.CASCADE)
+    period = models.SmallIntegerField('période', default=0)
+    date = models.DateField()
+
+    class Meta:
+        verbose_name = 'Facture de supervision'
+        verbose_name_plural = 'Factures de supervision'
+        ordering = ['date']
+
+    def __str__(self):
+        return '{0} : {1}'.format(self.student.full_name, self.supervisor.full_name)

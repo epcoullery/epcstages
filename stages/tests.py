@@ -81,7 +81,7 @@ class StagesTest(TestCase):
         Training.objects.create(
             availability=av3, student=Student.objects.get(first_name="André"), referent=ref1,
         )
-        cls.admin = User.objects.create_user(
+        cls.admin = User.objects.create_superuser(
             'me', 'me@example.org', 'mepassword', first_name='Jean', last_name='Valjean',
         )
 
@@ -102,6 +102,26 @@ class StagesTest(TestCase):
     def test_export_students(self):
         response = self.client.get(reverse('general-export'))
         self.assertEqual(response.status_code, 200)
+
+    def test_student_change_view(self):
+        klass_ede = Klass.objects.create(
+            name="2EDEps",
+            section=Section.objects.get(name='EDE'),
+            level=Level.objects.get(name='2')
+        )
+        student_ede = Student.objects.create(
+            first_name="Claire", last_name="Fontaine", birth_date="2000-01-02",
+            pcode="2000", city="Neuchâtel", klass=klass_ede
+        )
+        response = self.client.get(
+            reverse("admin:stages_student_change", args=(student_ede.pk,))
+        )
+        self.assertContains(response, "Factures de supervision")
+        student_non_ede = Student.objects.exclude(klass__section__name='EDE').first()
+        response = self.client.get(
+            reverse("admin:stages_student_change", args=(student_non_ede.pk,))
+        )
+        self.assertNotContains(response, "Factures de supervision")
 
     def test_attribution_view(self):
         response = self.client.get(reverse('attribution'))
