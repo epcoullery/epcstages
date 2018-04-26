@@ -7,13 +7,15 @@ from django.contrib import admin
 from django.db import models
 from django.db.models import Case, Count, When
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.html import format_html
+
 
 from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
-    LogBookReason, LogBook, ExamEDESession
+    LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
 from .pdf import ChargeSheetPDF
 
@@ -106,6 +108,11 @@ class TeacherAdmin(admin.ModelAdmin):
     inlines = [LogBookInline]
 
 
+class SupervisionBillInline(admin.TabularInline):
+    model = SupervisionBill
+    extra = 0
+
+
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
@@ -139,6 +146,16 @@ class StudentAdmin(admin.ModelAdmin):
         }),
     )
     actions = ['archive']
+    student = None
+
+
+    def get_form(self, request, obj=None, **kwargs):
+        if obj:
+            self.student = obj
+            if self.student.klass.section.is_EDE():
+                self.inlines = [SupervisionBillInline]
+        return super().get_form(request, obj, **kwargs)
+
     def archive(self, request, queryset):
         for student in queryset:
             # Save each item individually to allow for custom save() logic.
@@ -295,6 +312,10 @@ class CourseAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'public', 'subject', 'period', 'imputation')
     list_filter = ('imputation', )
     search_fields = ('teacher__last_name', 'public', 'subject')
+
+
+
+
 
 
 admin.site.register(Section)
