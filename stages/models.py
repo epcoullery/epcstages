@@ -253,8 +253,8 @@ class Student(models.Model):
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     archived_text = models.TextField(blank=True)
     #  ============== Fields for examination ======================
-    subject = models.TextField('Résumé TD', blank=True)
-    title = models.TextField('Titre du TD', blank=True)
+    subject = models.TextField('TD: titre provisoire', blank=True)
+    title = models.TextField('TD: Titre définitif', blank=True)
     training_referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_training_referent',
                                           on_delete=models.SET_NULL, verbose_name='Référent de stage')
     referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_referent',

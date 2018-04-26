@@ -53,12 +53,12 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='student',
             name='subject',
-            field=models.TextField(blank=True, verbose_name='Résumé TD'),
+            field=models.TextField(blank=True, verbose_name='TD: titre provisoire'),
         ),
         migrations.AddField(
             model_name='student',
             name='title',
-            field=models.TextField(blank=True, verbose_name='Titre du TD'),
+            field=models.TextField(blank=True, verbose_name='TD: Titre définitif'),
         ),
         migrations.AddField(
             model_name='student',
