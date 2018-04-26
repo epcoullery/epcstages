@@ -13,7 +13,7 @@ from django.utils.html import format_html
 from .models import (
     Teacher, Option, Student, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
-    LogBookReason, LogBook, ExamEDESession
+    LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
 from .pdf import ChargeSheetPDF
 
@@ -107,6 +107,11 @@ class TeacherAdmin(admin.ModelAdmin):
     inlines = [LogBookInline]
 
 
+class SupervisionBillInline(admin.TabularInline):
+    model = SupervisionBill
+    extra = 0
+
+
 class StudentAdmin(admin.ModelAdmin):
     form = StudentAdminForm
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
@@ -130,7 +135,7 @@ class StudentAdmin(admin.ModelAdmin):
         ("Examen Qualification EDE", {
             'classes': ('collapse',),
             'fields': (
-                        ('supervisor', ),
+                        ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
                         ('training_referent', 'referent', 'mentor'),
                         ('internal_expert', 'expert'),
@@ -141,6 +146,14 @@ class StudentAdmin(admin.ModelAdmin):
         }),
     )
     actions = ['archive']
+    inlines = [SupervisionBillInline]
+
+    def get_inline_instances(self, request, obj=None):
+        # SupervisionBillInline is only adequate for EDE students
+        if obj is None or obj.klass.section.name != 'EDE':
+            return []
+        return super().get_inline_instances(request, obj=obj)
+
     def archive(self, request, queryset):
         for student in queryset:
             # Save each item individually to allow for custom save() logic.

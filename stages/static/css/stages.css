@@ -4,4 +4,7 @@ ul#main li { font-size: 14px; }
 form#teacher_form input#id_abrev { width: 3em; }
 form#teacher_form input#id_civility { width: 5em; }
 
+form#student_form textarea#id_subject,
+form#student_form textarea#id_title { height: 3em; width: 60em; }
+
 tr[id^=logbook_set-] td.original { visibility: hidden; }

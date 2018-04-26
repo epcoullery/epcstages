@@ -240,6 +240,8 @@ class Student(models.Model):
         on_delete=models.SET_NULL, verbose_name='FEE/FPP')
     supervisor = models.ForeignKey('CorpContact', related_name='rel_supervisor', verbose_name='Superviseur',
         null=True, blank=True, on_delete=models.SET_NULL)
+    supervision_attest_received = models.BooleanField('Attest. supervision reçue',
+        default=False)
     mentor = models.ForeignKey('CorpContact', related_name='rel_mentor', verbose_name='Mentor',
         null=True, blank=True, on_delete=models.SET_NULL)
     expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert externe',
@@ -566,3 +568,17 @@ class Course(models.Model):
         return '{0} - {1} - {2} - {3}'.format(
             self.teacher, self.public, self.subject, self.period
         )
+
+class SupervisionBill(models.Model):
+    student = models.ForeignKey(Student, verbose_name='étudiant', on_delete=models.CASCADE)
+    supervisor = models.ForeignKey(CorpContact, verbose_name='superviseur', on_delete=models.CASCADE)
+    period = models.SmallIntegerField('période', default=0)
+    date = models.DateField()
+
+    class Meta:
+        verbose_name = 'Facture de supervision'
+        verbose_name_plural = 'Factures de supervision'
+        ordering = ['date']
+
+    def __str__(self):
+        return '{0} : {1}'.format(self.student.full_name, self.supervisor.full_name)
