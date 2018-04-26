@@ -17,6 +17,7 @@ from .models import (
 )
 from .pdf import ChargeSheetPDF
 
+from .forms import StudentAdminForm
 
 def print_charge_sheet(modeladmin, request, queryset):
     """
@@ -107,6 +108,7 @@ class TeacherAdmin(admin.ModelAdmin):
 
 
 class StudentAdmin(admin.ModelAdmin):
+    form = StudentAdminForm
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
