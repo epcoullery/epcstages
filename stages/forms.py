@@ -3,7 +3,17 @@ from django.conf import settings
 
 from tabimport import FileFactory, UnsupportedFileFormat
 
-from .models import Section, Period
+from .models import Section, Student, Period
+
+class StudentAdminForm(forms.ModelForm):
+
+    class Meta:
+        model = Student
+        widgets = {
+            'subject': forms.Textarea(attrs={'cols': 60, 'rows': 2}),
+            'title': forms.Textarea(attrs={'cols': 60, 'rows': 2}),
+        }
+        fields = '__all__'
 
 
 class StudentImportForm(forms.Form):
