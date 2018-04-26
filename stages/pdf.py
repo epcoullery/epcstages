@@ -26,6 +26,7 @@ style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignmen
 style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
 style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
 style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alignment=TA_LEFT)
+style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=6, alignment=TA_LEFT)
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
@@ -126,10 +127,10 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
 
     def produce(self, activities):
         self.add_address(self.teacher)
-
+        tot_hyperplanning = activities['tot_mandats'] + activities['tot_ens']
         self.story.append(Paragraph(settings.CHARGE_SHEET_TITLE, style_bold))
         self.story.append(HorLine(450))
-
+        self.story.append((Paragraph('Total HyperPlanning: {} pér.'.format(tot_hyperplanning), style_smallx)))
         data = [
             ["Report de l'année précédente", '{0:3d} pér.'.format(self.teacher.previous_report)],
             ['Mandats', '{0:3d} pér.'.format(activities['tot_mandats'])],
@@ -154,7 +155,7 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
 
         t = Table(
             data, colWidths=[12 * cm, 2 * cm, 2 * cm], hAlign=TA_CENTER,
-            rowHeights=(0.6 * cm), spaceBefore=0.7 * cm, spaceAfter=1.5 * cm
+            rowHeights=(0.6 * cm), spaceBefore=0.4 * cm, spaceAfter=1.5 * cm
         )
         t.setStyle(TableStyle([
             ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
