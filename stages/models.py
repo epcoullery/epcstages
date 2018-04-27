@@ -7,6 +7,11 @@ from django.db import models
 
 from . import utils
 
+CIVILITY_CHOICES = (
+    ('Madame', 'Madame'),
+    ('Monsieur', 'Monsieur'),
+)
+
 
 class Section(models.Model):
     """ Filières """
@@ -63,7 +68,7 @@ class Klass(models.Model):
 
 
 class Teacher(models.Model):
-    civility = models.CharField(max_length=10, verbose_name='Civilité')
+    civility = models.CharField(max_length=10, choices=CIVILITY_CHOICES, verbose_name='Civilité')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
     abrev = models.CharField(max_length=10, verbose_name='Sigle')
