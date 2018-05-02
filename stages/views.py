@@ -862,14 +862,13 @@ def stages_export(request, scope=None):
     return export.get_http_response('stages_export')
 
 
-IMPUTATIONS_EXPORT_FIELDS = [
-    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
-    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
-]
-
-
 def imputations_export(request):
+    IMPUTATIONS_EXPORT_FIELDS = [
+        'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
+        'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
+        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
+    ]
+
     export = OpenXMLExport('Imputations')
     export.write_line(IMPUTATIONS_EXPORT_FIELDS, bold=True)  # Headers
 
@@ -879,7 +878,7 @@ def imputations_export(request):
             teacher.last_name, teacher.first_name, teacher.previous_report,
             activities['tot_ens'], 'Ens. prof.', activities['tot_mandats'] + activities['tot_formation'],
             'Accompagnement', activities['tot_paye'], 'Charge globale',
-            '{0:.2f}'.format(activities['tot_paye']/21.50),
+            '{0:.2f}'.format(activities['tot_paye']/settings.GLOBAL_CHARGE_PERCENT),
             teacher.next_report,
         ]
         values.extend(imputations.values())
