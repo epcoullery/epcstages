@@ -414,7 +414,7 @@ class HPImportView(ImportViewBase):
         errors = []
 
         # Pour accélérer la recherche
-        profs = {str(t): t for in Teacher.objects.all()}
+        profs = {str(t): t for t in Teacher.objects.all()}
         Course.objects.all().delete()
 
         for line in up_file:
