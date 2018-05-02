@@ -393,47 +393,39 @@ class HPImportView(ImportViewBase):
         'TOTAL': 'period',
     }
     # Mapping between klass field and imputation
-    account_categories = {
-        'ASAFE': 'ASAFE',
-        'ASEFE': 'ASEFE',
-        'ASSCFE': 'ASSCFE',
-        'MP': 'MP',
-        'CMS': 'MP',
-        'EDEpe': 'EDEpe',
-        'EDEps': 'EDEps',
-        'EDE': 'EDE',
-        'EDS': 'EDS',
-        'CAS_FPP': 'CAS_FPP',
-        'Mandat_ASA': 'ASAFE',
-        'Mandat_ASSC': 'ASSCFE',
-        'Mandat_ASE': 'ASEFE',
-        'Mandat_EDE': 'EDE',
-        'Mandat_EDS': 'EDS',
-    }
+    account_categories = OrderedDict([
+        ('ASAFE', 'ASAFE'),
+        ('ASEFE', 'ASEFE'),
+        ('ASSCFE', 'ASSCFE'),
+        ('MP', 'MP'),
+        ('CMS', 'MP'),
+        ('EDEpe', 'EDEpe'),
+        ('EDEps', 'EDEps'),
+        ('EDE', 'EDE'),
+        ('EDS', 'EDS'),
+        ('CAS_FPP', 'CAS_FPP'),
+        ('#Mandat_ASA', 'ASAFE'),
+        ('#Mandat_ASE', 'ASEFE'),
+        ('#Mandat_ASSC', 'ASSCFE'),
+    ])
 
     def import_data(self, up_file):
         obj_created = obj_modified = 0
+        errors = []
 
         # Pour accélérer la recherche
-        profs = {}
-        for t in Teacher.objects.all():
-            profs[t.__str__()] = t
+        profs = {str(t): t for in Teacher.objects.all()}
         Course.objects.all().delete()
 
         for line in up_file:
-            if (line['LIBELLE_MAT'] == '' or line['NOMPERSO_DIP'] == '' or
-                    line['TOTAL'] == ''):
+            if (line['LIBELLE_MAT'] == '' or line['NOMPERSO_DIP'] == '' or line['TOTAL'] == ''):
                 continue
-            defaults = {
-                'teacher': profs[line['NOMPERSO_ENS']],
-                'subject': line['LIBELLE_MAT'],
-                'public': line['NOMPERSO_DIP'],
-            }
 
             obj, created = Course.objects.get_or_create(
-                teacher=defaults['teacher'],
-                subject=defaults['subject'],
-                public=defaults['public'])
+                teacher=profs[line['NOMPERSO_ENS']],
+                subject=line['LIBELLE_MAT'],
+                public=line['NOMPERSO_DIP'],
+            )
 
             period = int(float(line['TOTAL']))
             if created:
@@ -447,7 +439,11 @@ class HPImportView(ImportViewBase):
                 obj.period += period
                 obj_modified += 1
             obj.save()
-        return {'created': obj_created, 'modified': obj_modified}
+
+            if not obj.imputation:
+                errors.append("Le cours {0} n'a pas pu être imputé correctement!". format(str(obj)))
+
+        return {'created': obj_created, 'modified': obj_modified, 'errors': errors}
 
 
 class HPContactsImportView(ImportViewBase):
