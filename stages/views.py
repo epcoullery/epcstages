@@ -864,14 +864,13 @@ def stages_export(request, scope=None):
     return export.get_http_response('stages_export')
 
 
-IMPUTATIONS_EXPORT_FIELDS = [
-    'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
-    'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-    'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
-]
-
-
 def imputations_export(request):
+    IMPUTATIONS_EXPORT_FIELDS = [
+        'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
+        'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
+        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
+    ]
+
     export = OpenXMLExport('Imputations')
     export.write_line(IMPUTATIONS_EXPORT_FIELDS, bold=True)  # Headers
 
