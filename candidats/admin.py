@@ -22,6 +22,7 @@ def export_candidates(modeladmin, request, queryset):
         for f in Candidate._meta.get_fields() if f.name not in ('ID', 'interview')
     ])
     export_fields['Employeur'] = 'corporation__name'
+    export_fields['FEE/FPP_civilité'] = 'instructor__civility'
     export_fields['FEE/FPP_Nom'] = 'instructor__last_name'
     export_fields['FEE/FPP_Prénom'] = 'instructor__first_name'
     export_fields['FEE/FPP_email'] = 'instructor__email'

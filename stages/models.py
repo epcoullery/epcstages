@@ -7,6 +7,11 @@ from django.db import models
 
 from . import utils
 
+CIVILITY_CHOICES = (
+    ('Madame', 'Madame'),
+    ('Monsieur', 'Monsieur'),
+)
+
 
 CIVILITY_CHOICES = (
     ('Madame', 'Madame'),

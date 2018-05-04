@@ -168,7 +168,7 @@ class Migration(migrations.Migration):
             name='Teacher',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('civility', models.CharField(max_length=10, verbose_name='Civilité')),
+                ('civility', models.CharField(max_length=10, choices=[('Madame', 'Madame'), ('Monsieur', 'Monsieur')], verbose_name='Civilité')),
                 ('first_name', models.CharField(max_length=40, verbose_name='Prénom')),
                 ('last_name', models.CharField(max_length=40, verbose_name='Nom')),
                 ('abrev', models.CharField(max_length=10, verbose_name='Sigle')),
