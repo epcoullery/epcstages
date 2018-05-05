@@ -379,9 +379,26 @@ class TeacherTests(TestCase):
         Course.objects.create(
             teacher=t2, period=5, subject='Cours EDE', imputation='EDE',
         )
-        result = t2.calc_imputations()
-        self.assertEqual(result[1]['EDEpe'], 2)
-        self.assertEqual(result[1]['EDEps'], 3)
+        activities, imputations = t2.calc_imputations()
+        self.assertEqual(imputations['EDEpe'], 2)
+        self.assertEqual(imputations['EDEps'], 3)
+
+        t3 = Teacher.objects.create(
+            first_name='Ulysse', last_name='Beck', birth_date='1987-01-01'
+        )
+        Course.objects.create(
+            teacher=t3, period=70, subject='Cours EDE', imputation='ASA',
+        )
+        Course.objects.create(
+             teacher=t3, period=3, subject='Cours EDE', imputation='ASE',
+        )
+        Course.objects.create(
+             teacher=t3, period=3, subject='Cours EDE', imputation='ASSC',
+        )
+        activity = t3.calc_activity()
+        self.assertEqual(activity['tot_formation'], 10)
+        imput = t3.calc_imputations()
+        self.assertEqual(sum(imput[1].values()), 86)
 
     def test_export_imputations(self):
         self.client.login(username='me', password='mepassword')

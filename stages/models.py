@@ -149,6 +149,7 @@ class Teacher(models.Model):
         for key in imputations:
             imputations[key] = courses.filter(imputation__contains=key).aggregate(models.Sum('period'))['period__sum'] or 0
 
+        # Add the formation periods in proportion
         tot = sum(imputations.values())
         if tot > 0:
             for key in imputations:
@@ -164,7 +165,16 @@ class Teacher(models.Model):
             imputations['EDEpe'] += pe_plus
             imputations['EDEps'] += ede - pe_plus
 
-        return (self.calc_activity(), imputations)
+        # Fix rounding errors changing the first imputations value
+        tot = sum(imputations.values()) + self.previous_report - (self.next_report)
+        diff = tot - activities['tot_paye']
+        if diff in [-1, 1]:
+            for k, v in imputations.items():
+                if v > 0:
+                    imputations[k] += 1 if diff == -1 else -1
+                    break
+
+        return (activities, imputations)
 
     def total_logbook(self):
         return LogBook.objects.filter(teacher=self).aggregate(models.Sum('nb_period'))['nb_period__sum']
