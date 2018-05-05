@@ -13,6 +13,12 @@ CIVILITY_CHOICES = (
 )
 
 
+CIVILITY_CHOICES = (
+    ('Madame', 'Madame'),
+    ('Monsieur', 'Monsieur'),
+)
+
+
 class Section(models.Model):
     """ Filières """
     name = models.CharField(max_length=20, verbose_name='Nom')
