@@ -552,6 +552,7 @@ IMPUTATION_CHOICES = (
     ('EDE', 'EDE'),
     ('EDS', 'EDS'),
     ('CAS_FPP', 'CAS_FPP'),
+    ('Direction', 'Direction'),
 )
 
 

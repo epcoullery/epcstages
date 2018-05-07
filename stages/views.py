@@ -407,6 +407,7 @@ class HPImportView(ImportViewBase):
         ('#Mandat_ASA', 'ASAFE'),
         ('#Mandat_ASE', 'ASEFE'),
         ('#Mandat_ASSC', 'ASSCFE'),
+        ('Direction', 'Direction'),
     ])
 
     def import_data(self, up_file):
