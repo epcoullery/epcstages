@@ -428,7 +428,7 @@ class HPImportView(ImportViewBase):
                 public=line['NOMPERSO_DIP'],
             )
 
-            period = int(float(line['TOTAL']))
+            period = int(float(line['TOTAL'].replace("'","")))
             if created:
                 obj.period = period
                 obj_created += 1

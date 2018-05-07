@@ -28,4 +28,4 @@ Dupond Jeanne;;Sém. enfance 2;[2ASEFE c-d E S2];8.00
 Dupond Jeanne;;Sém. enfance 2;[2ASEFE c-d E S2];8.00
 Dupond Jeanne;;Sém. enfance 2;[2ASEFE c-d E S2];8.00
 Dupond Jeanne;;Sém. enfance 2;[2ASEFE c-d E S2];8.00
-Dupond Jeanne;;Travail personnel;[2ASEFE c-d E S2];8.00
+Dupond Jeanne;;Travail personnel;[2ASEFE c-d E S2];1'054.00
