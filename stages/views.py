@@ -409,6 +409,7 @@ class HPImportView(ImportViewBase):
         'Mandat_ASE': 'ASEFE',
         'Mandat_EDE': 'EDE',
         'Mandat_EDS': 'EDS',
+        'Direction': 'Direction',
     }
 
     def import_data(self, up_file):
@@ -435,7 +436,7 @@ class HPImportView(ImportViewBase):
                 subject=defaults['subject'],
                 public=defaults['public'])
 
-            period = int(float(line['TOTAL']))
+            period = int(float(line['TOTAL'].replace("'","")))
             if created:
                 obj.period = period
                 obj_created += 1
@@ -447,6 +448,7 @@ class HPImportView(ImportViewBase):
                 obj.period += period
                 obj_modified += 1
             obj.save()
+            print(obj)
         return {'created': obj_created, 'modified': obj_modified}
 
 
