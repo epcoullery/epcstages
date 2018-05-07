@@ -301,6 +301,9 @@ class TeacherTests(TestCase):
         Course.objects.create(
             teacher=cls.teacher, period=4, subject='Sém. enfance 2', imputation='EDEpe',
         )
+        Course.objects.create(
+            teacher=cls.teacher, period=10, subject='Sém. enfance 2', imputation='EDEps',
+        )
 
     def test_export_charge_sheet(self):
         change_url = reverse('admin:stages_teacher_changelist')
@@ -369,19 +372,19 @@ class TeacherTests(TestCase):
         self.assertEqual(self.teacher.next_report, -2)
 
     def test_calc_imputations(self):
+
+        Course.objects.create(
+            teacher=self.teacher, period=5, subject='Cours EDE', imputation='EDE',
+        )
+        self.teacher.previous_report = 100
         result = self.teacher.calc_imputations()
         self.assertEqual(result[1]['ASSC'], 9)
-        self.assertEqual(result[1]['EDEpe'], 5)
-        # Test with only EDE data
-        t2 = Teacher.objects.create(
-            first_name='Isidore', last_name='Gluck', birth_date='1986-01-01'
-        )
-        Course.objects.create(
-            teacher=t2, period=5, subject='Cours EDE', imputation='EDE',
-        )
-        result = t2.calc_imputations()
-        self.assertEqual(result[1]['EDEpe'], 2)
-        self.assertEqual(result[1]['EDEps'], 3)
+        self.assertEqual(result[1]['EDEpe'], 6)
+        self.assertEqual(result[1]['EDEps'], 16)
+        self.assertEqual(result[0]['tot_mandats'], 8)
+        self.assertEqual(result[0]['tot_paye'], sum(result[1].values()) + self.teacher.previous_report)
+        self.assertEqual(result[0]['tot_paye'], result[0]['tot_trav'])
+        self.assertEqual(result[0]['report'], 0)
 
     def test_export_imputations(self):
         self.client.login(username='me', password='mepassword')
