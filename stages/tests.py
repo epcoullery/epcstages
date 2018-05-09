@@ -248,6 +248,11 @@ tél. 032 886 33 00
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
+        # Expert without corporation
+        st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
+        st.save()
+        response = self.client.post(url, follow=True)
+        self.assertEqual(response.status_code, 200)
 
         # Mentor form
         st.mentor = CorpContact.objects.get(last_name="Horner")
