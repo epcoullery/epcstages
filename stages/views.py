@@ -1072,3 +1072,31 @@ def ortra_export(request):
         export.write_line(values)
 
     return export.get_http_response('ortra_export')
+
+
+def export_qualification_ede(request):
+    EXPORT_QUALIFICATION_EDE = {
+        ('Classe', 'klass__name'),
+        ('Nom_Etudiant', 'last_name'),
+        ('Prenom_Etudiant', 'first_name'),
+
+        ('Expert ext.', 'expert__full_name'),
+        ('Expert int.', 'internal_expert__full_name'),
+        ('Date', 'date_exam'),
+        ('Salle', 'room')
+    }
+
+    export_fields = OrderedDict(EXPORT_QUALIFICATION_EDE)
+    export = OpenXMLExport('Expor_Qualif_EDE')
+    export.write_line(export_fields.keys(), bold=True)  # Headers
+    #Data
+    query_keys = [f for f in export_fields.values() if f is not None]
+    for stud in Student.objects.filter(klass__name__startswith='3EDE').order_by('klass__name', 'last_name'):
+        stud.name
+        print(stud.internal_expert__full_name)
+        values = []
+        for field in query_keys:
+            values.append(getattr(stud, field))
+        export.write_line(values)
+
+    return export.get_http_response('Export_qualif_EDE')
