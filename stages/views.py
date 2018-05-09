@@ -890,6 +890,68 @@ def imputations_export(request):
     return export.get_http_response('Imputations_export')
 
 
+def export_sap(request):
+    IMPUTATIONS_EXPORT_FIELDS = [
+        'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
+        'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
+        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
+    ]
+    EXPORT_SAP_HEADERS = [
+        'PERNR', 'DEGDA', 'ENDDA', 'ZNOM', 'ZUND',
+        'ZACT', 'ZBRA', 'ZOTP', 'ZCCO', 'ZORD', 'ZTAUX',
+    ]
+    MAPPING_OTP = {
+        'ASA': 'CIFO01.03.02.03.01.02 - ASA EE',
+        'ASE': 'CIFO01.03.02.04.01.02 - CFC ASE EE',
+        'ASSC': 'CIFO01.03.02.04.02.02 - CFC ASSC EE',
+        'EDEpe': 'CIFO01.03.02.07.01.01 - EDE prat. prof. PT',
+        'EDEps': 'CIFO01.03.02.07.02.01 - EDE stages PT',
+        'EDS': 'CIFO01.03.02.07.03.02 - EDE EDS EE',
+        'CAS_FPP': 'CIFO01.03.02.01.03 - Mandats divers (CAS FPP)',
+        'MP' : 'Matu. pro.',
+        'Direction': 'Direction',
+    }
+
+    export = OpenXMLExport('Imputations')
+    export.write_line(EXPORT_SAP_HEADERS, bold=True)  # Headers
+    start_date = '20.08.2018'
+    end_date = '19.08.2019'
+    indice = 'charge globale'
+    type_act = 'Ens. prof.'
+    branche = 'Ens. prof.'
+    centre_cout = '100396'
+    stat = ''
+
+    for teacher in Teacher.objects.filter(archived=False):
+        print(str(teacher))
+        activities, imputations = teacher.calc_imputations()
+        print(imputations)
+        for key in imputations:
+            if imputations[key] > 0:
+                values = [
+                    teacher.ext_id, start_date, end_date, imputations[key], indice, type_act,
+                    branche, MAPPING_OTP[key], centre_cout, stat,
+                    '{0:.2f}'.format(imputations[key]/settings.GLOBAL_CHARGE_PERCENT),
+                ]
+                export.write_line(values)
+        #Previous report
+        values = [
+            teacher.ext_id, start_date, end_date, teacher.previous_report, indice, type_act,
+            branche, 'Report précédent', centre_cout, stat,
+            '{0:.2f}'.format(teacher.previous_report / settings.GLOBAL_CHARGE_PERCENT),
+        ]
+        export.write_line(values)
+
+        #Next report
+        values = [
+            teacher.ext_id, start_date, end_date, teacher.next_report, indice, type_act,
+            branche, 'Report suivant', centre_cout, stat,
+            '{0:.2f}'.format(teacher.next_report / settings.GLOBAL_CHARGE_PERCENT),
+        ]
+        export.write_line(values)
+    return export.get_http_response('Export_SAP')
+
+
 def print_update_form(request):
     """
     PDF form to update personal data
