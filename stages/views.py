@@ -1072,3 +1072,42 @@ def ortra_export(request):
         export.write_line(values)
 
     return export.get_http_response('ortra_export')
+
+
+def export_qualification_ede(request):
+    headers = [
+        'Classe', 'Etudiant-e',
+        'Référent pratique', 'Résumé TD', 'Ens. référent', 'dernier RDV',
+        'Mentor',
+        'Session',
+        'Titre TD',
+        'Exp_int.', 'Expert ext.',
+        'Date', 'Salle', 'Note',
+    ]
+
+    export = OpenXMLExport('Expor_Qualif_EDE')
+    export.write_line(headers, bold=True)
+
+    # Data
+    for student in Student.objects.filter(klass__name__startswith='3EDE', archived=False
+            ).select_related('klass', 'referent', 'training_referent', 'mentor', 'expert', 'internal_expert',
+            ).order_by('klass__name', 'last_name'):
+        values = [
+            student.klass.name,
+            student.full_name,
+            student.training_referent.full_name if student.training_referent else '',
+            student.subject,
+            student.referent.full_name if student.referent else '',
+            student.last_appointment,
+            student.mentor.full_name if student.mentor else '',
+            str(student.session),
+            student.title,
+            student.internal_expert.full_name if student.internal_expert else '',
+            student.expert.full_name if student.expert else '',
+            student.date_exam,
+            student.room,
+            student.mark,
+        ]
+        export.write_line(values)
+
+    return export.get_http_response('Export_qualif_EDE')

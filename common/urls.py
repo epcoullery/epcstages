@@ -41,6 +41,8 @@ urlpatterns = [
         name='print-expert-compens-ede'),
     path('student_ede/<int:pk>/examination/mentor', views.print_mentor_ede_compensation_form,
         name='print-mentor-compens-ede'),
+    path('student_ede/export_qualif_ede', views.export_qualification_ede,
+        name='export-qualif-ede'),
 
     path('imputations/export/', views.imputations_export, name='imputations_export'),
     path('print/update_form/', views.print_update_form, name='print_update_form'),
