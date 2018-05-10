@@ -1075,28 +1075,36 @@ def ortra_export(request):
 
 
 def export_qualification_ede(request):
-    EXPORT_QUALIFICATION_EDE = {
-        ('Classe', 'klass__name'),
-        ('Nom_Etudiant', 'last_name'),
-        ('Prenom_Etudiant', 'first_name'),
+    headers = [
+        'Classe', 'Etudiant-e',
+        'Référent pratique', 'Résumé TD', 'Ens. référent', 'dernier RDV',
+        'Mentor',
+        'Session',
+        'Titre TD',
+        'Exp_int.', 'Expert ext.',
+        'Date', 'Salle', 'Note',
+    ]
 
-        ('Expert ext.', 'expert__full_name'),
-        ('Expert int.', 'internal_expert__full_name'),
-        ('Date', 'date_exam'),
-        ('Salle', 'room')
-    }
-
-    export_fields = OrderedDict(EXPORT_QUALIFICATION_EDE)
     export = OpenXMLExport('Expor_Qualif_EDE')
-    export.write_line(export_fields.keys(), bold=True)  # Headers
-    #Data
-    query_keys = [f for f in export_fields.values() if f is not None]
-    for stud in Student.objects.filter(klass__name__startswith='3EDE').order_by('klass__name', 'last_name'):
-        stud.name
-        print(stud.internal_expert__full_name)
+    export.write_line(headers, bold=True)
+
+    # Data
+    for student in Student.objects.filter(klass__name__startswith='3EDE', archived=False).order_by('klass__name', 'last_name'):
         values = []
-        for field in query_keys:
-            values.append(getattr(stud, field))
+        values.append(student.klass.name)
+        values.append(student.full_name)
+        values.append(student.training_referent.full_name if student.training_referent else '')
+        values.append(student.subject)
+        values.append(student.referent.full_name if student.referent else '')
+        values.append(student.last_appointment)
+        values.append(student.mentor.full_name if student.mentor else '')
+        values.append(str(student.session))
+        values.append(student.title)
+        values.append(student.internal_expert.full_name if student.internal_expert else '')
+        values.append(student.expert.full_name if student.expert else '')
+        values.append(student.date_exam)
+        values.append(student.room)
+        values.append(student.mark)
         export.write_line(values)
 
     return export.get_http_response('Export_qualif_EDE')
