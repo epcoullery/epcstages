@@ -313,7 +313,7 @@ class CompensationForm:
             [self.formating('Adresse complète :'), person.street or self.points],
             ['', person.pcode_city if person.pcode else self.points],
             ['', self.points],
-            [self.formating('Employeur :'), person.corporation.name or self.points],
+            [self.formating('Employeur :'), person.corporation.name if person.corporation else self.points],
             [Spacer(0, 0.2 * cm)],
         ]
 

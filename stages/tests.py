@@ -103,6 +103,10 @@ class StagesTest(TestCase):
         response = self.client.get(reverse('general-export'))
         self.assertEqual(response.status_code, 200)
 
+    def test_export_qualif_ede(self):
+        response = self.client.get(reverse('export-qualif-ede'))
+        self.assertEqual(response.status_code, 200)
+
     def test_student_change_view(self):
         klass_ede = Klass.objects.create(
             name="2EDEps",
@@ -248,6 +252,11 @@ tél. 032 886 33 00
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
+        # Expert without corporation
+        st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
+        st.save()
+        response = self.client.post(url, follow=True)
+        self.assertEqual(response.status_code, 200)
 
         # Mentor form
         st.mentor = CorpContact.objects.get(last_name="Horner")
@@ -372,16 +381,29 @@ class TeacherTests(TestCase):
         result = self.teacher.calc_imputations()
         self.assertEqual(result[1]['ASSC'], 9)
         self.assertEqual(result[1]['EDEpe'], 5)
+
         # Test with only EDE data
         t2 = Teacher.objects.create(
             first_name='Isidore', last_name='Gluck', birth_date='1986-01-01'
         )
         Course.objects.create(
+            teacher=t2, period=13, subject='#ASE Colloque', imputation='ASSCFE',
+        )
+        Course.objects.create(
             teacher=t2, period=5, subject='Cours EDE', imputation='EDE',
         )
+        Course.objects.create(
+            teacher=t2, period=17, subject='Sém. enfance 2', imputation='ASE',
+        )
+
         result = t2.calc_imputations()
+        self.assertEqual(result[1]['ASE'], 19)
+        self.assertEqual(result[1]['ASSC'], 16) # rounding correction (first col > 0)
         self.assertEqual(result[1]['EDEpe'], 2)
         self.assertEqual(result[1]['EDEps'], 3)
+        self.assertEqual(result[0]['tot_paye'], result[0]['tot_trav'])
+        self.assertEqual(result[0]['tot_paye'], 40)
+        self.assertEqual(result[0]['report'], 0)
 
     def test_export_imputations(self):
         self.client.login(username='me', password='mepassword')
