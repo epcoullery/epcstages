@@ -894,7 +894,7 @@ def export_sap(request):
     IMPUTATIONS_EXPORT_FIELDS = [
         'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
         'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
+        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP'
     ]
     EXPORT_SAP_HEADERS = [
         'PERNR', 'DEGDA', 'ENDDA', 'ZNOM', 'ZUND',
@@ -906,7 +906,7 @@ def export_sap(request):
         'ASSC': 'CIFO01.03.02.04.02.02 - CFC ASSC EE',
         'EDEpe': 'CIFO01.03.02.07.01.01 - EDE prat. prof. PT',
         'EDEps': 'CIFO01.03.02.07.02.01 - EDE stages PT',
-        'EDS': 'CIFO01.03.02.07.03.02 - EDE EDS EE',
+        'EDS': 'CIFO01.03.02.07.03.02 - EDS EE',
         'CAS_FPP': 'CIFO01.03.02.01.03 - Mandats divers (CAS FPP)',
         'MP' : 'Matu. Santé + Travail social',
         'Direction': 'Direction',
@@ -923,9 +923,7 @@ def export_sap(request):
     stat = ''
 
     for teacher in Teacher.objects.filter(archived=False):
-        print(str(teacher))
         activities, imputations = teacher.calc_imputations()
-        print(imputations)
         for key in imputations:
             if imputations[key] > 0:
                 values = [
@@ -934,6 +932,7 @@ def export_sap(request):
                     round(imputations[key]/settings.GLOBAL_CHARGE_PERCENT,2),
                 ]
                 export.write_line(values)
+
         # Previous report
         values = [
             teacher.ext_id, start_date, end_date, teacher.previous_report, indice, type_act,
