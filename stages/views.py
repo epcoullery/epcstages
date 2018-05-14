@@ -908,7 +908,7 @@ def export_sap(request):
         'EDEps': 'CIFO01.03.02.07.02.01 - EDE stages PT',
         'EDS': 'CIFO01.03.02.07.03.02 - EDE EDS EE',
         'CAS_FPP': 'CIFO01.03.02.01.03 - Mandats divers (CAS FPP)',
-        'MP' : 'Matu. pro.',
+        'MP' : 'Matu. Santé + Travail social',
         'Direction': 'Direction',
     }
 
@@ -919,7 +919,7 @@ def export_sap(request):
     indice = 'charge globale'
     type_act = 'Ens. prof.'
     branche = 'Ens. prof.'
-    centre_cout = '100396'
+    centre_cout = ''
     stat = ''
 
     for teacher in Teacher.objects.filter(archived=False):
@@ -931,22 +931,22 @@ def export_sap(request):
                 values = [
                     teacher.ext_id, start_date, end_date, imputations[key], indice, type_act,
                     branche, MAPPING_OTP[key], centre_cout, stat,
-                    '{0:.2f}'.format(imputations[key]/settings.GLOBAL_CHARGE_PERCENT),
+                    round(imputations[key]/settings.GLOBAL_CHARGE_PERCENT,2),
                 ]
                 export.write_line(values)
-        #Previous report
+        # Previous report
         values = [
             teacher.ext_id, start_date, end_date, teacher.previous_report, indice, type_act,
             branche, 'Report précédent', centre_cout, stat,
-            '{0:.2f}'.format(teacher.previous_report / settings.GLOBAL_CHARGE_PERCENT),
+            round(teacher.previous_report/settings.GLOBAL_CHARGE_PERCENT,2),
         ]
         export.write_line(values)
 
-        #Next report
+        # Next report
         values = [
             teacher.ext_id, start_date, end_date, teacher.next_report, indice, type_act,
             branche, 'Report suivant', centre_cout, stat,
-            '{0:.2f}'.format(teacher.next_report / settings.GLOBAL_CHARGE_PERCENT),
+            round(teacher.next_report/settings.GLOBAL_CHARGE_PERCENT,2),
         ]
         export.write_line(values)
     return export.get_http_response('Export_SAP')
