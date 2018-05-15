@@ -891,13 +891,9 @@ def imputations_export(request):
 
 
 def export_sap(request):
-    IMPUTATIONS_EXPORT_FIELDS = [
-        'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
-        'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP'
-    ]
+
     EXPORT_SAP_HEADERS = [
-        'PERNR', 'DEGDA', 'ENDDA', 'ZNOM', 'ZUND',
+        'PERNR', 'PERNOM', 'DEGDA', 'ENDDA', 'ZNOM', 'ZUND',
         'ZACT', 'ZBRA', 'ZOTP', 'ZCCO', 'ZORD', 'ZTAUX',
     ]
     MAPPING_OTP = {
@@ -927,7 +923,7 @@ def export_sap(request):
         for key in imputations:
             if imputations[key] > 0:
                 values = [
-                    teacher.ext_id, start_date, end_date, imputations[key], indice, type_act,
+                    teacher.ext_id, teacher.full_name, start_date, end_date, imputations[key], indice, type_act,
                     branche, MAPPING_OTP[key], centre_cout, stat,
                     round(imputations[key]/settings.GLOBAL_CHARGE_PERCENT,2),
                 ]
@@ -935,7 +931,7 @@ def export_sap(request):
 
         # Previous report
         values = [
-            teacher.ext_id, start_date, end_date, teacher.previous_report, indice, type_act,
+            teacher.ext_id, teacher.full_name, start_date, end_date, teacher.previous_report, indice, type_act,
             branche, 'Report précédent', centre_cout, stat,
             round(teacher.previous_report/settings.GLOBAL_CHARGE_PERCENT,2),
         ]
@@ -943,7 +939,7 @@ def export_sap(request):
 
         # Next report
         values = [
-            teacher.ext_id, start_date, end_date, teacher.next_report, indice, type_act,
+            teacher.ext_id, teacher.full_name, start_date, end_date, teacher.next_report, indice, type_act,
             branche, 'Report suivant', centre_cout, stat,
             round(teacher.next_report/settings.GLOBAL_CHARGE_PERCENT,2),
         ]
