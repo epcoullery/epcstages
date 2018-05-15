@@ -891,7 +891,6 @@ def imputations_export(request):
 
 
 def export_sap(request):
-
     EXPORT_SAP_HEADERS = [
         'PERNR', 'PERNOM', 'DEGDA', 'ENDDA', 'ZNOM', 'ZUND',
         'ZACT', 'ZBRA', 'ZOTP', 'ZCCO', 'ZORD', 'ZTAUX',
@@ -925,7 +924,7 @@ def export_sap(request):
                 values = [
                     teacher.ext_id, teacher.full_name, start_date, end_date, imputations[key], indice, type_act,
                     branche, MAPPING_OTP[key], centre_cout, stat,
-                    round(imputations[key]/settings.GLOBAL_CHARGE_PERCENT,2),
+                    round(imputations[key] / settings.GLOBAL_CHARGE_PERCENT, 2),
                 ]
                 export.write_line(values)
 
@@ -933,7 +932,7 @@ def export_sap(request):
         values = [
             teacher.ext_id, teacher.full_name, start_date, end_date, teacher.previous_report, indice, type_act,
             branche, 'Report précédent', centre_cout, stat,
-            round(teacher.previous_report/settings.GLOBAL_CHARGE_PERCENT,2),
+            round(teacher.previous_report / settings.GLOBAL_CHARGE_PERCENT, 2),
         ]
         export.write_line(values)
 
@@ -941,7 +940,7 @@ def export_sap(request):
         values = [
             teacher.ext_id, teacher.full_name, start_date, end_date, teacher.next_report, indice, type_act,
             branche, 'Report suivant', centre_cout, stat,
-            round(teacher.next_report/settings.GLOBAL_CHARGE_PERCENT,2),
+            round(teacher.next_report / settings.GLOBAL_CHARGE_PERCENT, 2),
         ]
         export.write_line(values)
     return export.get_http_response('Export_SAP')
