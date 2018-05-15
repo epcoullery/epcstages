@@ -107,6 +107,10 @@ class StagesTest(TestCase):
         response = self.client.get(reverse('export-qualif-ede'))
         self.assertEqual(response.status_code, 200)
 
+    def test_export_sap(self):
+        response = self.client.get(reverse('export_sap'))
+        self.assertEqual(response.status_code, 200)
+
     def test_student_change_view(self):
         klass_ede = Klass.objects.create(
             name="2EDEps",

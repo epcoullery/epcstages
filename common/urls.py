@@ -45,6 +45,7 @@ urlpatterns = [
         name='export-qualif-ede'),
 
     path('imputations/export/', views.imputations_export, name='imputations_export'),
+    path('export_sap/', views.export_sap, name='export_sap'),
     path('print/update_form/', views.print_update_form, name='print_update_form'),
     path('general_export/', views.general_export, name='general-export'),
     path('ortra_export/', views.ortra_export, name='ortra-export'),
