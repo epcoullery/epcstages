@@ -1137,7 +1137,8 @@ def export_qualification_ede(request):
         'Mentor',
         'Session',
         'Titre TD',
-        'Exp_int.', 'Expert ext.',
+        'Exp_int.',
+        'Expert ext. Civilité', 'Expert ext. Nom', 'Expert ext. Adresse', 'Expert ext. Localité',
         'Date', 'Salle', 'Note',
     ]
 
@@ -1159,7 +1160,10 @@ def export_qualification_ede(request):
             str(student.session),
             student.title,
             student.internal_expert.full_name if student.internal_expert else '',
+            student.expert.civility if student.expert else '',
             student.expert.full_name if student.expert else '',
+            student.expert.street if student.expert else '',
+            student.expert.pcode_city if student.expert else '',
             student.date_exam,
             student.room,
             student.mark,
