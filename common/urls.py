@@ -35,13 +35,13 @@ urlpatterns = [
     path('candidate/<int:pk>/summary/', candidats_views.inscription_summary, name='candidate-summary'),
 
     # Qualification EDE
-    path('student_ede/<int:pk>/send_convocation', views.StudentConvocationExaminationView.as_view(),
+    path('student_ede/<int:pk>/send_convocation/', views.StudentConvocationExaminationView.as_view(),
         name='student-ede-convocation'),
-    path('student_ede/<int:pk>/examination/expert', views.print_expert_ede_compensation_form,
+    path('student_ede/<int:pk>/examination/expert/', views.print_expert_ede_compensation_form,
         name='print-expert-compens-ede'),
-    path('student_ede/<int:pk>/examination/mentor', views.print_mentor_ede_compensation_form,
+    path('student_ede/<int:pk>/examination/mentor/', views.print_mentor_ede_compensation_form,
         name='print-mentor-compens-ede'),
-    path('student_ede/export_qualif_ede', views.export_qualification_ede,
+    path('student_ede/export_qualif_ede/', views.export_qualification_ede,
         name='export-qualif-ede'),
 
     path('imputations/export/', views.imputations_export, name='imputations_export'),
