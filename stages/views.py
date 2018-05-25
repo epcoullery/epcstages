@@ -286,8 +286,13 @@ class ImportViewBase(FormView):
 
     def form_valid(self, form):
         upfile = form.cleaned_data['upload']
+        is_csv = (
+            upfile.name.endswith('.csv') or
+            'csv' in upfile.content_type or
+            upfile.content_type == 'text/plain'
+        )
         try:
-            if 'csv' in upfile.content_type or upfile.content_type == 'text/plain':
+            if is_csv:
                 # Reopen the file in text mode
                 upfile = open(upfile.temporary_file_path(), mode='r', encoding='utf-8-sig')
                 imp_file = CSVImportedFile(File(upfile))
@@ -298,7 +303,7 @@ class ImportViewBase(FormView):
         except Exception as e:
             if settings.DEBUG:
                 raise
-            messages.error(self.request, _("The import failed. Error message: %s") % e)
+            messages.error(self.request, "L'importation a échoué. Erreur: %s (content-type: %s)" % (e, upfile.content_type))
         else:
             non_fatal_errors = stats.get('errors', [])
             if 'created' in stats:
