@@ -465,12 +465,13 @@ class ImportTests(TestCase):
         teacher = Teacher.objects.create(
             first_name='Jeanne', last_name='Dupond', birth_date='1974-08-08'
         )
-        path = os.path.join(os.path.dirname(__file__), 'test_files', 'HYPERPLANNING.txt')
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'HYPERPLANNING.csv')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp'), {'upload': fh}, follow=True)
         self.assertContains(response, "Objets créés : 13")
         self.assertContains(response, "Objets modifiés : 10")
+        self.assertContains(response, "Impossible de trouver «Nom Inconnu» dans la liste des enseignant-e-s")
         self.assertEqual(teacher.course_set.count(), 13)
 
     def test_import_hp_contacts(self):

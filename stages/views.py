@@ -422,8 +422,16 @@ class HPImportView(ImportViewBase):
             if (line['LIBELLE_MAT'] == '' or line['NOMPERSO_DIP'] == '' or line['TOTAL'] == ''):
                 continue
 
+            try:
+                teacher = profs[line['NOMPERSO_ENS']]
+            except KeyError:
+                errors.append(
+                    "Impossible de trouver «%s» dans la liste des enseignant-e-s" % line['NOMPERSO_ENS']
+                )
+                continue
+
             obj, created = Course.objects.get_or_create(
-                teacher=profs[line['NOMPERSO_ENS']],
+                teacher=teacher,
                 subject=line['LIBELLE_MAT'],
                 public=line['NOMPERSO_DIP'],
             )
