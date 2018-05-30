@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.core.files import File
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Case, Count, Value, When, Q
+from django.db.models import Case, Count, Value, When, Q, Sum
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -32,7 +32,7 @@ from .exports import OpenXMLExport
 from .forms import EmailBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
 from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
-    Training, Availability,
+    Training, Availability
 )
 from .pdf import ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm
 from .utils import is_int
@@ -402,17 +402,23 @@ class HPImportView(ImportViewBase):
         ('ASAFE', 'ASAFE'),
         ('ASEFE', 'ASEFE'),
         ('ASSCFE', 'ASSCFE'),
-        ('MP', 'MP'),
-        ('CMS', 'MP'),
+
+        ('#Mandat_ASA', 'ASAFE'),
+
+        ('MPTS', 'MPTS'),
+        ('MPS', 'MPS'),
+        ('CMS ASE', 'MPTS'),
+        ('CMS ASSC', 'MPS'),
+
         ('EDEpe', 'EDEpe'),
         ('EDEps', 'EDEps'),
-        ('EDE', 'EDE'),
         ('EDS', 'EDS'),
         ('CAS_FPP', 'CAS_FPP'),
-        ('#Mandat_ASA', 'ASAFE'),
-        ('#Mandat_ASE', 'ASEFE'),
-        ('#Mandat_ASSC', 'ASSCFE'),
-        ('Direction', 'Direction'),
+
+        # To split afterwards
+        ('EDE', 'EDE'),
+        ('#Mandat_ASE', 'ASE'),
+        ('#Mandat_ASSC', 'ASSC'),
     ])
 
     def import_data(self, up_file):
@@ -878,18 +884,37 @@ def stages_export(request, scope=None):
     return export.get_http_response('stages_export')
 
 
+def _ratio_Ede_Ase_Assc():
+    # Spliting for unattribued periods
+    tot_edeps = Course.objects.filter(imputation='EDEps').aggregate(Sum('period'))['period__sum'] or 0
+    tot_edepe = Course.objects.filter(imputation='EDEpe').aggregate(Sum('period'))['period__sum'] or 0
+    edepe_ratio = tot_edepe / (tot_edepe + tot_edeps)
+
+    tot_asefe = Course.objects.filter(imputation='ASEFE').aggregate(Sum('period'))['period__sum'] or 0
+    tot_mpts = Course.objects.filter(imputation='MPTS').aggregate(Sum('period'))['period__sum'] or 0
+    asefe_ratio = tot_asefe / (tot_asefe + tot_mpts)
+
+    tot_asscfe = Course.objects.filter(imputation='ASSCFE').aggregate(Sum('period'))['period__sum'] or 0
+    tot_mps = Course.objects.filter(imputation='MPS').aggregate(Sum('period'))['period__sum'] or 0
+    asscfe_ratio = tot_asscfe / (tot_asscfe + tot_mps)
+
+    return ({'edepe':edepe_ratio, 'asefe':asefe_ratio, 'asscfe': asscfe_ratio})
+
+
 def imputations_export(request):
     IMPUTATIONS_EXPORT_FIELDS = [
         'Nom', 'Prénom', 'Report passé', 'Ens', 'Discipline',
         'Accomp.', 'Discipline', 'Total payé', 'Indice', 'Taux', 'Report futur',
-        'ASA', 'ASSC', 'ASE', 'MP', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP', 'Direction'
+        'ASA', 'ASSC', 'ASE', 'MPTS', 'MPS', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP'
     ]
+
+    ratio = _ratio_Ede_Ase_Assc()
 
     export = OpenXMLExport('Imputations')
     export.write_line(IMPUTATIONS_EXPORT_FIELDS, bold=True)  # Headers
 
     for teacher in Teacher.objects.filter(archived=False):
-        activities, imputations = teacher.calc_imputations()
+        activities, imputations = teacher.calc_imputations(ratio)
         values = [
             teacher.last_name, teacher.first_name, teacher.previous_report,
             activities['tot_ens'], 'Ens. prof.', activities['tot_mandats'] + activities['tot_formation'],
@@ -909,16 +934,18 @@ def export_sap(request):
         'ZACT', 'ZBRA', 'ZOTP', 'ZCCO', 'ZORD', 'ZTAUX',
     ]
     MAPPING_OTP = {
-        'ASA': 'CIFO01.03.02.03.01.02 - ASA EE',
-        'ASE': 'CIFO01.03.02.04.01.02 - CFC ASE EE',
-        'ASSC': 'CIFO01.03.02.04.02.02 - CFC ASSC EE',
+        'ASAFE': 'CIFO01.03.02.03.01.02 - ASA EE',
+        'ASEFE': 'CIFO01.03.02.04.01.02 - CFC ASE EE',
+        'ASSCFE': 'CIFO01.03.02.04.02.02 - CFC ASSC EE',
         'EDEpe': 'CIFO01.03.02.07.01.01 - EDE prat. prof. PT',
         'EDEps': 'CIFO01.03.02.07.02.01 - EDE stages PT',
         'EDS': 'CIFO01.03.02.07.03.02 - EDS EE',
         'CAS_FPP': 'CIFO01.03.02.01.03 - Mandats divers (CAS FPP)',
-        'MP' : 'Matu. Santé + Travail social',
-        'Direction': 'Direction',
+        'MPTS' : 'CIFO01.04.03.06.02.01 - MPTS ASE',
+        'MPS': 'CIFO01.04.03.06.03.01 - MPS Santé',
     }
+
+    ratio = _ratio_Ede_Ase_Assc()
 
     export = OpenXMLExport('Imputations')
     export.write_line(EXPORT_SAP_HEADERS, bold=True)  # Headers
@@ -931,7 +958,7 @@ def export_sap(request):
     stat = ''
 
     for teacher in Teacher.objects.filter(archived=False):
-        activities, imputations = teacher.calc_imputations()
+        activities, imputations = teacher.calc_imputations(ratio)
         for key in imputations:
             if imputations[key] > 0:
                 values = [

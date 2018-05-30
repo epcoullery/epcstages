@@ -135,20 +135,40 @@ class Teacher(models.Model):
             'report': self.next_report,
         }
 
-    def calc_imputations(self):
+    def calc_imputations(self, ratio):
         """
         Return a tuple for accountings charges
         """
         activities = self.calc_activity()
         imputations = OrderedDict(
-            [('ASA', 0), ('ASSC', 0), ('ASE', 0), ('MP', 0), ('EDEpe', 0), ('EDEps', 0),
-             ('EDS', 0), ('CAS_FPP', 0), ('Direction', 0)]
+            [('ASAFE', 0), ('ASSCFE', 0), ('ASEFE', 0), ('MPTS', 0), ('MPS', 0), ('EDEpe', 0), ('EDEps', 0),
+             ('EDS', 0), ('CAS_FPP', 0)]
         )
         courses = self.course_set.all()
 
         for key in imputations:
             imputations[key] = courses.filter(imputation__contains=key).aggregate(models.Sum('period'))['period__sum'] or 0
 
+        # Spliting imputations for EDE, ASE and ASSC
+        ede = courses.filter(imputation='EDE').aggregate(models.Sum('period'))['period__sum'] or 0
+        if ede > 0:
+            pe = int(round(ede * ratio['edepe'], 0))
+            imputations['EDEpe'] += pe
+            imputations['EDEps'] += ede - pe
+
+        ase = courses.filter(imputation='ASE').aggregate(models.Sum('period'))['period__sum'] or 0
+        if ase > 0:
+            asefe = int(round(ase * ratio['asefe'], 0))
+            imputations['ASEFE'] += asefe
+            imputations['MPTS'] += ase - asefe
+
+        assc = courses.filter(imputation='ASSC').aggregate(models.Sum('period'))['period__sum'] or 0
+        if assc > 0:
+            asscfe = int(round(assc * ratio['asscfe'], 0))
+            imputations['ASSCFE'] += asscfe
+            imputations['MPS'] += assc - asscfe
+
+        """
         # Split EDE periods in EDEpe and EDEps columns, in proportion
         ede = courses.filter(imputation='EDE').aggregate(models.Sum('period'))['period__sum'] or 0
         if ede > 0:
@@ -158,6 +178,8 @@ class Teacher(models.Model):
             pe_plus = round(ede * pe_percent)
             imputations['EDEpe'] += pe_plus
             imputations['EDEps'] += ede - pe_plus
+
+        """
 
         # Split formation periods in proportions
         tot = sum(imputations.values())
@@ -555,13 +577,20 @@ IMPUTATION_CHOICES = (
     ('ASAFE', 'ASAFE'),
     ('ASEFE', 'ASEFE'),
     ('ASSCFE', 'ASSCFE'),
-    ('MP', 'MP'),
+
+    ('MPTS', 'MPTS'),
+    ('MPS', 'MPS'),
+
     ('EDEpe', 'EDEpe'),
     ('EDEps', 'EDEps'),
-    ('EDE', 'EDE'),
     ('EDS', 'EDS'),
     ('CAS_FPP', 'CAS_FPP'),
-    ('Direction', 'Direction'),
+
+    # To split afterwards
+    ('EDE', 'EDE'),
+    ('#Mandat_ASA', 'ASA'),
+    ('#Mandat_ASE', 'ASE'),
+    ('#Mandat_ASSC', 'ASSC'),
 )
 
 
