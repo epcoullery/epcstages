@@ -888,16 +888,16 @@ def _ratio_Ede_Ase_Assc():
     # Spliting for unattribued periods
     tot_edeps = Course.objects.filter(imputation='EDEps').aggregate(Sum('period'))['period__sum'] or 0
     tot_edepe = Course.objects.filter(imputation='EDEpe').aggregate(Sum('period'))['period__sum'] or 0
-    edepe_ratio = tot_edepe / (tot_edepe + tot_edeps)
+    edepe_ratio = 1 if tot_edepe + tot_edeps == 0 else tot_edepe / (tot_edepe + tot_edeps)
 
     tot_asefe = Course.objects.filter(imputation='ASEFE').aggregate(Sum('period'))['period__sum'] or 0
     tot_mpts = Course.objects.filter(imputation='MPTS').aggregate(Sum('period'))['period__sum'] or 0
-    asefe_ratio = tot_asefe / (tot_asefe + tot_mpts)
+    asefe_ratio = 1 if tot_asefe + tot_mpts == 0 else tot_asefe / (tot_asefe + tot_mpts)
 
     tot_asscfe = Course.objects.filter(imputation='ASSCFE').aggregate(Sum('period'))['period__sum'] or 0
     tot_mps = Course.objects.filter(imputation='MPS').aggregate(Sum('period'))['period__sum'] or 0
-    asscfe_ratio = tot_asscfe / (tot_asscfe + tot_mps)
-
+    asscfe_ratio = 1 if tot_asscfe + tot_mps == 0 else tot_asscfe / (tot_asscfe + tot_mps)
+    
     return ({'edepe':edepe_ratio, 'asefe':asefe_ratio, 'asscfe': asscfe_ratio})
 
 

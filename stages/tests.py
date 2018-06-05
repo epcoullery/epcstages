@@ -382,32 +382,41 @@ class TeacherTests(TestCase):
         self.assertEqual(self.teacher.next_report, -2)
 
     def test_calc_imputations(self):
-        result = self.teacher.calc_imputations()
-        self.assertEqual(result[1]['ASSC'], 9)
+        ratio = {'edepe': 0.45, 'asefe': 0.45, 'asscfe': 0.55}
+        result = self.teacher.calc_imputations(ratio)
+        self.assertEqual(result[1]['ASSCFE'], 9)
         self.assertEqual(result[1]['EDEpe'], 5)
 
-        # Test with only EDE data
+        # Test with only ASSC data
         t2 = Teacher.objects.create(
             first_name='Isidore', last_name='Gluck', birth_date='1986-01-01'
         )
         Course.objects.create(
-            teacher=t2, period=13, subject='#ASE Colloque', imputation='ASSCFE',
+            teacher=t2, period=24, subject='#ASSCE Colloque', imputation='ASSC',
         )
         Course.objects.create(
-            teacher=t2, period=5, subject='Cours EDE', imputation='EDE',
+            teacher=t2, period=130, subject='#Coaching', imputation='ASSC',
         )
         Course.objects.create(
-            teacher=t2, period=17, subject='Sém. enfance 2', imputation='ASE',
+            teacher=t2, period=275, subject='Cours MP ASSC', imputation='MPS',
+        )
+        Course.objects.create(
+            teacher=t2, period=450, subject='Cours ASSCFE', imputation='ASSCFE',
         )
 
-        result = t2.calc_imputations()
-        self.assertEqual(result[1]['ASE'], 19)
-        self.assertEqual(result[1]['ASSC'], 16) # rounding correction (first col > 0)
-        self.assertEqual(result[1]['EDEpe'], 2)
-        self.assertEqual(result[1]['EDEps'], 3)
-        self.assertEqual(result[0]['tot_paye'], result[0]['tot_trav'])
-        self.assertEqual(result[0]['tot_paye'], 40)
-        self.assertEqual(result[0]['report'], 0)
+        t2.previous_report = 10
+
+        ratio = {'edepe': 0.45, 'asefe': 0.45, 'asscfe': 0.55}
+
+        result = t2.calc_imputations(ratio)
+
+        self.assertEqual(result[0]['tot_paye'], 1005)
+        self.assertEqual(result[0]['tot_formation'], 116)
+        self.assertEqual(result[0]['tot_mandats'], 154)
+        self.assertEqual(result[1]['ASSCFE'], 606)
+        self.assertEqual(result[1]['MPS'], 389)
+
+
 
     def test_export_imputations(self):
         self.client.login(username='me', password='mepassword')

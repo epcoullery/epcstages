@@ -185,8 +185,9 @@ class Teacher(models.Model):
         tot = sum(imputations.values())
         if tot > 0:
             for key in imputations:
-                imputations[key] += round(imputations[key] / tot * activities['tot_formation'])
+                imputations[key] += round(imputations[key] / tot * activities['tot_formation'],0)
 
+        """
         # Correct for rounding errors changing the first imputations value
         tot = sum(imputations.values()) + self.previous_report - (self.next_report)
         dif = tot - activities['tot_paye']
@@ -195,6 +196,7 @@ class Teacher(models.Model):
                 if v > 0:
                     imputations[k] += 1 if dif == -1 else -1
                     break
+        """
         return (activities, imputations)
 
     def total_logbook(self):
