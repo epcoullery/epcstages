@@ -898,7 +898,7 @@ def _ratio_Ede_Ase_Assc():
     tot_mps = Course.objects.filter(imputation='MPS').aggregate(Sum('period'))['period__sum'] or 0
     asscfe_ratio = 1 if tot_asscfe + tot_mps == 0 else tot_asscfe / (tot_asscfe + tot_mps)
     
-    return ({'edepe':edepe_ratio, 'asefe':asefe_ratio, 'asscfe': asscfe_ratio})
+    return {'edepe':edepe_ratio, 'asefe':asefe_ratio, 'asscfe': asscfe_ratio}
 
 
 def imputations_export(request):
@@ -908,13 +908,13 @@ def imputations_export(request):
         'ASA', 'ASSC', 'ASE', 'MPTS', 'MPS', 'EDEpe', 'EDEps', 'EDS', 'CAS_FPP'
     ]
 
-    ratio = _ratio_Ede_Ase_Assc()
+    ratios = _ratio_Ede_Ase_Assc()
 
     export = OpenXMLExport('Imputations')
     export.write_line(IMPUTATIONS_EXPORT_FIELDS, bold=True)  # Headers
 
     for teacher in Teacher.objects.filter(archived=False):
-        activities, imputations = teacher.calc_imputations(ratio)
+        activities, imputations = teacher.calc_imputations(ratios)
         values = [
             teacher.last_name, teacher.first_name, teacher.previous_report,
             activities['tot_ens'], 'Ens. prof.', activities['tot_mandats'] + activities['tot_formation'],
@@ -945,7 +945,7 @@ def export_sap(request):
         'MPS': 'CIFO01.04.03.06.03.01 - MPS Santé',
     }
 
-    ratio = _ratio_Ede_Ase_Assc()
+    ratios = _ratio_Ede_Ase_Assc()
 
     export = OpenXMLExport('Imputations')
     export.write_line(EXPORT_SAP_HEADERS, bold=True)  # Headers
@@ -958,7 +958,7 @@ def export_sap(request):
     stat = ''
 
     for teacher in Teacher.objects.filter(archived=False):
-        activities, imputations = teacher.calc_imputations(ratio)
+        activities, imputations = teacher.calc_imputations(ratios)
         for key in imputations:
             if imputations[key] > 0:
                 values = [
