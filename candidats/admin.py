@@ -114,6 +114,8 @@ class CandidateAdmin(admin.ModelAdmin):
     convocation_mail.boolean = True
 
     def candidate_actions(self, obj):
+        if not obj.pk:
+            return ''
         return format_html(
             '<a class="button" href="{}">Confirmation de réception FE + EDE</a>&nbsp;'
             '<a class="button" href="{}">Validation enseignants EDE</a>&nbsp;'

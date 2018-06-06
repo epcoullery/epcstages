@@ -95,6 +95,8 @@ class CandidateTests(TestCase):
             street = 'de Neuchâtel 99',
         )
         self.client.login(username='me', password='mepassword')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
         response = self.client.post(url, post_data)
         self.assertEqual(response.status_code, 302)
 
