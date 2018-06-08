@@ -1,0 +1,15 @@
+{{ candidate.civility }} {{ candidate.first_name }} {{ candidate.last_name }},
+
+Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation {{ candidate.section_option }} et vous remercions de l’intérêt que vous portez à notre institution.
+
+Votre dossier sera traité début octobre 2018 et des nouvelles vous seront communiquées par courriel.
+
+
+Dans l’intervalle, nous vous adressons, {{ candidate.civility }}, nos salutations les plus cordiales.
+
+
+
+Secrétariat de la filière Education sociale, dipl. ES
+{{ sender.first_name }} {{ sender.last_name }}
+{{ sender.email }}
+tél. 032 886 33 00

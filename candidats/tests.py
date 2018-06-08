@@ -105,6 +105,7 @@ class CandidateTests(TestCase):
 
         ede = Section.objects.create(name='EDE')
         ase = Section.objects.create(name='ASE')
+        eds = Section.objects.create(name='EDS')
         Candidate.objects.bulk_create([
             # A mail should NOT be sent for those first 2
             Candidate(
@@ -117,6 +118,8 @@ class CandidateTests(TestCase):
                 email='henri@example.org', deposite_date=date.today()),
             Candidate(first_name='Joé', last_name='Glatz', gender='F', section=ase,
                 email='joe@example.org', deposite_date=date.today()),
+            Candidate(first_name='John', last_name='Durand', gender='M', section=eds,
+                      email='john@example.org', deposite_date=date.today()),
         ])
         self.client.login(username='me', password='mepassword')
         cand1 = Candidate.objects.get(last_name='Simth')
@@ -179,6 +182,35 @@ tél. 032 886 33 00"""
         )
         # One was already set, 2 new.
         self.assertEqual(Candidate.objects.filter(confirmation_date__isnull=False).count(), 3)
+
+        mail.outbox = []
+        cand5 = Candidate.objects.get(last_name='Durand')
+        response = self.client.get(reverse('candidate-confirmation', args=[cand5.pk]))
+        data = response.context['form'].initial
+        response = self.client.post(
+            reverse('candidate-confirmation', args=[cand5.pk]), data=data, follow=True
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        # Logged-in user also receives as Bcc
+        self.assertEqual(mail.outbox[0].recipients(), ['john@example.org', 'me@example.org'])
+        self.assertEqual(mail.outbox[0].body, """Monsieur John Durand,
+
+Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation Education sociale, dipl. ES et vous remercions de l’intérêt que vous portez à notre institution.
+
+Votre dossier sera traité début octobre 2018 et des nouvelles vous seront communiquées par courriel.
+
+
+Dans l’intervalle, nous vous adressons, Monsieur, nos salutations les plus cordiales.
+
+
+
+Secrétariat de la filière Education sociale, dipl. ES
+Hans Schmid
+me@example.org
+tél. 032 886 33 00"""
+                         )
+        # One was already set, 2 new.
+        self.assertEqual(Candidate.objects.filter(confirmation_date__isnull=False).count(), 4)
 
     def test_send_confirmation_error(self):
         ede = Section.objects.create(name='EDE')

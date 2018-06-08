@@ -25,14 +25,17 @@ class CandidateConfirmationView(EmailConfirmationBaseView):
 
 
 class ConfirmationView(CandidateConfirmationView):
-    success_message = "Le message de confirmation a été envoyé pour le candidat {person}"
+    """
+    Email confirming the receipt of the registration form
+    """
+    success_message = "Une confirmation d'inscription a été envoyée à {person}"
     candidate_date_field = 'confirmation_date'
     title = "Confirmation de réception de dossier"
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        if candidate.section != 'EDE' and not candidate.section in {'ASA', 'ASE', 'ASSC'}:
-            messages.error(request, "Ce formulaire n'est disponible que pour les candidats EDE ou FE")
+        if candidate.section not in {'ASA', 'ASE', 'ASSC', 'EDE', 'EDS'}:
+            messages.error(request, "Ce formulaire n'est disponible que pour les candidats FE ou ES")
         elif candidate.confirmation_date:
             messages.error(request, 'Une confirmation a déjà été envoyée!')
         elif candidate.canceled_file:
@@ -48,6 +51,8 @@ class ConfirmationView(CandidateConfirmationView):
         to = [candidate.email]
         if candidate.section == 'EDE':
             src_email = 'email/candidate_confirm_EDE.txt'
+        elif candidate.section == 'EDS':
+            src_email = 'email/candidate_confirm_EDS.txt'
         elif candidate.section in {'ASA', 'ASE', 'ASSC'}:
             src_email = 'email/candidate_confirm_FE.txt'
             if candidate.corporation and candidate.corporation.email:
