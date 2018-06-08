@@ -215,13 +215,13 @@ class ContactInline(admin.StackedInline):
 
 
 class CorporationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'short_name', 'pcode', 'city', 'ext_id')
+    list_display = ('name', 'short_name', 'pcode', 'city', 'district', 'ext_id')
     list_editable = ('short_name',)  # Temporarily?
     list_filter = (('archived', ArchivedListFilter),)
     search_fields = ('name', 'street', 'pcode', 'city')
     ordering = ('name',)
     fields = (('name', 'short_name'), 'parent', ('sector', 'typ', 'ext_id'),
-              'street', ('pcode', 'city'), ('tel', 'email'), 'web', 'archived')
+              'street', ('pcode', 'city', 'district'), ('tel', 'email'), 'web', 'archived')
     inlines = [ContactInline]
 
     def get_search_results(self, request, qs, term):
