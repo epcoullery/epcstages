@@ -117,7 +117,7 @@ class CandidateAdmin(admin.ModelAdmin):
         if not obj.pk:
             return ''
         return format_html(
-            '<a class="button" href="{}">Confirmation de l\'inscription FE + ES</a>&nbsp;'
+            '<a class="button" href="{}">Confirmation de l’inscription FE + ES</a>&nbsp;'
             '<a class="button" href="{}">Validation enseignants EDE</a>&nbsp;'
             '<a class="button" href="{}">Convocation aux examens EDE</a>&nbsp;'
             '<a class="button" href="{}">Impression du résumé du dossier EDE</a>',
