@@ -61,11 +61,12 @@ export_candidates.short_description = "Exporter les candidats sélectionnés"
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation_mail')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation_mail',
+                    'convoc_confirm_receipt_OK')
     list_filter = ('section', 'option')
     search_fields = ('last_name', 'city')
     readonly_fields = (
-        'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions',
+        'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions'
     )
     actions = [export_candidates]
     fieldsets = (
@@ -94,7 +95,7 @@ class CandidateAdmin(admin.ModelAdmin):
                         ('inscr_other_school',),
                         ('interview', 'examination_teacher'),
                         ('examination_result', 'interview_result', 'file_result', 'total_result'),
-                        ('confirmation_date', 'validation_date', 'convocation_date'),
+                        ('confirmation_date', 'validation_date', 'convocation_date', 'convoc_confirm_receipt'),
             ),
         }),
         (None, {
@@ -114,6 +115,10 @@ class CandidateAdmin(admin.ModelAdmin):
         return obj.convocation_date is not None
     convocation_mail.boolean = True
 
+    def convoc_confirm_receipt_OK(self, obj):
+        return obj.convoc_confirm_receipt is not None
+    convoc_confirm_receipt_OK.boolean = True
+
     def candidate_actions(self, obj):
         if not obj.pk:
             return ''
@@ -129,6 +134,11 @@ class CandidateAdmin(admin.ModelAdmin):
         )
     candidate_actions.short_description = 'Actions pour candidats'
     candidate_actions.allow_tags = True
+
+    confirm_mail.short_description = 'Confirm. inscript.'
+    validation_mail.short_description = 'Validation prof.'
+    convoc_confirm_receipt_OK.short_description = 'Accusé de récept.'
+    convocation_mail.short_description = 'Conv. exam.'
 
 
 class InterviewAdmin(admin.ModelAdmin):
