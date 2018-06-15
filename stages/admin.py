@@ -15,7 +15,7 @@ from .models import (
     CorpContact, Domain, Period, Availability, Training, Course,
     LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
-from .pdf import ChargeSheetPDF
+from .pdf import ChargeSheetPDF, KlassListPDF
 
 
 def print_charge_sheet(modeladmin, request, queryset):
@@ -39,6 +39,24 @@ def print_charge_sheet(modeladmin, request, queryset):
     return response
 
 print_charge_sheet.short_description = "Imprimer les feuilles de charge"
+
+
+def print_update_students_data(modeladmin, request, queryset):
+    filename = 'archive_RolesDeClasses.zip'
+    path = os.path.join(tempfile.gettempdir(), filename)
+
+    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+        for klass in queryset:
+            pdf = KlassListPDF(klass)
+            pdf.produce(klass)
+            filezip.write(pdf.filename)
+
+    with open(filezip.filename, mode='rb') as fh:
+        response = HttpResponse(fh.read(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+    return response
+
+print_update_students_data.short_description = "Imprimer rôles de classes"
 
 
 class ArchivedListFilter(admin.BooleanFieldListFilter):
@@ -84,7 +102,12 @@ class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section')
     ordering = ('name',)
     list_filter = ('section', 'level',)
+    actions = [print_update_students_data]
     inlines = [StudentInline]
+
+    def get_queryset(self, request):
+        return Klass.objects.all().annotate(num_students=Count(Case(When(student__archived=False, then=1)))
+                                                ).filter(num_students__gt=0).order_by('section', 'name')
 
 
 class LogBookInline(admin.TabularInline):
