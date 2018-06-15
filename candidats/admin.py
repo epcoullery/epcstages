@@ -106,18 +106,22 @@ class CandidateAdmin(admin.ModelAdmin):
     def confirm_mail(self, obj):
         return obj.confirmation_date is not None
     confirm_mail.boolean = True
+    confirm_mail.short_description = 'Confirm. inscript.'
 
     def validation_mail(self, obj):
         return obj.validation_date is not None
     validation_mail.boolean = True
+    validation_mail.short_description = 'Validation prof.'
 
     def convocation_mail(self, obj):
         return obj.convocation_date is not None
     convocation_mail.boolean = True
+    convocation_mail.short_description = 'Conv. exam.'
 
     def convoc_confirm_receipt_OK(self, obj):
         return obj.convoc_confirm_receipt is not None
     convoc_confirm_receipt_OK.boolean = True
+    convoc_confirm_receipt_OK.short_description = 'Accusé de récept.'
 
     def candidate_actions(self, obj):
         if not obj.pk:
@@ -134,11 +138,6 @@ class CandidateAdmin(admin.ModelAdmin):
         )
     candidate_actions.short_description = 'Actions pour candidats'
     candidate_actions.allow_tags = True
-
-    confirm_mail.short_description = 'Confirm. inscript.'
-    validation_mail.short_description = 'Validation prof.'
-    convoc_confirm_receipt_OK.short_description = 'Accusé de récept.'
-    convocation_mail.short_description = 'Conv. exam.'
 
 
 class InterviewAdmin(admin.ModelAdmin):
