@@ -61,11 +61,12 @@ export_candidates.short_description = "Exporter les candidats sélectionnés"
 
 class CandidateAdmin(admin.ModelAdmin):
     form = CandidateForm
-    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation_mail')
+    list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation_mail',
+                    'convoc_confirm_receipt_OK')
     list_filter = ('section', 'option')
     search_fields = ('last_name', 'city')
     readonly_fields = (
-        'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions',
+        'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions'
     )
     actions = [export_candidates]
     fieldsets = (
@@ -94,7 +95,7 @@ class CandidateAdmin(admin.ModelAdmin):
                         ('inscr_other_school',),
                         ('interview', 'examination_teacher'),
                         ('examination_result', 'interview_result', 'file_result', 'total_result'),
-                        ('confirmation_date', 'validation_date', 'convocation_date'),
+                        ('confirmation_date', 'validation_date', 'convocation_date', 'convoc_confirm_receipt'),
             ),
         }),
         (None, {
@@ -105,14 +106,22 @@ class CandidateAdmin(admin.ModelAdmin):
     def confirm_mail(self, obj):
         return obj.confirmation_date is not None
     confirm_mail.boolean = True
+    confirm_mail.short_description = 'Confirm. inscript.'
 
     def validation_mail(self, obj):
         return obj.validation_date is not None
     validation_mail.boolean = True
+    validation_mail.short_description = 'Validation prof.'
 
     def convocation_mail(self, obj):
         return obj.convocation_date is not None
     convocation_mail.boolean = True
+    convocation_mail.short_description = 'Conv. exam.'
+
+    def convoc_confirm_receipt_OK(self, obj):
+        return obj.convoc_confirm_receipt is not None
+    convoc_confirm_receipt_OK.boolean = True
+    convoc_confirm_receipt_OK.short_description = 'Accusé de récept.'
 
     def candidate_actions(self, obj):
         if not obj.pk:

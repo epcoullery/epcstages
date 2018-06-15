@@ -118,7 +118,8 @@ class Candidate(models.Model):
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
     activity_rate = models.CharField("Taux d'activité", max_length=50, blank=True,  default='')
     validation_date = models.DateTimeField('Envoi mail de validation', null=True, blank=True)
-    convocation_date = models.DateTimeField('Envoi mail de confirmation', null=True, blank=True)
+    convocation_date = models.DateTimeField('Envoi mail de convocation', null=True, blank=True)
+    convoc_confirm_receipt = models.DateTimeField('Accusé de réception', null=True, blank=True)
 
     aes_accords = models.PositiveSmallIntegerField("Accord AES", choices=AES_ACCORDS_CHOICES, default=0)
     residence_permits = models.PositiveSmallIntegerField(
