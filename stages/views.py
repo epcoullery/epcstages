@@ -15,7 +15,7 @@ from django.contrib import messages
 from django.core.files import File
 from django.core.mail import EmailMessage
 from django.db import transaction
-from django.db.models import Case, Count, Value, When, Q, Sum
+from django.db.models import Count, Value, Q, Sum
 from django.db.models.functions import Concat
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
@@ -83,8 +83,7 @@ class CorporationView(DetailView):
 
 
 class KlassListView(ListView):
-    queryset = Klass.objects.all().annotate(num_students=Count(Case(When(student__archived=False, then=1)))
-                                 ).filter(num_students__gt=0).order_by('section', 'name')
+    queryset = Klass.active.order_by('section', 'name')
     template_name = 'classes.html'
 
 
@@ -1043,10 +1042,7 @@ def print_mentor_ede_compensation_form(request, pk):
 
 
 def print_klass_list(request):
-     query =  Klass.objects.all(
-         ).annotate(num_students=Count(Case(When(student__archived=False, then=1)))
-         ).filter(num_students__gt=0
-         ).order_by('section', 'name')
+     query =  Klass.active.order_by('section', 'name')
 
      filename = 'archive_RolesDeClasses.zip'
      path = os.path.join(tempfile.gettempdir(), filename)

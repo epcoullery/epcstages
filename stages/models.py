@@ -4,6 +4,7 @@ from datetime import date, timedelta
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Case, Count, When
 
 from . import utils
 
@@ -47,12 +48,22 @@ class Level(models.Model):
             return None
 
 
+class ActiveKlassManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().annotate(
+            num_students=Count(Case(When(student__archived=False, then=1)))
+        ).filter(num_students__gt=0)
+
+
 class Klass(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom', unique=True)
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT)
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     teacher = models.ForeignKey('Teacher', blank=True, null=True,
         on_delete=models.SET_NULL, verbose_name='Maître de classe')
+
+    objects = models.Manager()
+    active = ActiveKlassManager()
 
     class Meta:
         verbose_name = "Classe"

@@ -5,7 +5,6 @@ import zipfile
 from django import forms
 from django.contrib import admin
 from django.db import models
-from django.db.models import Case, Count, When
 from django.http import HttpResponse
 from django.urls import reverse
 from django.utils.html import format_html
@@ -63,9 +62,7 @@ class ArchivedListFilter(admin.BooleanFieldListFilter):
 class KlassRelatedListFilter(admin.RelatedFieldListFilter):
     def field_choices(self, field, request, model_admin):
         return [
-            (k.pk, k.name) for k in Klass.objects.annotate(
-                num_students=Count(Case(When(student__archived=False, then=1)))
-            ).filter(num_students__gt=0).order_by('name')
+            (k.pk, k.name) for k in Klass.active.order_by('name')
         ]
 
 
