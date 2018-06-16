@@ -1,7 +1,12 @@
+import os
+import tempfile
+import zipfile
+
 from django.contrib import messages
 from django.core.mail import EmailMessage
+from django.http import HttpResponse
 from django.urls import reverse_lazy
-from django.views.generic import FormView
+from django.views.generic import FormView, View
 
 from stages.forms import EmailBaseForm
 
@@ -44,3 +49,22 @@ class EmailConfirmationBaseView(FormView):
             'title': self.title,
         })
         return context
+
+
+class ZippedFilesBaseView(View):
+    """A base class to return a .zip file containing a compressed list of files."""
+    filename = 'to_be_defined.zip'
+
+    def generate_files(self):
+        raise NotImplementedError()
+
+    def get(self, request, *args, **kwargs):
+        tmp_file = tempfile.NamedTemporaryFile()
+        with zipfile.ZipFile(tmp_file, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+            for file_name in self.generate_files():
+                filezip.write(file_name, arcname=os.path.basename(file_name))
+
+        with open(filezip.filename, mode='rb') as fh:
+            response = HttpResponse(fh.read(), content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % self.filename
+        return response

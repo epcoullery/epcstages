@@ -4,7 +4,6 @@ import re
 from subprocess import PIPE, Popen, call
 
 import tempfile
-import zipfile
 from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
@@ -27,14 +26,17 @@ from django.utils.translation import ugettext as _
 from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, TemplateView, ListView
 
-from .base import EmailConfirmationBaseView
+from .base import EmailConfirmationBaseView, ZippedFilesBaseView
 from .export import OpenXMLExport
 from ..forms import EmailBaseForm, PeriodForm, StudentImportForm, UploadHPFileForm, UploadReportForm
 from ..models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability
 )
-from ..pdf import ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm, KlassListPDF
+from ..pdf import (
+    ChargeSheetPDF, ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm,
+    KlassListPDF,
+)
 from ..utils import is_int, school_year_start
 
 
@@ -740,21 +742,18 @@ class StudentConvocationExaminationView(EmailConfirmationView):
         student.save()
 
 
-def print_update_form(request):
+class PrintUpdateForm(ZippedFilesBaseView):
     """
     PDF form to update personal data
     """
-    tmp_file = tempfile.NamedTemporaryFile()
-    with zipfile.ZipFile(tmp_file, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
-        for klass in Klass.objects.filter(level__gte=2).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
+    filename = 'modification.zip'
+
+    def generate_files(self):
+        for klass in Klass.objects.filter(level__gte=2
+                ).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
             pdf = UpdateDataFormPDF('{0}.pdf'.format(klass.name))
             pdf.produce(klass)
-            filezip.write(pdf.filename)
-
-    with open(filezip.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/zip')
-    response['Content-Disposition'] = 'attachment; filename="modification.zip"'
-    return response
+            yield pdf.filename
 
 
 def print_expert_ede_compensation_form(request, pk):
@@ -796,19 +795,27 @@ def print_mentor_ede_compensation_form(request, pk):
     return response
 
 
-def print_klass_list(request):
-     query =  Klass.active.order_by('section', 'name')
+class PrintKlassList(ZippedFilesBaseView):
+    filename = 'archive_RolesDeClasses.zip'
 
-     filename = 'archive_RolesDeClasses.zip'
-     path = os.path.join(tempfile.gettempdir(), filename)
+    def generate_files(self):
+        for klass in Klass.active.order_by('section', 'name'):
+            pdf = KlassListPDF(klass)
+            pdf.produce(klass)
+            yield pdf.filename
 
-     with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
-         for klass in query:
-             pdf = KlassListPDF(klass)
-             pdf.produce(klass)
-             filezip.write(pdf.filename)
 
-     with open(filezip.filename, mode='rb') as fh:
-         response = HttpResponse(fh.read(), content_type='application/zip')
-         response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
-     return response
+class PrintChargeSheet(ZippedFilesBaseView):
+    """
+    Génère un pdf pour chaque enseignant, écrit le fichier créé
+    dans une archive et renvoie une archive de pdf
+    """
+    filename = 'archive_FeuillesDeCharges.zip'
+
+    def generate_files(self):
+        queryset = Teacher.objects.filter(pk__in=self.request.GET.get('ids').split(','))
+        for teacher in queryset:
+            activities = teacher.calc_activity()
+            pdf = ChargeSheetPDF(teacher)
+            pdf.produce(activities)
+            yield pdf.filename

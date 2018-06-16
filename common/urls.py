@@ -25,7 +25,7 @@ urlpatterns = [
     path('classes/', views.KlassListView.as_view(), name='classes'),
     path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
     path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(), name='import-reports'),
-    path('classes/print_klass_list/', views.print_klass_list, name='print-klass-list'),
+    path('classes/print_klass_list/', views.PrintKlassList.as_view(), name='print-klass-list'),
 
     path('candidate/<int:pk>/send_convocation/', candidats_views.ConvocationView.as_view(),
         name='candidate-convocation'),
@@ -47,7 +47,8 @@ urlpatterns = [
 
     path('imputations/export/', views.export.imputations_export, name='imputations_export'),
     path('export_sap/', views.export.export_sap, name='export_sap'),
-    path('print/update_form/', views.print_update_form, name='print_update_form'),
+    path('print/update_form/', views.PrintUpdateForm.as_view(), name='print_update_form'),
+    path('print/charge_sheet/', views.PrintChargeSheet.as_view(), name='print-charge-sheet'),
     path('general_export/', views.export.general_export, name='general-export'),
     path('ortra_export/', views.export.ortra_export, name='ortra-export'),
 

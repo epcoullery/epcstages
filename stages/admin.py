@@ -1,11 +1,7 @@
-import os
-import tempfile
-import zipfile
-
 from django import forms
 from django.contrib import admin
 from django.db import models
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html
 
@@ -14,29 +10,14 @@ from .models import (
     CorpContact, Domain, Period, Availability, Training, Course,
     LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
-from .pdf import ChargeSheetPDF
 
 
 def print_charge_sheet(modeladmin, request, queryset):
-    """
-    Génère un pdf pour chaque enseignant, écrit le fichier créé
-    dans une archive et renvoie une archive de pdf
-    """
-    filename = 'archive_FeuillesDeCharges.zip'
-    path = os.path.join(tempfile.gettempdir(), filename)
-
-    with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
-        for teacher in queryset:
-            activities = teacher.calc_activity()
-            pdf = ChargeSheetPDF(teacher)
-            pdf.produce(activities)
-            filezip.write(pdf.filename)
-
-    with open(filezip.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
-    return response
-
+    return HttpResponseRedirect(
+        reverse('print-charge-sheet') + '?ids=%s' % ",".join(
+            request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+        )
+    )
 print_charge_sheet.short_description = "Imprimer les feuilles de charge"
 
 
