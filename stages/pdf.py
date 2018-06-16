@@ -99,6 +99,12 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         canvas.drawString(8 * cm, doc.height - 2.5 * cm, "Ecole Santé-social Pierre-Coullery")
         canvas.restoreState()
 
+    def header_klass_list(self, canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica-Bold', 11)
+        canvas.drawString(2.7 * cm, doc.height + 0.5 * cm, "Role de classe")
+        canvas.restoreState()
+
     def formating(self, text):
         return Preformatted(text, style_normal, maxLineLength=25)
 
@@ -527,4 +533,84 @@ class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
 
         self.add_accounting_stamp(self.MENTOR_MANDAT)
 
+        self.build(self.story)
+
+
+class KlassListPDF(EpcBaseDocTemplate):
+    """
+    Génération des rôles de classes en pdf.
+    """
+    def __init__(self, klass):
+        self.klass = klass
+        filename = slugify('{0}'.format(klass.name)) + '.pdf'
+        super().__init__(filename)
+
+        self.addPageTemplates([
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
+        ])
+
+    def produce(self, klass):
+
+        data = [
+            ['Rôle de classe : {0}'.format(klass.name),
+             'La Chaux-de-Fonds, le {0}'.format(django_format(date.today(), 'j F Y'))
+             ]
+        ]
+        t = Table(
+            data, colWidths=[9 * cm, 9 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT, spaceAfter=1*cm
+        )
+        t.setStyle(TableStyle(
+            [
+                ('ALIGN', (0, 0), (0, 0), 'LEFT'),
+                ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONTSIZE', (0, 0), (0, 0), 12),
+                ('FONT', (0, 0), (0, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (1, 0), (1, 0), 8),
+                ('FONT', (1, 0), (1, 0), 'Helvetica'),
+            ]
+        ))
+        self.story.append(t)
+
+        data = []
+        for index, student in enumerate(klass.student_set.all().filter(archived=False).order_by('last_name', 'first_name')):
+
+            data.append(['{0}.'.format(index + 1),
+                         '{0} {1}'.format(student.last_name, student.first_name),
+                         student.street,
+                         student.pcode_city,
+                         student.mobile])
+            data.append(['', '         Form./Employeur:', student.instructor or ''])
+            data.append([''])
+            data.append([''])
+
+        t = Table(
+            data[0:52], colWidths=[1 * cm, 5 * cm, 5 * cm, 5 * cm, 2 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT
+        )
+        t.setStyle(TableStyle(
+            [
+                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
+            ]
+        ))
+        self.story.append(t)
+        if len(data) > 52:
+            self.story.append(PageBreak())
+            self.story.append(Paragraph("Rôle de classe {0}".format(klass.name), style_bold_title))
+            self.story.append(Spacer(0, 2 * cm))
+
+            t = Table(
+                data[52:], colWidths=[1 * cm, 5 * cm, 5 * cm, 5 * cm, 2 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT
+            )
+            t.setStyle(TableStyle(
+                [
+                    ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                    ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ]
+            ))
+            self.story.append(t)
         self.build(self.story)

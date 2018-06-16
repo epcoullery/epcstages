@@ -15,7 +15,7 @@ from .models import (
     CorpContact, Domain, Period, Availability, Training, Course,
     LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
-from .pdf import ChargeSheetPDF
+from .pdf import ChargeSheetPDF, KlassListPDF
 
 
 def print_charge_sheet(modeladmin, request, queryset):

@@ -34,7 +34,7 @@ from .models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability
 )
-from .pdf import ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm
+from .pdf import ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm, KlassListPDF
 from .utils import is_int
 
 
@@ -1040,6 +1040,27 @@ def print_mentor_ede_compensation_form(request, pk):
         response = HttpResponse(fh.read(), content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
     return response
+
+
+def print_klass_list(request):
+     query =  Klass.objects.all()\
+         .annotate(num_students=Count(Case(When(student__archived=False, then=1))))\
+         .filter(num_students__gt=0)\
+         .order_by('section', 'name')
+
+     filename = 'archive_RolesDeClasses.zip'
+     path = os.path.join(tempfile.gettempdir(), filename)
+
+     with zipfile.ZipFile(path, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
+         for klass in query:
+             pdf = KlassListPDF(klass)
+             pdf.produce(klass)
+             filezip.write(pdf.filename)
+
+     with open(filezip.filename, mode='rb') as fh:
+         response = HttpResponse(fh.read(), content_type='application/zip')
+         response['Content-Disposition'] = 'attachment; filename="{0}"'.format(filename)
+     return response
 
 
 GENERAL_EXPORT_FIELDS = [

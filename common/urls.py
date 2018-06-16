@@ -25,6 +25,7 @@ urlpatterns = [
     path('classes/', views.KlassListView.as_view(), name='classes'),
     path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
     path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(), name='import-reports'),
+    path('classes/print_klass_list/', views.print_klass_list, name='print-klass-list'),
 
     path('candidate/<int:pk>/send_convocation/', candidats_views.ConvocationView.as_view(),
         name='candidate-convocation'),
