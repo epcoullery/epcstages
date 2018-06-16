@@ -8,7 +8,7 @@ from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 
-from stages.base_views import EmailConfirmationBaseView
+from stages.views.base import EmailConfirmationBaseView
 from candidats.models import Candidate, Interview
 from .pdf import InscriptionSummaryPDF
 

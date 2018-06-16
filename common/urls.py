@@ -18,7 +18,7 @@ urlpatterns = [
     path('import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
 
     path('attribution/', views.AttributionView.as_view(), name='attribution'),
-    re_path(r'^stages/export/(?P<scope>all)?/?$', views.stages_export, name='stages_export'),
+    re_path(r'^stages/export/(?P<scope>all)?/?$', views.export.stages_export, name='stages_export'),
 
     path('institutions/', views.CorporationListView.as_view(), name='corporations'),
     path('institutions/<int:pk>/', views.CorporationView.as_view(), name='corporation'),
@@ -42,14 +42,14 @@ urlpatterns = [
         name='print-expert-compens-ede'),
     path('student_ede/<int:pk>/examination/mentor/', views.print_mentor_ede_compensation_form,
         name='print-mentor-compens-ede'),
-    path('student_ede/export_qualif_ede/', views.export_qualification_ede,
+    path('student_ede/export_qualif_ede/', views.export.export_qualification_ede,
         name='export-qualif-ede'),
 
-    path('imputations/export/', views.imputations_export, name='imputations_export'),
-    path('export_sap/', views.export_sap, name='export_sap'),
+    path('imputations/export/', views.export.imputations_export, name='imputations_export'),
+    path('export_sap/', views.export.export_sap, name='export_sap'),
     path('print/update_form/', views.print_update_form, name='print_update_form'),
-    path('general_export/', views.general_export, name='general-export'),
-    path('ortra_export/', views.ortra_export, name='ortra-export'),
+    path('general_export/', views.export.general_export, name='general-export'),
+    path('ortra_export/', views.export.ortra_export, name='ortra-export'),
 
     # AJAX/JSON urls
     path('section/<int:pk>/periods/', views.section_periods, name='section_periods'),

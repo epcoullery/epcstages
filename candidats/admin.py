@@ -5,7 +5,7 @@ from django.db.models import BooleanField
 from django.urls import reverse
 from django.utils.html import format_html
 
-from stages.exports import OpenXMLExport
+from stages.views.export import OpenXMLExport
 from .forms import CandidateForm
 from .models import (
     Candidate, Interview, GENDER_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,

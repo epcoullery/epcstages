@@ -6,7 +6,7 @@ from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 
-from stages.exports import openxml_contenttype
+from stages.views.export import openxml_contenttype
 from stages.models import Section, Teacher
 from .models import Candidate, Interview
 
