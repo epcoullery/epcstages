@@ -535,6 +535,7 @@ class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
 
         self.build(self.story)
 
+
 class KlassListPDF(EpcBaseDocTemplate):
     """
     Génération des feuilles de charges en pdf.
@@ -543,16 +544,9 @@ class KlassListPDF(EpcBaseDocTemplate):
         self.klass = klass
         filename = slugify('{0}'.format(klass.name)) + '.pdf'
         super().__init__(filename)
-        self.page_frame = Frame(
-
-            self.leftMargin, self.bottomMargin + 1 * cm, self.width - 2.5, self.height - 4 * cm,
-            id='first_table', showBoundary=1, leftPadding=0 * cm
-        )
-
 
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
-            PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_klass_list),
         ])
 
     def produce(self, klass):
@@ -572,9 +566,8 @@ class KlassListPDF(EpcBaseDocTemplate):
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
                 ('FONTSIZE', (0, 0), (0, 0), 12),
                 ('FONT', (0, 0), (0, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (1, 0), (1, 0), 6),
+                ('FONTSIZE', (1, 0), (1, 0), 8),
                 ('FONT', (1, 0), (1, 0), 'Helvetica'),
-
             ]
         ))
         self.story.append(t)
@@ -589,36 +582,35 @@ class KlassListPDF(EpcBaseDocTemplate):
                          student.mobile])
             data.append(['', '         Form./Employeur:', student.instructor or ''])
             data.append([''])
-
-
+            data.append([''])
 
         t = Table(
-            data[0:51], colWidths=[1 * cm, 5 * cm, 5 * cm, 5 * cm, 2 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT
+            data[0:52], colWidths=[1 * cm, 5 * cm, 5 * cm, 5 * cm, 2 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT
         )
         t.setStyle(TableStyle(
             [
                 ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
                 ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('FONTSIZE', (0, 0), (-1, -1), 7),
+                ('FONTSIZE', (0, 0), (-1, -1), 8),
             ]
         ))
         self.story.append(t)
+        if len(data) > 52:
+            self.story.append(PageBreak())
+            self.story.append(Paragraph("Rôle de classe {0}".format(klass.name), style_bold_title))
+            self.story.append(Spacer(0, 2 * cm))
 
-        self.story.append(PageBreak())
-        self.story.append(Paragraph("Rôle de classe {0}".format(klass.name), style_bold_title))
-        self.story.append(Spacer(0, 2 * cm))
-
-        t = Table(
-            data[51:], colWidths=[1 * cm, 5 * cm, 5 * cm, 5 * cm, 2 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT
-        )
-        t.setStyle(TableStyle(
-            [
-                ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
-                ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('FONTSIZE', (0, 0), (-1, -1), 7),
-            ]
-        ))
-        self.story.append(t)
+            t = Table(
+                data[52:], colWidths=[1 * cm, 5 * cm, 5 * cm, 5 * cm, 2 * cm], rowHeights=(0.4 * cm), hAlign=TA_LEFT
+            )
+            t.setStyle(TableStyle(
+                [
+                    ('ALIGN', (0, 0), (0, -1), 'RIGHT'),
+                    ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
+                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                    ('FONTSIZE', (0, 0), (-1, -1), 8),
+                ]
+            ))
+            self.story.append(t)
         self.build(self.story)
