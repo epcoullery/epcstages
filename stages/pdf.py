@@ -538,7 +538,7 @@ class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
 
 class KlassListPDF(EpcBaseDocTemplate):
     """
-    Génération des feuilles de charges en pdf.
+    Génération des rôles de classes en pdf.
     """
     def __init__(self, klass):
         self.klass = klass
