@@ -5,6 +5,21 @@
   <link rel="stylesheet" type="text/css" href="{% static 'admin/css/dashboard.css' %}">
 {% endblock %}
 
+{% block extrahead %}
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function(event) {
+  var formLink = document.getElementById("updateFormLink");
+  if (formLink) {
+    formLink.addEventListener("click", function(event) {
+        var href = this.href;
+        var date = prompt("Date de retour des formulaires : ", "?.9.2018");
+        this.href = href + "?date=" + date;
+    });
+  }
+});
+</script>
+{% endblock %}
+
 {% block coltype %}colMS{% endblock %}
 
 {% block bodyclass %}dashboard{% endblock %}
@@ -76,7 +91,7 @@
         <li><a href="{% url 'stages_export' 'all' %}">Exporter les données de stages</a> (toutes)</li>
         <li><a href="{% url 'imputations_export' %}">Exporter les données comptables</a></li>
         <li><a href="{% url 'export_sap' %}">Exporter les données SAP</a></li>
-        <li><a href="{% url 'print_update_form' %}">Imprimer les formulaires de MAJ</a></li>
+        <li><a id="updateFormLink" href="{% url 'print_update_form' %}">Imprimer les formulaires de MAJ</a></li>
         <li><a href="{% url 'print-klass-list' %}">Imprimer les rôles de classes</a></li>
         <li><a href="{% url 'general-export' %}">Exportation générale des élèves</a></li>
         <li><a href="{% url 'export-qualif-ede' %}">Exportation qualif. EDE</a></li>

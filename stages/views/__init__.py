@@ -748,10 +748,18 @@ class PrintUpdateForm(ZippedFilesBaseView):
     """
     filename = 'modification.zip'
 
+    def get(self, request, *args, **kwargs):
+        try:
+            self.return_date = date(*reversed([int(num) for num in self.request.GET.get('date').split('.')]))
+        except (AttributeError, ValueError):
+            messages.error(request, "La date fournie n'est pas valable")
+            return HttpResponseRedirect(request.META.get('HTTP_REFERER', '/'))
+        return super().get(request, *args, **kwargs)
+
     def generate_files(self):
         for klass in Klass.objects.filter(level__gte=2
                 ).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
-            pdf = UpdateDataFormPDF('{0}.pdf'.format(klass.name))
+            pdf = UpdateDataFormPDF('{0}.pdf'.format(klass.name), self.return_date)
             pdf.produce(klass)
             yield pdf.filename
 

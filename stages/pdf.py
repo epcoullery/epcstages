@@ -185,16 +185,16 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
     """
     Génération des formulaires PDF de mise à jour des données.
     """
-    def __init__(self, filename):
+    def __init__(self, filename, return_date):
         super().__init__(filename)
         self.text = (
             "Afin de mettre à jour nos bases de données, nous vous serions reconnaissant "
             "de contrôler les données ci-dessous qui vous concernent selon votre filière "
             "et de retourner le présent document corrigé et complété à votre maître de classe jusqu'au "
-            "vendredi 9 septembre prochain.<br/><br/>"
+            "%s prochain.<br/><br/>"
             "Nous vous remercions de votre précieuse collaboration.<br/><br/>"
             "Le secrétariat"
-        )
+        ) % django_format(return_date, 'l j F')
         self.underline = '__________________________________'
 
     def produce(self, klass):

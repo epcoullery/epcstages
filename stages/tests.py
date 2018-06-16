@@ -175,7 +175,7 @@ class StagesTest(TestCase):
 
     def test_export_update_forms(self):
         self.client.login(username='me', password='mepassword')
-        response = self.client.get(reverse('print_update_form'))
+        response = self.client.get(reverse('print_update_form') + '?date=14.09.2018')
         self.assertEqual(
             response['Content-Disposition'], 'attachment; filename="modification.zip"'
         )
