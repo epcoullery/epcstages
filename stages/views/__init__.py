@@ -40,6 +40,8 @@ from ..pdf import (
 from ..utils import is_int, school_year_start
 
 
+
+
 class CorporationListView(ListView):
     model = Corporation
     template_name = 'corporations.html'
@@ -308,6 +310,82 @@ class ImportViewBase(FormView):
             if non_fatal_errors:
                 messages.warning(self.request, "Erreurs rencontrées: %s" % "\n".join(non_fatal_errors))
         return HttpResponseRedirect(reverse('admin:index'))
+
+
+class StudentFeImportView_2018(ImportViewBase):
+    """
+    Import CLOEE file for FE students (ASAFE, ASEFE, ASSCFE, EDE, EDS)
+    Some students may appear twice
+    """
+
+    title = "Importation étudiants FE"
+    form_class = StudentImportForm
+
+    def import_data(self, up_file):
+        """ Import Student data from uploaded file. """
+        student_mapping = settings.STUDENT_IMPORT_MAPPING
+        student_rev_mapping = {v: k for k, v in student_mapping.items()}
+        corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
+        instructor_mapping = settings.INSTRUCTOR_IMPORT_MAPPING
+
+        def strip(val):
+            return val.strip() if isinstance(val, str) else val
+
+        obj_created = obj_modified = 0
+        seen_students_ids = set()
+        for line in up_file:
+            print(line)
+            student_defaults = {
+                val: strip(line[key]) for key, val in student_mapping.items()
+            }
+            if student_defaults['ext_id'] in seen_students_ids:
+                # Second line for student, ignore it
+                continue
+            seen_students_ids.add(student_defaults['ext_id'])
+            if student_defaults['birth_date'] == '':
+                student_defaults['birth_date'] = None
+            elif isinstance(student_defaults['birth_date'], str):
+                student_defaults['birth_date'] = datetime.strptime(student_defaults['birth_date'], '%d.%m.%Y').date()
+            if student_defaults['option_ase']:
+                try:
+                    student_defaults['option_ase'] = Option.objects.get(name=student_defaults['option_ase'])
+                except Option.DoesNotExist:
+                    del student_defaults['option_ase']
+            else:
+                del student_defaults['option_ase']
+
+            corporation_defaults = {
+                val: strip(line[key]) for key, val in corporation_mapping.items()
+            }
+            student_defaults['corporation'] = self.get_corporation(corporation_defaults)
+
+            defaults = Student.prepare_import(student_defaults)
+            try:
+                student = Student.objects.get(ext_id=student_defaults['ext_id'])
+                modified = False
+                for key, val in defaults.items():
+                    if getattr(student, key) != val:
+                        setattr(student, key, val)
+                        modified = True
+                if modified:
+                    student.save()
+                    obj_modified += 1
+            except Student.DoesNotExist:
+                student = Student.objects.create(**defaults)
+                obj_created += 1
+        # FIXME: implement arch_staled
+        return {'created': obj_created, 'modified': obj_modified}
+
+    def get_corporation(self, corp_values):
+        if corp_values['ext_id'] == '':
+            return None
+        if 'city' in corp_values and is_int(corp_values['city'][:4]):
+            corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
+        corp, created = Corporation.objects.get_or_create(
+            ext_id=corp_values['ext_id'],
+            defaults=corp_values
+        )
+        return corp
 
 
 class StudentImportView(ImportViewBase):

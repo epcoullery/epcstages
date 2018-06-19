@@ -108,6 +108,42 @@ FABRIC_USERNAME = ''
 
 # Mapping between column names of a tabular file and Student field names
 STUDENT_IMPORT_MAPPING = {
+    'ELE_NUMERO': 'ext_id',
+    'ELE_NOM': 'last_name',
+    'ELE_PRENOM': 'first_name',
+    'ELE_RUE': 'street',
+    'ELE_NPA_LOCALITE': 'city',  # pcode is separated from city in prepare_import
+    'ELE_TEL_PRIVE': 'tel',
+    'ELE_TEL_MOBILE': 'mobile',
+    'ELE_EMAIL_RPN': 'email',
+    'ELE_DATE_NAISSANCE': 'birth_date',
+    'ELE_AVS': 'avs',
+    'ELE_SEXE': 'gender',
+    'INS_CLASSE': 'klass',
+    'PROF_DOMAINE_SPEC': 'option_ase',
+}
+
+CORPORATION_IMPORT_MAPPING = {
+    'ENT_NUMERO' : 'ext_id',
+    'ENT_NOM' : 'name',
+    'ENT_RUE': 'street',
+    'ENT_NPA': 'pcode',
+    'ENT_LOCALITE': 'city',
+    'ENT_TEL': 'tel',
+    'ENT_CODE_CANTON' : 'district',
+}
+
+INSTRUCTOR_IMPORT_MAPPING = {
+    'FORM_NUMERO': 'ext_id',
+    'FORM_NOM': 'last_name',
+    'FORM_PRENOM': 'first_name',
+    # 'TEL_FORMATEUR': 'tel',
+    'FORM_FORMATEUR': 'email',
+}
+
+
+"""
+STUDENT_IMPORT_MAPPING = {
     'NOCLOEE': 'ext_id',
     'NOM': 'last_name',
     'PRENOM': 'first_name',
@@ -139,6 +175,8 @@ INSTRUCTOR_IMPORT_MAPPING = {
     'TEL_FORMATEUR': 'tel',
     'MAIL_FORMATEUR': 'email',
 }
+"""
+
 
 CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2018-2019"
 PDF_FOOTER_TEXT = 'Ecole Santé-social Pierre-Coullery | Prévoyance 82 - 2300 La Chaux-de-Fonds | 032 886 33 00 | cifom-epc@rpn.ch'
