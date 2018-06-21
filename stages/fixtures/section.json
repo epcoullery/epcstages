@@ -1,0 +1,51 @@
+[
+{
+  "model": "stages.section",
+  "pk": 1,
+  "fields": {
+    "name": "EDE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 2,
+  "fields": {
+    "name": "ASE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 3,
+  "fields": {
+    "name": "ASSC"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 4,
+  "fields": {
+    "name": "ASA"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 5,
+  "fields": {
+    "name": "MP_ASE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 6,
+  "fields": {
+    "name": "MP_ASSC"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 7,
+  "fields": {
+    "name": "EDS"
+  }
+}
+]

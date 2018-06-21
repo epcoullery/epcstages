@@ -428,6 +428,8 @@ class TeacherTests(TestCase):
 
 
 class ImportTests(TestCase):
+    fixtures = ['section.json', 'level.json','klass.json', 'teacher.json', 'student.json', 'corpcontact.json', 'candidat.json']
+
     def setUp(self):
         User.objects.create_user('me', 'me@example.org', 'mepassword')
 
@@ -469,6 +471,31 @@ class ImportTests(TestCase):
         self.assertEqual(student1.option_ase.name, "Accompagnement des enfants")
         # Instructor not set through this import
         self.assertIsNone(student1.instructor)
+
+    def test_import_student_fe_2018(self):
+        """
+        Import of the CLOEE export file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
+        """
+
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_FE_2018_TEST2.xlsx')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-students-fe-2018'), {'upload': fh}, follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        # self.assertIn("La classe '1ASSCFEz' n'existe pas encore", msg)
+
+        st = Student.objects.filter().all()
+        print(st)
+        self.assertEqual(len(st), 3)  # Complete reading
+        student = Student.objects.get(ext_id=22222)
+        self.assertEqual(student.instructor.last_name, 'Rastapopoulos')
+        self.assertEqual(student.dispense_eps, False)
+
+
+
+        # student = Student.objects.get(ext_id=66666)
+        # self.assertEqual(student.corporation.name, 'Crèche Je veux grandir')
+
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(

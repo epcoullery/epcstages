@@ -1,0 +1,193 @@
+[
+{
+  "model": "stages.klass",
+  "pk": 1,
+  "fields": {
+    "name": "1ASEFEa",
+    "section": 2,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 2,
+  "fields": {
+    "name": "2ASEFEa",
+    "section": 2,
+    "level": 2,
+    "teacher":null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 3,
+  "fields": {
+    "name": "3ASEFEa",
+    "section": 2,
+    "level": 3,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 4,
+  "fields": {
+    "name": "1EDEpe",
+    "section": 1,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 5,
+  "fields": {
+    "name": "2EDEpe",
+    "section": 1,
+    "level": 2,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 6,
+  "fields": {
+    "name": "3EDEpe",
+    "section": 1,
+    "level": 3,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 7,
+  "fields": {
+    "name": "1ASSCFEa",
+    "section": 3,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 8,
+  "fields": {
+    "name": "2ASSCFEa",
+    "section": 3,
+    "level": 2,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 9,
+  "fields": {
+    "name": "3ASSCFEa",
+    "section": 3,
+    "level": 3,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 10,
+  "fields": {
+    "name": "1MPS ASSC1",
+    "section": 6,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 55,
+  "fields": {
+    "name": "2MPS ASSC1",
+    "section": 6,
+    "level": 2,
+    "teacher": null
+  }
+},
+
+{
+  "model": "stages.klass",
+  "pk": 11,
+  "fields": {
+    "name": "1MPTS ASE1",
+    "section": 5,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 12,
+  "fields": {
+    "name": "2MPTS ASE1",
+    "section": 5,
+    "level": 2,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 13,
+  "fields": {
+    "name": "1ASAFE",
+    "section": 4,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 14,
+  "fields": {
+    "name": "2ASAFE",
+    "section": 4,
+    "level": 2,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 72,
+  "fields": {
+    "name": "1EDS17-19",
+    "section": 7,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 15,
+  "fields": {
+    "name": "1EDS218-19",
+    "section": 7,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 16,
+  "fields": {
+    "name": "1EDS18-20",
+    "section": 7,
+    "level": 1,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 17,
+  "fields": {
+    "name": "2EDS17-19",
+    "section": 7,
+    "level": 2,
+    "teacher": null
+  }
+}
+]

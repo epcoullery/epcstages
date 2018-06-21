@@ -33,6 +33,7 @@ from ..models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability
 )
+from candidats.models import Candidate
 from ..pdf import (
     ChargeSheetPDF, ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm,
     KlassListPDF,
@@ -312,6 +313,22 @@ class ImportViewBase(FormView):
         return HttpResponseRedirect(reverse('admin:index'))
 
 
+def _import_date(txt):
+    if txt == '':
+        return None
+    elif isinstance(txt, str):
+        return datetime.strptime(txt, '%d.%m.%Y').date()
+
+def _import_option_ase(txt=None):
+    if txt:
+        try:
+            return Option.objects.get(name=txt)
+        except Option.DoesNotExist:
+            return None
+    else:
+        return None
+
+
 class StudentFeImportView_2018(ImportViewBase):
     """
     Import CLOEE file for FE students (ASAFE, ASEFE, ASSCFE, EDE, EDS)
@@ -327,14 +344,15 @@ class StudentFeImportView_2018(ImportViewBase):
         student_rev_mapping = {v: k for k, v in student_mapping.items()}
         corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
         instructor_mapping = settings.INSTRUCTOR_IMPORT_MAPPING
-
+        mapping_option_ase = {
+            'GEN': 1, 'ENF': 2, 'HAN': 3, 'PAG': 4
+        }
         def strip(val):
             return val.strip() if isinstance(val, str) else val
 
         obj_created = obj_modified = 0
         seen_students_ids = set()
         for line in up_file:
-            print(line)
             student_defaults = {
                 val: strip(line[key]) for key, val in student_mapping.items()
             }
@@ -342,16 +360,10 @@ class StudentFeImportView_2018(ImportViewBase):
                 # Second line for student, ignore it
                 continue
             seen_students_ids.add(student_defaults['ext_id'])
-            if student_defaults['birth_date'] == '':
-                student_defaults['birth_date'] = None
-            elif isinstance(student_defaults['birth_date'], str):
-                student_defaults['birth_date'] = datetime.strptime(student_defaults['birth_date'], '%d.%m.%Y').date()
-            if student_defaults['option_ase']:
-                try:
-                    student_defaults['option_ase'] = Option.objects.get(name=student_defaults['option_ase'])
-                except Option.DoesNotExist:
-                    del student_defaults['option_ase']
-            else:
+
+            student_defaults['birth_date'] = _import_date(student_defaults['birth_date'])
+            student_defaults['option_ase'] = _import_option_ase(student_defaults['option_ase'])
+            if student_defaults['option_ase'] is None:
                 del student_defaults['option_ase']
 
             corporation_defaults = {
@@ -360,19 +372,35 @@ class StudentFeImportView_2018(ImportViewBase):
             student_defaults['corporation'] = self.get_corporation(corporation_defaults)
 
             defaults = Student.prepare_import(student_defaults)
+
             try:
-                student = Student.objects.get(ext_id=student_defaults['ext_id'])
-                modified = False
-                for key, val in defaults.items():
-                    if getattr(student, key) != val:
-                        setattr(student, key, val)
-                        modified = True
-                if modified:
-                    student.save()
-                    obj_modified += 1
+                student = Student.objects.get(ext_id=defaults['ext_id'])
+                print(student.last_name)
+                # Mix CLOEE data and Student data
+                student.klass = defaults['klass']
+                student.archived = False
+                student.save()
+                obj_modified += 1
             except Student.DoesNotExist:
-                student = Student.objects.create(**defaults)
-                obj_created += 1
+                # Is student in candidates table ?
+                try:
+                    candidate = Candidate.objects.get(last_name=defaults['last_name'],
+                                                      first_name=defaults['first_name'])
+                    # Mix CLOEE data and Candidate data
+                    if candidate.option in ['GEN', 'ENF', 'HAN', 'PAG']:
+                        defaults['option_ase'] = mapping_option_ase[candidate.option]
+                    else:
+                        del defaults['option_ase']
+                    defaults['corporation'] = candidate.corporation
+                    defaults['instructor'] = candidate.instructor
+                    defaults['dispense_ecg'] = candidate.exemption_ecg
+                    defaults['soutien_dys'] = candidate.handicap
+                    defaults['archived'] = False
+                    Student.objects.create(**defaults)
+                    obj_created += 1
+                except Candidate.DoesNotExist:
+                    print('Erreur:', defaults['last_name'])
+
         # FIXME: implement arch_staled
         return {'created': obj_created, 'modified': obj_modified}
 
