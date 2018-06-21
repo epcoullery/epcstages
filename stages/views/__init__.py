@@ -295,7 +295,10 @@ class ImportViewBase(FormView):
         except Exception as e:
             if settings.DEBUG:
                 raise
-            messages.error(self.request, "L'importation a échoué. Erreur: %s (content-type: %s)" % (e, upfile.content_type))
+            msg = "L'importation a échoué. Erreur: %s" % e
+            if hasattr(upfile, 'content_type'):
+                msg += " (content-type: %s)" % upfile.content_type
+            messages.error(self.request, msg)
         else:
             non_fatal_errors = stats.get('errors', [])
             if 'created' in stats:
