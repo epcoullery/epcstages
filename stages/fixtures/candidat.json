@@ -1,12 +1,20 @@
 [
-
+{
+  "model": "stages.corpcontact",
+  "pk": 1,
+  "fields": {
+    "last_name": "Rastapopoulos",
+    "first_name": "Umberto",
+    "corporation": null
+  }
+},
 {
   "model": "candidats.candidate",
   "pk": 1,
   "fields": {
     "first_name": "Bianca",
     "last_name": "Castafiore",
-    "gender": "M",
+    "gender": "F",
     "birth_date": "2005-05-04",
     "street": "Ruelle des Cibles",
     "pcode": "2072",
@@ -15,7 +23,7 @@
     "mobile": "079 111 11 11",
     "email": "bianca.castafiore@rpn.ch",
     "avs": "345678901",
-    "option": "GEN",
+    "option": "ENF",
     "exemption_ecg": true,
     "handicap": false,
     "corporation": null,

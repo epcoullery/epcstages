@@ -345,13 +345,19 @@ class StudentFeImportView_2018(ImportViewBase):
         corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
         instructor_mapping = settings.INSTRUCTOR_IMPORT_MAPPING
         mapping_option_ase = {
-            'GEN': 1, 'ENF': 2, 'HAN': 3, 'PAG': 4
+            'GEN': 'Généraliste',
+            'ENF': 'Accompagnement des enfants',
+            'HAN': 'Accompagnement des personnes handicapées',
+            'PAG': 'Accompagnement des personnes âgées'
         }
         def strip(val):
             return val.strip() if isinstance(val, str) else val
 
-        obj_created = obj_modified = 0
+        obj_created = obj_modified = obj_error = 0
         seen_students_ids = set()
+        old_students_ids = {x['ext_id'] for x in Student.objects.all().values('ext_id')}
+        err_msg = list()
+
         for line in up_file:
             student_defaults = {
                 val: strip(line[key]) for key, val in student_mapping.items()
@@ -387,22 +393,33 @@ class StudentFeImportView_2018(ImportViewBase):
                     candidate = Candidate.objects.get(last_name=defaults['last_name'],
                                                       first_name=defaults['first_name'])
                     # Mix CLOEE data and Candidate data
-                    if candidate.option in ['GEN', 'ENF', 'HAN', 'PAG']:
-                        defaults['option_ase'] = mapping_option_ase[candidate.option]
-                    else:
-                        del defaults['option_ase']
+                    if candidate.option in mapping_option_ase:
+                        defaults['option_ase'] = Option.objects.get(name=mapping_option_ase[candidate.option])
                     defaults['corporation'] = candidate.corporation
                     defaults['instructor'] = candidate.instructor
                     defaults['dispense_ecg'] = candidate.exemption_ecg
                     defaults['soutien_dys'] = candidate.handicap
                     defaults['archived'] = False
-                    Student.objects.create(**defaults)
+                    nst = Student.objects.create(**defaults)
                     obj_created += 1
                 except Candidate.DoesNotExist:
+                    obj_error += 1
+                    err_msg.append('Etudiant inconnu: {0} {1} - classe: {2}'.format(
+                            defaults['last_name'],
+                            defaults['first_name'],
+                            student_defaults['klass'])
+                    )
                     print('Erreur:', defaults['last_name'])
 
+        # Archive students who have not been exported
+        rest = old_students_ids - seen_students_ids
+        for item in rest:
+            st = Student.objects.get(ext_id=item)
+            st.archived = True
+            st.save()
+
         # FIXME: implement arch_staled
-        return {'created': obj_created, 'modified': obj_modified}
+        return {'created': obj_created, 'modified': obj_modified, 'error': obj_error, 'errors': err_msg}
 
     def get_corporation(self, corp_values):
         if corp_values['ext_id'] == '':

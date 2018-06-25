@@ -1,4 +1,102 @@
 [
+  {
+  "model": "stages.level",
+  "pk": 1,
+  "fields": {
+    "name": "1"
+  }
+},
+{
+  "model": "stages.level",
+  "pk": 2,
+  "fields": {
+    "name": "2"
+  }
+},
+{
+  "model": "stages.level",
+  "pk": 3,
+  "fields": {
+    "name": "3"
+  }
+},
+  {
+    "model": "stages.option",
+    "pk": 1,
+    "fields": {
+      "name": "Généraliste"
+    }
+  },
+    {
+    "model": "stages.option",
+    "pk": 2,
+    "fields": {
+      "name": "Accompagnement des enfants"
+    }
+  },
+    {
+    "model": "stages.option",
+    "pk": 3,
+    "fields": {
+      "name": "Accompagnement des personnes handicapées"
+    }
+  },
+    {
+    "model": "stages.option",
+    "pk": 4,
+    "fields": {
+      "name": "Accompagnement des personnes âgées"
+    }
+  },
+  {
+  "model": "stages.section",
+  "pk": 1,
+  "fields": {
+    "name": "EDE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 2,
+  "fields": {
+    "name": "ASE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 3,
+  "fields": {
+    "name": "ASSC"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 4,
+  "fields": {
+    "name": "ASA"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 5,
+  "fields": {
+    "name": "MP_ASE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 6,
+  "fields": {
+    "name": "MP_ASSC"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 7,
+  "fields": {
+    "name": "EDS"
+  }
+},
 {
   "model": "stages.klass",
   "pk": 1,

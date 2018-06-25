@@ -428,7 +428,7 @@ class TeacherTests(TestCase):
 
 
 class ImportTests(TestCase):
-    fixtures = ['section.json', 'level.json','klass.json', 'teacher.json', 'student.json', 'corpcontact.json', 'candidat.json']
+    fixtures = ['klass.json', 'teacher.json', 'student.json', 'candidat.json']
 
     def setUp(self):
         User.objects.create_user('me', 'me@example.org', 'mepassword')
@@ -474,15 +474,14 @@ class ImportTests(TestCase):
 
     def test_import_student_fe_2018(self):
         """
-        Import of the CLOEE export file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
+        Import CLOEE file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
         """
-
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_FE_2018_TEST2.xlsx')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students-fe-2018'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
-        # self.assertIn("La classe '1ASSCFEz' n'existe pas encore", msg)
+        self.assertIn("Erreurs rencontrées: Etudiant inconnu: Haddock Archibald - classe: 1EDS18-20", msg)
 
         st = Student.objects.filter().all()
         print(st)
@@ -490,12 +489,9 @@ class ImportTests(TestCase):
         student = Student.objects.get(ext_id=22222)
         self.assertEqual(student.instructor.last_name, 'Rastapopoulos')
         self.assertEqual(student.dispense_eps, False)
-
-
-
-        # student = Student.objects.get(ext_id=66666)
-        # self.assertEqual(student.corporation.name, 'Crèche Je veux grandir')
-
+        self.assertEqual(student.option_ase.name, 'Accompagnement des enfants')
+        stud_arch = Student.objects.get(ext_id=44444)
+        self.assertEqual(stud_arch.archived, True)
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(
