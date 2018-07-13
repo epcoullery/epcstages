@@ -471,7 +471,7 @@ class ImportTests(TestCase):
             option='ENF', instructor=inst
         )
         # An existing student, klass should be changed.
-        Student.objects.create(ext_id=11111, first_name="Séraphin", last_name="Lampion", klass=k1)
+        Student.objects.create(ext_id=11111, first_name="Séraphin", last_name="Lampion", city='Marin', klass=k1)
         Student.objects.create(ext_id=44444, first_name="Tryphon", last_name="Tournesol", klass=k1)
 
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_FE_2018.xlsx')
@@ -498,8 +498,10 @@ class ImportTests(TestCase):
         self.assertIn("Objets créés : 2", msg)
         self.assertIn("Objets modifiés : 1", msg)
 
+        # Student already exists, klass changed
         student1 = Student.objects.get(ext_id=11111)
         self.assertEqual(student1.klass.name, '2ASSCFEa')
+        self.assertEqual(student1.city, 'Marin')  # file has 'Marin-Epagnier'
         # New student from existing candidate.
         student_cand = Student.objects.get(ext_id=22222)
         self.assertEqual(student_cand.instructor.last_name, 'Rastapopoulos')

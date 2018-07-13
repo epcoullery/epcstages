@@ -84,6 +84,7 @@ class StudentImportView(ImportViewBase):
         'ELE_TEL_PRIVE': 'tel',
         'ELE_TEL_MOBILE': 'mobile',
         'ELE_EMAIL_RPN': 'email',
+        'ELE_COMPTE_RPN': 'login_rpn',
         'ELE_DATE_NAISSANCE': 'birth_date',
         'ELE_AVS': 'avs',
         'ELE_SEXE': 'gender',
@@ -105,6 +106,8 @@ class StudentImportView(ImportViewBase):
         'HAN': 'Accompagnement des personnes handicapées',
         'PAG': 'Accompagnement des personnes âgées',
     }
+    # Those values are always taken from the import file
+    fields_to_overwrite = ['klass', 'login_rpn']
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -172,9 +175,9 @@ class StudentImportView(ImportViewBase):
             try:
                 student = Student.objects.get(ext_id=defaults['ext_id'])
                 modified = False
-                for key, val in defaults.items():
-                    if getattr(student, key) != val:
-                        setattr(student, key, val)
+                for field_name in self.fields_to_overwrite:
+                    if getattr(student, field_name) != defaults[field_name]:
+                        setattr(student, field_name, defaults[field_name])
                         modified = True
                 if student.archived:
                     sudent.archived = False
