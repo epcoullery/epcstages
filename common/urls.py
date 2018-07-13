@@ -2,7 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib import admin
-from django.urls import include, path, re_path
+from django.urls import path, re_path
 from django.views.generic import RedirectView
 from django.views.static import serve
 
@@ -13,6 +13,7 @@ urlpatterns = [
     path('', RedirectView.as_view(url='/admin/', permanent=True), name='home'),
 
     path('admin/', admin.site.urls),
+
     path('import_students/', views.StudentImportView.as_view(), name='import-students'),
     path('import_hp/', views.HPImportView.as_view(), name='import-hp'),
     path('import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
@@ -24,7 +25,8 @@ urlpatterns = [
     path('institutions/<int:pk>/', views.CorporationView.as_view(), name='corporation'),
     path('classes/', views.KlassListView.as_view(), name='classes'),
     path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
-    path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(), name='import-reports'),
+    path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(),
+        name='import-reports'),
     path('classes/print_klass_list/', views.PrintKlassList.as_view(), name='print-klass-list'),
 
     path('candidate/<int:pk>/send_convocation/', candidats_views.ConvocationView.as_view(),
