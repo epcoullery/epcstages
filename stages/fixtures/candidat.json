@@ -1,13 +1,12 @@
 [
-{
-  "model": "stages.corpcontact",
-  "pk": 1,
-  "fields": {
-    "last_name": "Rastapopoulos",
-    "first_name": "Umberto",
-    "corporation": null
-  }
-},
+  {
+    "model": "stages.corpcontact",
+    "pk": 1,
+    "fields": {
+      "first_name": "Roberto",
+      "last_name": "Rastapopoulos"
+    }
+  },
 {
   "model": "candidats.candidate",
   "pk": 1,

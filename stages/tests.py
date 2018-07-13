@@ -461,7 +461,7 @@ class ImportTests(TestCase):
             section=Section.objects.create(name='EDE'),
             level=lev1,
         )
-        Option.objects.create(name='Accompagnement des enfants')
+        # Option.objects.create(name='Accompagnement des enfants')
         with open(path, 'rb') as fh:  # , override_settings(DEBUG=True):
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
@@ -475,17 +475,32 @@ class ImportTests(TestCase):
     def test_import_student_fe_2018(self):
         """
         Import CLOEE file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
+
+        Student :
+        - S. Lampion, 1ASSCFEa
+        - T. Tournesol, 1EDS18-20
+
+        Candidate:
+        - B. Castafiore, 2EDEpe
+
+        Export CLOEE:
+        - S. Lampion, 2ASSFEa
+        - B. Castafiore, 2EDEpe
+        - A. Haddock, 2EDS18-20
+
+        Results in Student:
+        - S. Lampion, 2ASSFEa (Student data + Cloee klass)
+        - B. Castafiore, 2EDEpe (Candidate data + Cloee klass)
+        - A. Haddock, 2EDS18-20 (Cloee data) + Warning!
+        - T. Tournesol, archived
         """
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_FE_2018_TEST2.xlsx')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students-fe-2018'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
-        self.assertIn("Erreurs rencontrées: Etudiant inconnu: Haddock Archibald - classe: 1EDS18-20", msg)
-
-        st = Student.objects.filter().all()
-        print(st)
-        self.assertEqual(len(st), 3)  # Complete reading
+        self.assertIn("Erreurs rencontrées: Etudiant inconnu: Haddock Archibald - classe: 2EDS18-20", msg)
+        self.assertEqual(len(Student.objects.all()), 4)
         student = Student.objects.get(ext_id=22222)
         self.assertEqual(student.instructor.last_name, 'Rastapopoulos')
         self.assertEqual(student.dispense_eps, False)

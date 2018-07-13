@@ -340,10 +340,10 @@ class StudentFeImportView_2018(ImportViewBase):
 
     def import_data(self, up_file):
         """ Import Student data from uploaded file. """
-        student_mapping = settings.STUDENT_IMPORT_MAPPING
+        student_mapping = settings.STUDENT_IMPORT_2018_MAPPING
         student_rev_mapping = {v: k for k, v in student_mapping.items()}
-        corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
-        instructor_mapping = settings.INSTRUCTOR_IMPORT_MAPPING
+        corporation_mapping = settings.CORPORATION_IMPORT_2018_MAPPING
+        instructor_mapping = settings.INSTRUCTOR_IMPORT_2018_MAPPING
         mapping_option_ase = {
             'GEN': 'Généraliste',
             'ENF': 'Accompagnement des enfants',
@@ -378,12 +378,11 @@ class StudentFeImportView_2018(ImportViewBase):
             student_defaults['corporation'] = self.get_corporation(corporation_defaults)
 
             defaults = Student.prepare_import(student_defaults)
-
             try:
                 student = Student.objects.get(ext_id=defaults['ext_id'])
-                print(student.last_name)
-                # Mix CLOEE data and Student data
+                # Replace only klass and login by CLOEE data
                 student.klass = defaults['klass']
+                student.login_rpn = defaults['login_rpn']
                 student.archived = False
                 student.save()
                 obj_modified += 1
@@ -400,16 +399,16 @@ class StudentFeImportView_2018(ImportViewBase):
                     defaults['dispense_ecg'] = candidate.exemption_ecg
                     defaults['soutien_dys'] = candidate.handicap
                     defaults['archived'] = False
-                    nst = Student.objects.create(**defaults)
+                    Student.objects.create(**defaults)
                     obj_created += 1
                 except Candidate.DoesNotExist:
                     obj_error += 1
                     err_msg.append('Etudiant inconnu: {0} {1} - classe: {2}'.format(
                             defaults['last_name'],
                             defaults['first_name'],
-                            student_defaults['klass'])
+                            defaults['klass'])
                     )
-                    print('Erreur:', defaults['last_name'])
+                    Student.objects.create(**defaults)
 
         # Archive students who have not been exported
         rest = old_students_ids - seen_students_ids

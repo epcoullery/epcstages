@@ -107,7 +107,7 @@ FABRIC_HOST = 'stages.pierre-coullery.ch'
 FABRIC_USERNAME = ''
 
 # Mapping between column names of a tabular file and Student field names
-STUDENT_IMPORT_MAPPING = {
+STUDENT_IMPORT_2018_MAPPING = {
     'ELE_NUMERO': 'ext_id',
     'ELE_NOM': 'last_name',
     'ELE_PRENOM': 'first_name',
@@ -116,6 +116,7 @@ STUDENT_IMPORT_MAPPING = {
     'ELE_TEL_PRIVE': 'tel',
     'ELE_TEL_MOBILE': 'mobile',
     'ELE_EMAIL_RPN': 'email',
+    'ELE_COMPTE_RPN': 'login_rpn',
     'ELE_DATE_NAISSANCE': 'birth_date',
     'ELE_AVS': 'avs',
     'ELE_SEXE': 'gender',
@@ -123,7 +124,7 @@ STUDENT_IMPORT_MAPPING = {
     'PROF_DOMAINE_SPEC': 'option_ase',
 }
 
-CORPORATION_IMPORT_MAPPING = {
+CORPORATION_IMPORT_2018_MAPPING = {
     'ENT_NUMERO' : 'ext_id',
     'ENT_NOM' : 'name',
     'ENT_RUE': 'street',
@@ -133,7 +134,7 @@ CORPORATION_IMPORT_MAPPING = {
     'ENT_CODE_CANTON' : 'district',
 }
 
-INSTRUCTOR_IMPORT_MAPPING = {
+INSTRUCTOR_IMPORT_2018_MAPPING = {
     'FORM_NUMERO': 'ext_id',
     'FORM_NOM': 'last_name',
     'FORM_PRENOM': 'first_name',
@@ -142,7 +143,7 @@ INSTRUCTOR_IMPORT_MAPPING = {
 }
 
 
-"""
+
 STUDENT_IMPORT_MAPPING = {
     'NOCLOEE': 'ext_id',
     'NOM': 'last_name',
@@ -175,7 +176,7 @@ INSTRUCTOR_IMPORT_MAPPING = {
     'TEL_FORMATEUR': 'tel',
     'MAIL_FORMATEUR': 'email',
 }
-"""
+
 
 
 CHARGE_SHEET_TITLE = "Feuille de charge pour l'année scolaire 2018-2019"
