@@ -17,7 +17,7 @@ class StudentImportForm(forms.Form):
             raise forms.ValidationError("Erreur: %s" % e)
         # Check needed headers are present
         headers = imp_file.get_headers()
-        missing = set(settings.STUDENT_IMPORT_MAPPING.keys()) - set(headers)
+        missing = set(settings.STUDENT_IMPORT_2018_MAPPING.keys()) - set(headers)
         if missing:
             raise forms.ValidationError("Erreur: il manque les colonnes %s" % (
                 ", ".join(missing)))

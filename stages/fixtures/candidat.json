@@ -1,0 +1,34 @@
+[
+  {
+    "model": "stages.corpcontact",
+    "pk": 1,
+    "fields": {
+      "first_name": "Roberto",
+      "last_name": "Rastapopoulos"
+    }
+  },
+{
+  "model": "candidats.candidate",
+  "pk": 1,
+  "fields": {
+    "first_name": "Bianca",
+    "last_name": "Castafiore",
+    "gender": "F",
+    "birth_date": "2005-05-04",
+    "street": "Ruelle des Cibles",
+    "pcode": "2072",
+    "city": "St-Blaise",
+    "district": "NE",
+    "mobile": "079 111 11 11",
+    "email": "bianca.castafiore@rpn.ch",
+    "avs": "345678901",
+    "option": "ENF",
+    "exemption_ecg": true,
+    "handicap": false,
+    "corporation": null,
+    "instructor": 1,
+    "deposite_date": "2018-06-06"
+  }
+}
+]
+

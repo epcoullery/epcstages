@@ -1,0 +1,56 @@
+[
+{
+  "model": "stages.teacher",
+  "pk": 1,
+  "fields": {
+    "civility": "Madame",
+    "first_name": "Nomprof1",
+    "last_name": "Prénomprof1",
+    "abrev": "AAA",
+    "birth_date": "1964-06-06",
+    "email": "Prenomprof1.Nomprof1@rpn.ch",
+    "contract": "Droit priv\u00e9",
+    "rate": "0.0",
+    "ext_id": 1000,
+    "previous_report": -16,
+    "next_report": 0,
+    "archived": false
+  }
+},
+{
+  "model": "stages.teacher",
+  "pk": 2,
+  "fields": {
+    "civility": "Madame",
+    "first_name": "Prénomprof2",
+    "last_name": "Nomprof2",
+    "abrev": "BBB",
+    "birth_date": "1968-06-27",
+    "email": "Prenomprof2.Nomprof2@rpn.ch",
+    "contract": "Nomm\u00e9 tps part.",
+    "rate": "50.0",
+    "ext_id": 10001,
+    "previous_report": 18,
+    "next_report": 0,
+    "archived": false
+  }
+},
+{
+  "model": "stages.teacher",
+  "pk": 3,
+  "fields": {
+    "civility": "Madame",
+    "first_name": "prénomprof3",
+    "last_name": "Nomprof3",
+    "abrev": "CCC",
+    "birth_date": "1996-02-17",
+    "email": "Prenomprof3.Nomprof3@rpn.ch",
+    "contract": "Droit priv\u00e9",
+    "rate": "45.0",
+    "ext_id": 1003,
+    "previous_report": 0,
+    "next_report": 0,
+    "archived": false
+  }
+}
+]

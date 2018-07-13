@@ -99,7 +99,7 @@ class StudentAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
-                      ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
+                      ('email', 'tel', 'mobile', 'login_rpn'), ('gender', 'avs', 'birth_date'),
                       ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
                       ('klass', 'option_ase'),
                       ('report_sem1', 'report_sem1_sent'),

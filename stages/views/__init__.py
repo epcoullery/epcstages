@@ -33,11 +33,14 @@ from ..models import (
     Klass, Section, Option, Student, Teacher, Corporation, CorpContact, Course, Period,
     Training, Availability
 )
+from candidats.models import Candidate
 from ..pdf import (
     ChargeSheetPDF, ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm,
     KlassListPDF,
 )
 from ..utils import is_int, school_year_start
+
+
 
 
 class CorporationListView(ListView):
@@ -308,6 +311,125 @@ class ImportViewBase(FormView):
             if non_fatal_errors:
                 messages.warning(self.request, "Erreurs rencontrées: %s" % "\n".join(non_fatal_errors))
         return HttpResponseRedirect(reverse('admin:index'))
+
+
+def _import_date(txt):
+    if txt == '':
+        return None
+    elif isinstance(txt, str):
+        return datetime.strptime(txt, '%d.%m.%Y').date()
+
+def _import_option_ase(txt=None):
+    if txt:
+        try:
+            return Option.objects.get(name=txt)
+        except Option.DoesNotExist:
+            return None
+    else:
+        return None
+
+
+class StudentFeImportView_2018(ImportViewBase):
+    """
+    Import CLOEE file for FE students (ASAFE, ASEFE, ASSCFE, EDE, EDS)
+    Some students may appear twice
+    """
+
+    title = "Importation étudiants FE"
+    form_class = StudentImportForm
+
+    def import_data(self, up_file):
+        """ Import Student data from uploaded file. """
+        student_mapping = settings.STUDENT_IMPORT_2018_MAPPING
+        student_rev_mapping = {v: k for k, v in student_mapping.items()}
+        corporation_mapping = settings.CORPORATION_IMPORT_2018_MAPPING
+        instructor_mapping = settings.INSTRUCTOR_IMPORT_2018_MAPPING
+        mapping_option_ase = {
+            'GEN': 'Généraliste',
+            'ENF': 'Accompagnement des enfants',
+            'HAN': 'Accompagnement des personnes handicapées',
+            'PAG': 'Accompagnement des personnes âgées'
+        }
+        def strip(val):
+            return val.strip() if isinstance(val, str) else val
+
+        obj_created = obj_modified = obj_error = 0
+        seen_students_ids = set()
+        old_students_ids = {x['ext_id'] for x in Student.objects.all().values('ext_id')}
+        err_msg = list()
+
+        for line in up_file:
+            student_defaults = {
+                val: strip(line[key]) for key, val in student_mapping.items()
+            }
+            if student_defaults['ext_id'] in seen_students_ids:
+                # Second line for student, ignore it
+                continue
+            seen_students_ids.add(student_defaults['ext_id'])
+
+            student_defaults['birth_date'] = _import_date(student_defaults['birth_date'])
+            student_defaults['option_ase'] = _import_option_ase(student_defaults['option_ase'])
+            if student_defaults['option_ase'] is None:
+                del student_defaults['option_ase']
+
+            corporation_defaults = {
+                val: strip(line[key]) for key, val in corporation_mapping.items()
+            }
+            student_defaults['corporation'] = self.get_corporation(corporation_defaults)
+
+            defaults = Student.prepare_import(student_defaults)
+            try:
+                student = Student.objects.get(ext_id=defaults['ext_id'])
+                # Replace only klass and login by CLOEE data
+                student.klass = defaults['klass']
+                student.login_rpn = defaults['login_rpn']
+                student.archived = False
+                student.save()
+                obj_modified += 1
+            except Student.DoesNotExist:
+                # Is student in candidates table ?
+                try:
+                    candidate = Candidate.objects.get(last_name=defaults['last_name'],
+                                                      first_name=defaults['first_name'])
+                    # Mix CLOEE data and Candidate data
+                    if candidate.option in mapping_option_ase:
+                        defaults['option_ase'] = Option.objects.get(name=mapping_option_ase[candidate.option])
+                    defaults['corporation'] = candidate.corporation
+                    defaults['instructor'] = candidate.instructor
+                    defaults['dispense_ecg'] = candidate.exemption_ecg
+                    defaults['soutien_dys'] = candidate.handicap
+                    defaults['archived'] = False
+                    Student.objects.create(**defaults)
+                    obj_created += 1
+                except Candidate.DoesNotExist:
+                    obj_error += 1
+                    err_msg.append('Etudiant inconnu: {0} {1} - classe: {2}'.format(
+                            defaults['last_name'],
+                            defaults['first_name'],
+                            defaults['klass'])
+                    )
+                    Student.objects.create(**defaults)
+
+        # Archive students who have not been exported
+        rest = old_students_ids - seen_students_ids
+        for item in rest:
+            st = Student.objects.get(ext_id=item)
+            st.archived = True
+            st.save()
+
+        # FIXME: implement arch_staled
+        return {'created': obj_created, 'modified': obj_modified, 'error': obj_error, 'errors': err_msg}
+
+    def get_corporation(self, corp_values):
+        if corp_values['ext_id'] == '':
+            return None
+        if 'city' in corp_values and is_int(corp_values['city'][:4]):
+            corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
+        corp, created = Corporation.objects.get_or_create(
+            ext_id=corp_values['ext_id'],
+            defaults=corp_values
+        )
+        return corp
 
 
 class StudentImportView(ImportViewBase):

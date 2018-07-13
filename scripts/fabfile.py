@@ -69,4 +69,3 @@ def deploy():
             run("python manage.py migrate")
             run("python manage.py collectstatic --noinput")
         run("touch common/wsgi.py")
-

@@ -1,0 +1,115 @@
+[
+  {
+  "model": "stages.level",
+  "pk": 1,
+  "fields": {
+    "name": "1"
+  }
+},
+{
+  "model": "stages.level",
+  "pk": 2,
+  "fields": {
+    "name": "2"
+  }
+},
+  {
+    "model": "stages.option",
+    "pk": 1,
+    "fields": {
+      "name": "Généraliste"
+    }
+  },
+    {
+    "model": "stages.option",
+    "pk": 2,
+    "fields": {
+      "name": "Accompagnement des enfants"
+    }
+  },
+    {
+    "model": "stages.option",
+    "pk": 3,
+    "fields": {
+      "name": "Accompagnement des personnes handicapées"
+    }
+  },
+    {
+    "model": "stages.option",
+    "pk": 4,
+    "fields": {
+      "name": "Accompagnement des personnes âgées"
+    }
+  },
+  {
+  "model": "stages.section",
+  "pk": 1,
+  "fields": {
+    "name": "EDE"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 2,
+  "fields": {
+    "name": "ASSC"
+  }
+},
+{
+  "model": "stages.section",
+  "pk": 7,
+  "fields": {
+    "name": "EDS"
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 1,
+  "fields": {
+    "name": "1ASSCFEa",
+    "section": 2,
+    "level": 1,
+    "teacher": null
+  }
+},
+  {
+  "model": "stages.klass",
+  "pk": 2,
+  "fields": {
+    "name": "2ASSCFEa",
+    "section": 2,
+    "level": 2,
+    "teacher": null
+  }
+},
+{
+  "model": "stages.klass",
+  "pk": 5,
+  "fields": {
+    "name": "2EDEpe",
+    "section": 1,
+    "level": 2,
+    "teacher": null
+  }
+},
+
+{
+  "model": "stages.klass",
+  "pk": 16,
+  "fields": {
+    "name": "1EDS18-20",
+    "section": 7,
+    "level": 1,
+    "teacher": null
+  }
+},{
+  "model": "stages.klass",
+  "pk": 16,
+  "fields": {
+    "name": "2EDS18-20",
+    "section": 7,
+    "level": 2,
+    "teacher": null
+  }
+}
+]
