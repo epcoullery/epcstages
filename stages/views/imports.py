@@ -66,11 +66,41 @@ class ImportViewBase(FormView):
 class StudentImportView(ImportViewBase):
     title = "Importation étudiants"
     form_class = StudentImportForm
+    # Mapping between column names of a tabular file and Student field names
+    student_mapping = {
+        'NOCLOEE': 'ext_id',
+        'NOM': 'last_name',
+        'PRENOM': 'first_name',
+        'RUE': 'street',
+        'LOCALITE': 'city',  # pcode is separated from city in prepare_import
+        'TEL_PRIVE': 'tel',
+        'TEL_MOBILE': 'mobile',
+        'EMAIL_RPN': 'email',
+        'DATENAI': 'birth_date',
+        'NAVS13': 'avs',
+        'SEXE': 'gender',
+        'CLASSE_ACTUELLE': 'klass',
+        'LIB_BRANCHE_OPTION': 'option_ase',
+    }
+    corporation_mapping = {
+        'NO_EMPLOYEUR' : 'ext_id',
+        'EMPLOYEUR' : 'name',
+        'RUE_EMPLOYEUR': 'street',
+        'LOCALITE_EMPLOYEUR': 'city',
+        'TEL_EMPLOYEUR': 'tel',
+        'CANTON_EMPLOYEUR' : 'district',
+    }
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({
+            'file_label': 'Fichier des étudiants',
+            'mandatory_headers': self.student_mapping.keys(),
+        })
+        return kwargs
 
     def import_data(self, up_file):
         """ Import Student data from uploaded file. """
-        student_mapping = settings.STUDENT_IMPORT_MAPPING
-        corporation_mapping = settings.CORPORATION_IMPORT_MAPPING
 
         def strip(val):
             return val.strip() if isinstance(val, str) else val
@@ -79,7 +109,7 @@ class StudentImportView(ImportViewBase):
         seen_students_ids = set()
         for line in up_file:
             student_defaults = {
-                val: strip(line[key]) for key, val in student_mapping.items()
+                val: strip(line[key]) for key, val in self.student_mapping.items()
             }
             if student_defaults['ext_id'] in seen_students_ids:
                 # Second line for student, ignore it
@@ -98,7 +128,7 @@ class StudentImportView(ImportViewBase):
                 del student_defaults['option_ase']
 
             corporation_defaults = {
-                val: strip(line[key]) for key, val in corporation_mapping.items()
+                val: strip(line[key]) for key, val in self.corporation_mapping.items()
             }
             student_defaults['corporation'] = self.get_corporation(corporation_defaults)
 

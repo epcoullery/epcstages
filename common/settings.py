@@ -106,32 +106,6 @@ ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 FABRIC_HOST = 'stages.pierre-coullery.ch'
 FABRIC_USERNAME = ''
 
-# Mapping between column names of a tabular file and Student field names
-STUDENT_IMPORT_MAPPING = {
-    'NOCLOEE': 'ext_id',
-    'NOM': 'last_name',
-    'PRENOM': 'first_name',
-    'RUE': 'street',
-    'LOCALITE': 'city',  # pcode is separated from city in prepare_import
-    'TEL_PRIVE': 'tel',
-    'TEL_MOBILE': 'mobile',
-    'EMAIL_RPN': 'email',
-    'DATENAI': 'birth_date',
-    'NAVS13': 'avs',
-    'SEXE': 'gender',
-    'CLASSE_ACTUELLE': 'klass',
-    'LIB_BRANCHE_OPTION': 'option_ase',
-}
-
-CORPORATION_IMPORT_MAPPING = {
-    'NO_EMPLOYEUR' : 'ext_id',
-    'EMPLOYEUR' : 'name',
-    'RUE_EMPLOYEUR': 'street',
-    'LOCALITE_EMPLOYEUR': 'city',
-    'TEL_EMPLOYEUR': 'tel',
-    'CANTON_EMPLOYEUR' : 'district',
-}
-
 INSTRUCTOR_IMPORT_MAPPING = {
     'NO_FORMATEUR': 'ext_id',
     'NOM_FORMATEUR': 'last_name',

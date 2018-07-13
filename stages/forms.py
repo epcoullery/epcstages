@@ -1,5 +1,4 @@
 from django import forms
-from django.conf import settings
 
 from tabimport import FileFactory, UnsupportedFileFormat
 
@@ -7,7 +6,12 @@ from .models import Section, Period
 
 
 class StudentImportForm(forms.Form):
-    upload = forms.FileField(label="Fichier des étudiants")
+    upload = forms.FileField()
+
+    def __init__(self, file_label='Fichier', mandatory_headers=None, **kwargs):
+        super().__init__(**kwargs)
+        self.fields['upload'].label = file_label
+        self.mandatory_headers = mandatory_headers
 
     def clean_upload(self):
         f = self.cleaned_data['upload']
@@ -17,7 +21,7 @@ class StudentImportForm(forms.Form):
             raise forms.ValidationError("Erreur: %s" % e)
         # Check needed headers are present
         headers = imp_file.get_headers()
-        missing = set(settings.STUDENT_IMPORT_MAPPING.keys()) - set(headers)
+        missing = set(self.mandatory_headers) - set(headers)
         if missing:
             raise forms.ValidationError("Erreur: il manque les colonnes %s" % (
                 ", ".join(missing)))
