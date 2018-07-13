@@ -153,6 +153,8 @@ class StudentImportView(ImportViewBase):
         seen_students_ids = set()
         fe_students_ids = set(
             Student.objects.filter(
+                archived=False,
+                ext_id__isnull=False,
                 klass__section__in=[s for s in Section.objects.all() if s.is_fe()]
             ).values_list('ext_id', flat=True)
         )
@@ -180,7 +182,7 @@ class StudentImportView(ImportViewBase):
                         setattr(student, field_name, defaults[field_name])
                         modified = True
                 if student.archived:
-                    sudent.archived = False
+                    student.archived = False
                     modified = True
                 if modified:
                     student.save()
