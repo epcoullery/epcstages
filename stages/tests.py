@@ -441,34 +441,40 @@ class ImportTests(TestCase):
         """
         Import of the main students file.
         """
-        path = os.path.join(os.path.dirname(__file__), 'test_files', 'EXPORT_GAN.xlsx')
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_FE_2018.xlsx')
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
-        self.assertIn("La classe '1ASEFEa' n'existe pas encore", msg)
+        self.assertIn("La classe '1ASSCFEa' n'existe pas encore", msg)
 
         lev1 = Level.objects.create(name='1')
+        lev2 = Level.objects.create(name='2')
         Klass.objects.create(
-            name='1ASEFEa',
-            section=Section.objects.create(name='ASE'),
+            name='1ASSCFEa',
+            section=Section.objects.create(name='ASSC'),
             level=lev1,
         )
         Klass.objects.create(
-            name='1EDS',
+            name='2EDEpe',
             section=Section.objects.create(name='EDE'),
+            level=lev2,
+        )
+        Klass.objects.create(
+            name='1EDS18-20',
+            section=Section.objects.create(name='EDS'),
             level=lev1,
         )
-        Option.objects.create(name='Accompagnement des enfants')
-        with open(path, 'rb') as fh:  # , override_settings(DEBUG=True):
+        with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
         msg = "\n".join(str(m) for m in response.context['messages'])
         self.assertIn("Objets créés : 3", msg)
-        student1 = Student.objects.get(last_name='Fellmann')
-        self.assertEqual(student1.corporation.name, "Crèche Les Mousaillons")
-        self.assertEqual(student1.option_ase.name, "Accompagnement des enfants")
+
+        student = Student.objects.get(ext_id=22222)
+        self.assertEqual(student.corporation.name, 'Accueil Haut les mains')
+        self.assertFalse(student.dispense_eps)
         # Instructor not set through this import
-        self.assertIsNone(student1.instructor)
+        self.assertIsNone(student.instructor)
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(

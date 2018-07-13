@@ -68,27 +68,28 @@ class StudentImportView(ImportViewBase):
     form_class = StudentImportForm
     # Mapping between column names of a tabular file and Student field names
     student_mapping = {
-        'NOCLOEE': 'ext_id',
-        'NOM': 'last_name',
-        'PRENOM': 'first_name',
-        'RUE': 'street',
-        'LOCALITE': 'city',  # pcode is separated from city in prepare_import
-        'TEL_PRIVE': 'tel',
-        'TEL_MOBILE': 'mobile',
-        'EMAIL_RPN': 'email',
-        'DATENAI': 'birth_date',
-        'NAVS13': 'avs',
-        'SEXE': 'gender',
-        'CLASSE_ACTUELLE': 'klass',
-        'LIB_BRANCHE_OPTION': 'option_ase',
+        'ELE_NUMERO': 'ext_id',
+        'ELE_NOM': 'last_name',
+        'ELE_PRENOM': 'first_name',
+        'ELE_RUE': 'street',
+        'ELE_NPA_LOCALITE': 'city',  # pcode is separated from city in prepare_import
+        'ELE_TEL_PRIVE': 'tel',
+        'ELE_TEL_MOBILE': 'mobile',
+        'ELE_EMAIL_RPN': 'email',
+        'ELE_DATE_NAISSANCE': 'birth_date',
+        'ELE_AVS': 'avs',
+        'ELE_SEXE': 'gender',
+        'INS_CLASSE': 'klass',
+        'PROF_DOMAINE_SPEC': 'option_ase',
     }
     corporation_mapping = {
-        'NO_EMPLOYEUR' : 'ext_id',
-        'EMPLOYEUR' : 'name',
-        'RUE_EMPLOYEUR': 'street',
-        'LOCALITE_EMPLOYEUR': 'city',
-        'TEL_EMPLOYEUR': 'tel',
-        'CANTON_EMPLOYEUR' : 'district',
+        'ENT_NUMERO' : 'ext_id',
+        'ENT_NOM' : 'name',
+        'ENT_RUE': 'street',
+        'ENT_NPA': 'pcode',
+        'ENT_LOCALITE': 'city',
+        'ENT_TEL': 'tel',
+        'ENT_CODE_CANTON' : 'district',
     }
 
     def get_form_kwargs(self):
