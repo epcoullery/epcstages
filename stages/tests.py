@@ -9,6 +9,7 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils.html import escape
 
+from candidats.models import Candidate
 from .models import (
     Level, Domain, Section, Klass, Option, Period, Student, Corporation, Availability,
     CorpContact, Teacher, Training, Course,
@@ -439,12 +440,36 @@ class ImportTests(TestCase):
 
     def test_import_students(self):
         """
-        Import of the main students file.
+        Import CLOEE file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
+
+        Student :
+        - S. Lampion, 1ASSCFEa
+        - T. Tournesol, 1EDS18-20
+
+        Candidate:
+        - B. Castafiore, 2EDEpe
+
+        Export CLOEE:
+        - S. Lampion, 2ASSFEa
+        - B. Castafiore, 2EDEpe
+        - A. Haddock, 2EDS18-20
+
+        Results in Student:
+        - S. Lampion, 2ASSFEa (Student data + Cloee klass)
+        - B. Castafiore, 2EDEpe (Candidate data + Cloee klass)
+        - A. Haddock, 2EDS18-20 (Cloee data) + Warning!
+        - T. Tournesol, archived
         """
         lev1 = Level.objects.create(name='1')
         lev2 = Level.objects.create(name='2')
         assc = Section.objects.create(name='ASSC')
+        Option.objects.create(name='Accompagnement des enfants')
         k1 = Klass.objects.create(name='1ASSCFEa', section=assc, level=lev1)
+        inst = CorpContact.objects.create(first_name="Roberto", last_name="Rastapopoulos")
+        Candidate.objects.create(
+            first_name="Bianca", last_name="Castafiore", deposite_date="2018-06-06",
+            option='ENF', instructor=inst
+        )
         # An existing student, klass should be changed.
         Student.objects.create(ext_id=11111, first_name="Séraphin", last_name="Lampion", klass=k1)
 
@@ -474,11 +499,12 @@ class ImportTests(TestCase):
 
         student1 = Student.objects.get(ext_id=11111)
         self.assertEqual(student1.klass.name, '2ASSCFEa')
-        student2 = Student.objects.get(ext_id=22222)
-        self.assertEqual(student2.corporation.name, 'Accueil Haut les mains')
-        self.assertFalse(student2.dispense_eps)
-        # Instructor not set through this import
-        self.assertIsNone(student2.instructor)
+        # New student from existing candidate.
+        student_cand = Student.objects.get(ext_id=22222)
+        self.assertEqual(student_cand.instructor.last_name, 'Rastapopoulos')
+        self.assertEqual(student_cand.option_ase.name, 'Accompagnement des enfants')
+        self.assertEqual(student_cand.corporation.name, 'Accueil Haut les mains')
+        self.assertFalse(student_cand.dispense_eps)
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(

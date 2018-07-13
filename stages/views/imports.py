@@ -19,6 +19,7 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.generic import FormView
 
+from candidats.models import Candidate
 from ..forms import StudentImportForm, UploadHPFileForm, UploadReportForm
 from ..models import (
     Corporation, CorpContact, Course, Klass, Option, Student, Teacher,
@@ -98,6 +99,12 @@ class StudentImportView(ImportViewBase):
         'ENT_TEL': 'tel',
         'ENT_CODE_CANTON' : 'district',
     }
+    mapping_option_ase = {
+        'GEN': 'Généraliste',
+        'ENF': 'Accompagnement des enfants',
+        'HAN': 'Accompagnement des personnes handicapées',
+        'PAG': 'Accompagnement des personnes âgées',
+    }
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -139,6 +146,7 @@ class StudentImportView(ImportViewBase):
             return val.strip() if isinstance(val, str) else val
 
         obj_created = obj_modified = 0
+        err_msg = []
         seen_students_ids = set()
         for line in up_file:
             student_defaults = {
@@ -169,10 +177,31 @@ class StudentImportView(ImportViewBase):
                     student.save()
                     obj_modified += 1
             except Student.DoesNotExist:
-                student = Student.objects.create(**defaults)
-                obj_created += 1
+                try:
+                    candidate = Candidate.objects.get(last_name=defaults['last_name'],
+                                                      first_name=defaults['first_name'])
+                    # Mix CLOEE data and Candidate data
+                    if candidate.option in self.mapping_option_ase:
+                        defaults['option_ase'] = Option.objects.get(name=self.mapping_option_ase[candidate.option])
+                    if candidate.corporation:
+                        defaults['corporation'] = candidate.corporation
+                    defaults['instructor'] = candidate.instructor
+                    defaults['dispense_ecg'] = candidate.exemption_ecg
+                    defaults['soutien_dys'] = candidate.handicap
+                    Student.objects.create(**defaults)
+                    obj_created += 1
+                except Candidate.DoesNotExist:
+                    # New student with no matching Candidate
+                    err_msg.append('Étudiant non trouvé dans les candidats: {0} {1} - classe: {2}'.format(
+                        defaults['last_name'],
+                        defaults['first_name'],
+                        defaults['klass'])
+                    )
+                    Student.objects.create(**defaults)
+                    obj_created += 1
+
         # FIXME: implement arch_staled
-        return {'created': obj_created, 'modified': obj_modified}
+        return {'created': obj_created, 'modified': obj_modified, 'errors': err_msg}
 
     def get_corporation(self, corp_values):
         if corp_values['ext_id'] == '':
