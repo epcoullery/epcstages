@@ -22,7 +22,7 @@ from django.views.generic import FormView
 from candidats.models import Candidate
 from ..forms import StudentImportForm, UploadHPFileForm, UploadReportForm
 from ..models import (
-    Corporation, CorpContact, Course, Klass, Option, Student, Teacher,
+    Corporation, CorpContact, Course, Klass, Option, Section, Student, Teacher,
 )
 from ..utils import is_int
 
@@ -148,6 +148,12 @@ class StudentImportView(ImportViewBase):
         obj_created = obj_modified = 0
         err_msg = []
         seen_students_ids = set()
+        fe_students_ids = set(
+            Student.objects.filter(
+                klass__section__in=[s for s in Section.objects.all() if s.is_fe()]
+            ).values_list('ext_id', flat=True)
+        )
+
         for line in up_file:
             student_defaults = {
                 val: strip(line[key]) for key, val in self.student_mapping.items()
@@ -200,8 +206,19 @@ class StudentImportView(ImportViewBase):
                     Student.objects.create(**defaults)
                     obj_created += 1
 
-        # FIXME: implement arch_staled
-        return {'created': obj_created, 'modified': obj_modified, 'errors': err_msg}
+
+        # Archive students who have not been exported
+        rest = fe_students_ids - seen_students_ids
+        archived = 0
+        for student_id in rest:
+            st = Student.objects.get(ext_id=student_id)
+            st.archived = True
+            st.save()
+            archived += 1
+        return {
+            'created': obj_created, 'modified': obj_modified, 'archived': archived,
+            'errors': err_msg,
+        }
 
     def get_corporation(self, corp_values):
         if corp_values['ext_id'] == '':

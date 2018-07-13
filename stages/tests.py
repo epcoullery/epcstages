@@ -472,6 +472,7 @@ class ImportTests(TestCase):
         )
         # An existing student, klass should be changed.
         Student.objects.create(ext_id=11111, first_name="Séraphin", last_name="Lampion", klass=k1)
+        Student.objects.create(ext_id=44444, first_name="Tryphon", last_name="Tournesol", klass=k1)
 
         path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_FE_2018.xlsx')
         self.client.login(username='me', password='mepassword')
@@ -505,6 +506,9 @@ class ImportTests(TestCase):
         self.assertEqual(student_cand.option_ase.name, 'Accompagnement des enfants')
         self.assertEqual(student_cand.corporation.name, 'Accueil Haut les mains')
         self.assertFalse(student_cand.dispense_eps)
+        # Tournesol was archived
+        stud_arch = Student.objects.get(ext_id=44444)
+        self.assertTrue(stud_arch.archived)
 
     def test_import_hp(self):
         teacher = Teacher.objects.create(
