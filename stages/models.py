@@ -359,22 +359,6 @@ class Student(models.Model):
             missing.append("L’expert interne n’est pas défini")
         return missing
 
-    @classmethod
-    def prepare_import(cls, student_values):
-        ''' Hook for tabimport, before new object get created '''
-        if 'klass' in student_values:
-            try:
-                k = Klass.objects.get(name=student_values['klass'])
-            except Klass.DoesNotExist:
-                raise Exception("La classe '%s' n'existe pas encore" % student_values['klass'])
-            student_values['klass'] = k
-
-        # See if postal code included in city, and split them
-        if 'city' in student_values and utils.is_int(student_values['city'][:4]):
-            student_values['pcode'], _, student_values['city'] = student_values['city'].partition(' ')
-        student_values['archived'] = False
-        return student_values
-
 
 class Corporation(models.Model):
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')

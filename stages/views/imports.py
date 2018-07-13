@@ -29,6 +29,13 @@ from ..utils import is_int
 class ImportViewBase(FormView):
     template_name = 'file_import.html'
 
+    @staticmethod
+    def _sanitize_date(txt):
+        if txt == '':
+            return None
+        elif isinstance(txt, str):
+            return datetime.strptime(txt, '%d.%m.%Y').date()
+
     def form_valid(self, form):
         upfile = form.cleaned_data['upload']
         is_csv = (
@@ -100,6 +107,31 @@ class StudentImportView(ImportViewBase):
         })
         return kwargs
 
+    def clean_values(self, values):
+        """Post-process some of the imported values."""
+        if 'birth_date' in values:
+            values['birth_date'] = self._sanitize_date(values['birth_date'])
+        # See if postal code included in city, and split them
+        if 'city' in values and is_int(values['city'][:4]):
+            values['pcode'], _, values['city'] = values['city'].partition(' ')
+
+        if 'klass' in values:
+            try:
+                k = Klass.objects.get(name=values['klass'])
+            except Klass.DoesNotExist:
+                raise Exception("La classe '%s' n'existe pas encore" % values['klass'])
+            values['klass'] = k
+
+        if 'option_ase' in values:
+            if values['option_ase']:
+                try:
+                    values['option_ase'] = Option.objects.get(name=values['option_ase'])
+                except Option.DoesNotExist:
+                    values['option_ase'] = None
+            else:
+                values['option_ase'] = None
+        return values
+
     def import_data(self, up_file):
         """ Import Student data from uploaded file. """
 
@@ -116,31 +148,23 @@ class StudentImportView(ImportViewBase):
                 # Second line for student, ignore it
                 continue
             seen_students_ids.add(student_defaults['ext_id'])
-            if student_defaults['birth_date'] == '':
-                student_defaults['birth_date'] = None
-            elif isinstance(student_defaults['birth_date'], str):
-                student_defaults['birth_date'] = datetime.strptime(student_defaults['birth_date'], '%d.%m.%Y').date()
-            if student_defaults['option_ase']:
-                try:
-                    student_defaults['option_ase'] = Option.objects.get(name=student_defaults['option_ase'])
-                except Option.DoesNotExist:
-                    del student_defaults['option_ase']
-            else:
-                del student_defaults['option_ase']
 
             corporation_defaults = {
                 val: strip(line[key]) for key, val in self.corporation_mapping.items()
             }
             student_defaults['corporation'] = self.get_corporation(corporation_defaults)
 
-            defaults = Student.prepare_import(student_defaults)
+            defaults = self.clean_values(student_defaults)
             try:
-                student = Student.objects.get(ext_id=student_defaults['ext_id'])
+                student = Student.objects.get(ext_id=defaults['ext_id'])
                 modified = False
                 for key, val in defaults.items():
                     if getattr(student, key) != val:
                         setattr(student, key, val)
                         modified = True
+                if student.archived:
+                    sudent.archived = False
+                    modified = True
                 if modified:
                     student.save()
                     obj_modified += 1
