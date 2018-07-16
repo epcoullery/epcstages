@@ -299,6 +299,7 @@ GENERAL_EXPORT_FIELDS = [
     ('Canton_Ele', 'district'),
     ('Email_Ele', 'email'),
     ('Mobile_Ele', 'mobile'),
+    ('Compte_RPN', 'login_rpn'),
     ('DispenseCG_Ele', 'dispense_ecg'),
     ('DispenseEPS_Ele', 'dispense_eps'),
     ('SoutienDYS_Ele', 'soutien_dys'),
