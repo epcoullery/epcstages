@@ -155,7 +155,7 @@ class StudentImportView(ImportViewBase):
             Student.objects.filter(
                 archived=False,
                 ext_id__isnull=False,
-                klass__section__in=[s for s in Section.objects.all() if s.is_fe()]
+                klass__section__in=[s for s in Section.objects.all() if s.is_EPC]
             ).values_list('ext_id', flat=True)
         )
 

@@ -24,9 +24,18 @@ class Section(models.Model):
     def __str__(self):
         return self.name
 
+    @property
     def is_fe(self):
         """fe=formation en entreprise"""
         return self.name in {'ASA', 'ASE', 'ASSC'}
+
+    @property
+    def is_EPC(self):
+        return self.name in {'ASA', 'ASE', 'ASSC', 'EDE', 'EDS'}
+
+    @property
+    def is_ESTER(self):
+        return self.name in {'MP_ASE', 'MP_ASSC'}
 
 
 class Level(models.Model):
@@ -324,7 +333,7 @@ class Student(models.Model):
 
     @property
     def role(self):
-        if self.klass.section.is_fe():
+        if self.klass.section.is_fe:
             return {'M': 'apprenti', 'F': 'apprentie'}.get(self.gender, '')
         else:
             return {'M': 'étudiant', 'F': 'étudiante'}.get(self.gender, '')
