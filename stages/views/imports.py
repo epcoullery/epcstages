@@ -12,7 +12,7 @@ from tabimport import CSVImportedFile, FileFactory
 from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Value
 from django.db.models.functions import Concat
 from django.http import HttpResponseRedirect
@@ -248,10 +248,22 @@ class StudentImportView(ImportViewBase):
             return None
         if 'city' in corp_values and is_int(corp_values['city'][:4]):
             corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
-        corp, created = Corporation.objects.get_or_create(
-            ext_id=corp_values['ext_id'],
-            defaults=corp_values
-        )
+        try:
+            corp, created = Corporation.objects.get_or_create(
+                ext_id=corp_values['ext_id'],
+                defaults=corp_values
+            )
+        except IntegrityError:
+            # It may happen that the corporation exists (name and city are enforced unique)
+            # but without the ext_id. In that case, we update the ext_id.
+            try:
+                corp = Corporation.objects.get(name=corp_values['name'], city=corp_values['city'])
+                if corp.ext_id:
+                    raise
+                corp.ext_id = corp_values['ext_id']
+                corp.save()
+            except Corporation.DoesNotExist:
+                raise
         return corp
 
 

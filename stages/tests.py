@@ -465,6 +465,8 @@ class ImportTests(TestCase):
         assc = Section.objects.create(name='ASSC')
         Option.objects.create(name='Accompagnement des enfants')
         k1 = Klass.objects.create(name='1ASSCFEa', section=assc, level=lev1)
+        # Corporation without ext_id will have its ext_id added.
+        corp = Corporation.objects.create(name='Centre Cantonal de peinture', city='Marin-Epagnier')
         inst = CorpContact.objects.create(first_name="Roberto", last_name="Rastapopoulos")
         Candidate.objects.create(
             first_name="Bianca", last_name="Castafiore", deposite_date="2018-06-06",
@@ -511,6 +513,9 @@ class ImportTests(TestCase):
         # Tournesol was archived
         stud_arch = Student.objects.get(ext_id=44444)
         self.assertTrue(stud_arch.archived)
+        # Corporation.ext_id is updated
+        corp.refresh_from_db()
+        self.assertEqual(corp.ext_id, 100)
 
     def test_import_students_ESTER(self):
         """
