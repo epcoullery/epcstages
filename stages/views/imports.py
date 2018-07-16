@@ -11,10 +11,10 @@ from tabimport import CSVImportedFile, FileFactory
 from django.conf import settings
 from django.contrib import messages
 from django.core.files import File
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Value
 from django.db.models.functions import Concat
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.views.generic import FormView
@@ -72,7 +72,7 @@ class ImportViewBase(FormView):
 
 
 class StudentImportView(ImportViewBase):
-    title = "Importation étudiants"
+    title = "Importation étudiants EPC"
     form_class = StudentImportForm
     # Mapping between column names of a tabular file and Student field names
     student_mapping = {
@@ -81,6 +81,7 @@ class StudentImportView(ImportViewBase):
         'ELE_PRENOM': 'first_name',
         'ELE_RUE': 'street',
         'ELE_NPA_LOCALITE': 'city',  # pcode is separated from city in prepare_import
+        'ELE_CANTON': 'district',
         'ELE_TEL_PRIVE': 'tel',
         'ELE_TEL_MOBILE': 'mobile',
         'ELE_EMAIL_RPN': 'email',
@@ -155,7 +156,7 @@ class StudentImportView(ImportViewBase):
             Student.objects.filter(
                 archived=False,
                 ext_id__isnull=False,
-                klass__section__in=[s for s in Section.objects.all() if s.is_fe()]
+                klass__section__in=[s for s in Section.objects.all() if s.is_EPC()]
             ).values_list('ext_id', flat=True)
         )
 
@@ -230,11 +231,106 @@ class StudentImportView(ImportViewBase):
             return None
         if 'city' in corp_values and is_int(corp_values['city'][:4]):
             corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
-        corp, created = Corporation.objects.get_or_create(
-            ext_id=corp_values['ext_id'],
-            defaults=corp_values
-        )
+        try:
+            corp, created = Corporation.objects.get_or_create(
+                ext_id=corp_values['ext_id'],
+                defaults=corp_values
+            )
+        except IntegrityError:
+            "Additional test with corporate name"
+            try:
+                corp = Corporation.objects.get(name=corp_values['name'])
+                corp.ext_id = corp_values['ext_id']
+                corp.save()
+                return corp
+            except Corporation.DoesNotExist:
+                return None
         return corp
+
+
+class StudentEsterImportView(StudentImportView):
+    title = "Importation étudiants ESTER"
+    # Mapping between column names of a tabular file and Student field names
+    student_mapping = {
+        'ELE_NUMERO': 'ext_id',
+        'ELE_NOM': 'last_name',
+        'ELE_PRENOM': 'first_name',
+        'ELE_RUE': 'street',
+        'ELE_NPA_LOCALITE': 'city',  # pcode is separated from city in prepare_import
+        # 'ELE_TEL_PRIVE': 'tel',
+        # 'ELE_TEL_MOBILE': 'mobile',
+        # 'ELE_EMAIL_RPN': 'email',
+        # 'ELE_COMPTE_RPN': 'login_rpn',
+        'ELE_DATE_NAISSANCE': 'birth_date',
+        'ELE_AVS': 'avs',
+        'ELE_SEXE': 'gender',
+        'INS_CLASSE': 'klass',
+        'PROF_DOMAINE_SPEC': 'option_ase',
+    }
+    # Those values are always taken from the import file
+    fields_to_overwrite = ['klass', 'street', 'city', 'option_ase']
+
+    def import_data(self, up_file):
+        """ Import Student data from uploaded file. """
+
+        def strip(val):
+            return val.strip() if isinstance(val, str) else val
+
+        obj_created = obj_modified = 0
+        err_msg = []
+        seen_students_ids = set()
+        ester_students_ids = set(
+            Student.objects.filter(
+                archived=False,
+                ext_id__isnull=False,
+                klass__section__in=[s for s in Section.objects.all() if s.is_ESTER()]
+            ).values_list('ext_id', flat=True)
+        )
+
+        for line in up_file:
+            student_defaults = {
+                val: strip(line[key]) for key, val in self.student_mapping.items()
+            }
+            if student_defaults['ext_id'] in seen_students_ids:
+                # Second line for student, ignore it
+                continue
+            if student_defaults['klass'][0:4] == '1CMS':
+                # Abandon classes 1CMS ASE + 1CMS ASSC
+                continue
+
+            seen_students_ids.add(student_defaults['ext_id'])
+            if student_defaults['option_ase'] == 'Enfants':
+                student_defaults['option_ase'] = 'Accompagnement des enfants'
+            defaults = self.clean_values(student_defaults)
+            try:
+                student = Student.objects.get(ext_id=defaults['ext_id'])
+                modified = False
+                for field_name in self.fields_to_overwrite:
+                    if getattr(student, field_name) != defaults[field_name]:
+                        setattr(student, field_name, defaults[field_name])
+                        modified = True
+                if student.archived:
+                    student.archived = False
+                    modified = True
+                if modified:
+                    student.save()
+                    obj_modified += 1
+            except Student.DoesNotExist:
+                Student.objects.create(**defaults)
+                obj_created += 1
+
+        # Archive students who have not been exported
+        rest = ester_students_ids - seen_students_ids
+        archived = 0
+        for student_id in rest:
+            st = Student.objects.get(ext_id=student_id)
+            st.archived = True
+            st.save()
+            archived += 1
+        return {
+            'created': obj_created, 'modified': obj_modified, 'archived': archived,
+            'errors': err_msg,
+        }
 
 
 class HPImportView(ImportViewBase):
