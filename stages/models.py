@@ -28,6 +28,12 @@ class Section(models.Model):
         """fe=formation en entreprise"""
         return self.name in {'ASA', 'ASE', 'ASSC'}
 
+    def is_EPC(self):
+        return self.name in {'ASA', 'ASE', 'ASSC', 'EDE', 'EDS'}
+
+    def is_ESTER(self):
+        return self.name in {'MP_ASE', 'MP_ASSC'}
+
 
 class Level(models.Model):
     name = models.CharField(max_length=10, verbose_name='Nom')

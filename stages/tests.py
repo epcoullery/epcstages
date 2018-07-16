@@ -512,6 +512,59 @@ class ImportTests(TestCase):
         stud_arch = Student.objects.get(ext_id=44444)
         self.assertTrue(stud_arch.archived)
 
+    def test_import_students_ESTER(self):
+        """
+        Import CLOEE file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
+
+        Student :
+        - S. Lampion, 1MPTS ASE1 - Généraliste
+        - T. Tournesol, 2MPS ASSC1
+
+        Export CLOEE:
+        - S. Lampion, 2MPTS ASE1 - Accompagnement des enfants
+        - B. Castafiore, 2MPS ASSC1
+
+        Results in Student:
+        - S. Lampion, 2MPTS ASE1 (Student data + Cloee klass)
+        - B. Castafiore, 2MPS ASSC1 (Candidate data + Cloee klass)
+        - T. Tournesol, archived
+        """
+        lev1 = Level.objects.create(name='1')
+        lev2 = Level.objects.create(name='2')
+        mp_ase = Section.objects.create(name='MP_ASE')
+        mp_assc = Section.objects.create(name='MP_ASSC')
+        Option.objects.create(name='Accompagnement des enfants')
+        Option.objects.create(name='Généraliste')
+        k1 = Klass.objects.create(name='1MPTS ASE1', section=mp_ase, level=lev1)
+        k2 = Klass.objects.create(name='2MPTS ASE1', section=mp_ase, level=lev2)
+
+        # An existing student, klass should be changed.
+        Student.objects.create(ext_id=11111, first_name="Séraphin", last_name="Lampion", city='Marin', klass=k1)
+        Student.objects.create(ext_id=22222, first_name="Bianca", last_name="Castafiore", city='Marin', klass=k1)
+
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_Ester_2018.xls')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-students-ester'), {'upload': fh}, follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertIn("La classe '2MPS ASSC1' n'existe pas encore", msg)
+
+        k3 = Klass.objects.create(name='2MPS ASSC1', section=mp_assc, level = lev2)
+        Student.objects.create(ext_id=44444, first_name="Tryphon", last_name="Tournesol", klass=k3)
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-students-ester'), {'upload': fh}, follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        #self.assertIn("Objets créés : 2", msg)
+        self.assertIn("Objets modifiés : 2", msg)
+
+        # Student already exists, klass changed
+        student1 = Student.objects.get(ext_id=11111)
+        self.assertEqual(student1.klass.name, '2MPTS ASE1')
+        self.assertEqual(student1.city, 'Le Locle')  # file has 'Marin-Epagnier'
+        # Tournesol was archived
+        stud_arch = Student.objects.get(ext_id=22222)
+        self.assertTrue(stud_arch.archived)
+
     def test_import_hp(self):
         teacher = Teacher.objects.create(
             first_name='Jeanne', last_name='Dupond', birth_date='1974-08-08'

@@ -15,6 +15,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     path('import_students/', views.StudentImportView.as_view(), name='import-students'),
+    path('import_students_ester/', views.imports.StudentEsterImportView.as_view(), name='import-students-ester'),
     path('import_hp/', views.HPImportView.as_view(), name='import-hp'),
     path('import_hp_contacts/', views.HPContactsImportView.as_view(), name='import-hp-contacts'),
 
