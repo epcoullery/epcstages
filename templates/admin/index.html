@@ -84,7 +84,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
     <div class="module" id="custom-actions-module">
     <h2>Importation/exportation</h2>
     <ul>
-        <li><a href="{% url 'import-students' %}">Importer un fichier d'étudiants</a></li>
+        <li><a href="{% url 'import-students' %}">Importer un fichier d'étudiants EPC</a></li>
+        <li><a href="{% url 'import-students-ester' %}">Importer un fichier d'étudiants ESTER</a></li>
         <li><a href="{% url 'import-hp' %}">Importer le fichier HP</a></li>
         <li><a href="{% url 'import-hp-contacts' %}">Importer les formateurs (fichier HP)</a></li>
         <li style="margin-top: 1em;"><a href="{% url 'stages_export' %}">Exporter les données de stages</a> (récentes)</li>

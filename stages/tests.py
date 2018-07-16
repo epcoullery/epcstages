@@ -438,7 +438,7 @@ class ImportTests(TestCase):
         for f in os.listdir(bulletins_dir):
             os.remove(os.path.join(bulletins_dir, f))
 
-    def test_import_students(self):
+    def test_import_students_EPC(self):
         """
         Import CLOEE file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
 
@@ -510,6 +510,59 @@ class ImportTests(TestCase):
         self.assertFalse(student_cand.dispense_eps)
         # Tournesol was archived
         stud_arch = Student.objects.get(ext_id=44444)
+        self.assertTrue(stud_arch.archived)
+
+    def test_import_students_ESTER(self):
+        """
+        Import CLOEE file for ESTER students (MP_*) version 2018
+
+        Student :
+        - S. Lampion, 1MPTS ASE1 - Généraliste
+        - B. Castafiore, 1MPTS ASE1
+
+        Export CLOEE:
+        - S. Lampion, 2MPTS ASE1 - Accompagnement des enfants
+        - T. Tournesol, 2MPS ASSC1
+
+        Results in Student:
+        - S. Lampion, 2MPTS ASE1 (Student data + Cloee klass)
+        - T. Tournesol, 2MPS ASSC1 (Candidate data + Cloee klass)
+        - B. Castafiore, archived
+        """
+        lev1 = Level.objects.create(name='1')
+        lev2 = Level.objects.create(name='2')
+        mp_ase = Section.objects.create(name='MP_ASE')
+        mp_assc = Section.objects.create(name='MP_ASSC')
+        Option.objects.create(name='Accompagnement des enfants')
+        Option.objects.create(name='Généraliste')
+        k1 = Klass.objects.create(name='1MPTS ASE1', section=mp_ase, level=lev1)
+        k2 = Klass.objects.create(name='2MPTS ASE1', section=mp_ase, level=lev2)
+
+        # Existing students, klass should be changed or student archived.
+        Student.objects.create(ext_id=11111, first_name="Séraphin", last_name="Lampion", city='Marin', klass=k1)
+        Student.objects.create(ext_id=22222, first_name="Bianca", last_name="Castafiore", city='Marin', klass=k1)
+
+        path = os.path.join(os.path.dirname(__file__), 'test_files', 'CLOEE2_Export_Ester_2018.xls')
+        self.client.login(username='me', password='mepassword')
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-students-ester'), {'upload': fh}, follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertIn("La classe '2MPS ASSC1' n'existe pas encore", msg)
+
+        k3 = Klass.objects.create(name='2MPS ASSC1', section=mp_assc, level=lev2)
+        with open(path, 'rb') as fh:
+            response = self.client.post(reverse('import-students-ester'), {'upload': fh}, follow=True)
+        msg = "\n".join(str(m) for m in response.context['messages'])
+        self.assertIn("Objets créés : 1", msg)
+        self.assertIn("Objets modifiés : 1", msg)
+
+        # Student already existed, klass changed
+        student1 = Student.objects.get(ext_id=11111)
+        self.assertEqual(student1.klass.name, '2MPTS ASE1')
+        self.assertEqual(student1.option_ase.name, 'Accompagnement des enfants')
+        self.assertEqual(student1.city, 'Le Locle')
+        # Castafiore was archived
+        stud_arch = Student.objects.get(ext_id=22222)
         self.assertTrue(stud_arch.archived)
 
     def test_import_hp(self):

@@ -4,6 +4,7 @@ import tempfile
 
 from collections import OrderedDict
 from datetime import datetime
+from fnmatch import fnmatch
 from subprocess import PIPE, Popen, call
 
 from tabimport import CSVImportedFile, FileFactory
@@ -72,7 +73,7 @@ class ImportViewBase(FormView):
 
 
 class StudentImportView(ImportViewBase):
-    title = "Importation étudiants"
+    title = "Importation étudiants EPC"
     form_class = StudentImportForm
     # Mapping between column names of a tabular file and Student field names
     student_mapping = {
@@ -81,6 +82,7 @@ class StudentImportView(ImportViewBase):
         'ELE_PRENOM': 'first_name',
         'ELE_RUE': 'street',
         'ELE_NPA_LOCALITE': 'city',  # pcode is separated from city in prepare_import
+        'ELE_CODE_CANTON': 'district',
         'ELE_TEL_PRIVE': 'tel',
         'ELE_TEL_MOBILE': 'mobile',
         'ELE_EMAIL_RPN': 'email',
@@ -102,12 +104,14 @@ class StudentImportView(ImportViewBase):
     }
     mapping_option_ase = {
         'GEN': 'Généraliste',
+        'Enfants': 'Accompagnement des enfants',
         'ENF': 'Accompagnement des enfants',
         'HAN': 'Accompagnement des personnes handicapées',
         'PAG': 'Accompagnement des personnes âgées',
     }
     # Those values are always taken from the import file
     fields_to_overwrite = ['klass', 'login_rpn']
+    klasses_to_skip = []
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -142,6 +146,27 @@ class StudentImportView(ImportViewBase):
                 values['option_ase'] = None
         return values
 
+    @property
+    def _existing_students(self):
+        return Student.objects.filter(
+            archived=False,
+            ext_id__isnull=False,
+            klass__section__in=[s for s in Section.objects.all() if s.is_EPC]
+        )
+
+    def update_defaults_from_candidate(self, defaults):
+        # Any DoesNotExist exception will bubble up.
+        candidate = Candidate.objects.get(last_name=defaults['last_name'],
+                                          first_name=defaults['first_name'])
+        # Mix CLOEE data and Candidate data
+        if candidate.option in self.mapping_option_ase:
+            defaults['option_ase'] = Option.objects.get(name=self.mapping_option_ase[candidate.option])
+        if candidate.corporation:
+            defaults['corporation'] = candidate.corporation
+        defaults['instructor'] = candidate.instructor
+        defaults['dispense_ecg'] = candidate.exemption_ecg
+        defaults['soutien_dys'] = candidate.handicap
+
     def import_data(self, up_file):
         """ Import Student data from uploaded file. """
 
@@ -151,12 +176,8 @@ class StudentImportView(ImportViewBase):
         obj_created = obj_modified = 0
         err_msg = []
         seen_students_ids = set()
-        fe_students_ids = set(
-            Student.objects.filter(
-                archived=False,
-                ext_id__isnull=False,
-                klass__section__in=[s for s in Section.objects.all() if s.is_EPC]
-            ).values_list('ext_id', flat=True)
+        existing_students_ids = set(
+            self._existing_students.values_list('ext_id', flat=True)
         )
 
         for line in up_file:
@@ -166,12 +187,20 @@ class StudentImportView(ImportViewBase):
             if student_defaults['ext_id'] in seen_students_ids:
                 # Second line for student, ignore it
                 continue
+            for klass in self.klasses_to_skip:
+                if fnmatch(student_defaults['klass'], klass):
+                    continue
             seen_students_ids.add(student_defaults['ext_id'])
 
-            corporation_defaults = {
-                val: strip(line[key]) for key, val in self.corporation_mapping.items()
-            }
-            student_defaults['corporation'] = self.get_corporation(corporation_defaults)
+            if self.corporation_mapping:
+                corporation_defaults = {
+                    val: strip(line[key]) for key, val in self.corporation_mapping.items()
+                }
+                student_defaults['corporation'] = self.get_corporation(corporation_defaults)
+
+            if 'option_ase' in self.fields_to_overwrite:
+                if student_defaults['option_ase'] in self.mapping_option_ase:
+                    student_defaults['option_ase'] = self.mapping_option_ase[student_defaults['option_ase']]
 
             defaults = self.clean_values(student_defaults)
             try:
@@ -189,18 +218,7 @@ class StudentImportView(ImportViewBase):
                     obj_modified += 1
             except Student.DoesNotExist:
                 try:
-                    candidate = Candidate.objects.get(last_name=defaults['last_name'],
-                                                      first_name=defaults['first_name'])
-                    # Mix CLOEE data and Candidate data
-                    if candidate.option in self.mapping_option_ase:
-                        defaults['option_ase'] = Option.objects.get(name=self.mapping_option_ase[candidate.option])
-                    if candidate.corporation:
-                        defaults['corporation'] = candidate.corporation
-                    defaults['instructor'] = candidate.instructor
-                    defaults['dispense_ecg'] = candidate.exemption_ecg
-                    defaults['soutien_dys'] = candidate.handicap
-                    Student.objects.create(**defaults)
-                    obj_created += 1
+                    self.update_defaults_from_candidate(defaults)
                 except Candidate.DoesNotExist:
                     # New student with no matching Candidate
                     err_msg.append('Étudiant non trouvé dans les candidats: {0} {1} - classe: {2}'.format(
@@ -208,12 +226,12 @@ class StudentImportView(ImportViewBase):
                         defaults['first_name'],
                         defaults['klass'])
                     )
-                    Student.objects.create(**defaults)
-                    obj_created += 1
 
+                Student.objects.create(**defaults)
+                obj_created += 1
 
         # Archive students who have not been exported
-        rest = fe_students_ids - seen_students_ids
+        rest = existing_students_ids - seen_students_ids
         archived = 0
         for student_id in rest:
             st = Student.objects.get(ext_id=student_id)
@@ -235,6 +253,38 @@ class StudentImportView(ImportViewBase):
             defaults=corp_values
         )
         return corp
+
+
+class StudentEsterImportView(StudentImportView):
+    title = "Importation étudiants ESTER"
+    # Mapping between column names of a tabular file and Student field names
+    student_mapping = {
+        'ELE_NUMERO': 'ext_id',
+        'ELE_NOM': 'last_name',
+        'ELE_PRENOM': 'first_name',
+        'ELE_RUE': 'street',
+        'ELE_NPA_LOCALITE': 'city',  # pcode is separated from city in prepare_import
+        'ELE_DATE_NAISSANCE': 'birth_date',
+        'ELE_AVS': 'avs',
+        'ELE_SEXE': 'gender',
+        'INS_CLASSE': 'klass',
+        'PROF_DOMAINE_SPEC': 'option_ase',
+    }
+    corporation_mapping = None
+    # Those values are always taken from the import file
+    fields_to_overwrite = ['klass', 'street', 'city', 'option_ase']
+    klasses_to_skip = ['1CMS*']  # Abandon classes 1CMS ASE + 1CMS ASSC
+
+    @property
+    def _existing_students(self):
+        return Student.objects.filter(
+            archived=False,
+            ext_id__isnull=False,
+            klass__section__in=[s for s in Section.objects.all() if s.is_ESTER]
+        )
+
+    def update_defaults_from_candidate(self, defaults):
+        pass
 
 
 class HPImportView(ImportViewBase):
