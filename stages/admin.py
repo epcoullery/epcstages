@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django import forms
 from django.contrib import admin
 from django.db import models
@@ -10,6 +12,7 @@ from .models import (
     CorpContact, Domain, Period, Availability, Training, Course,
     LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
+from .views.export import OpenXMLExport
 
 
 def print_charge_sheet(modeladmin, request, queryset):
@@ -209,10 +212,34 @@ class CorporationAdmin(admin.ModelAdmin):
         'archived',
     )
     inlines = [ContactInline]
+    actions = ['export_corporations']
 
     def get_search_results(self, request, qs, term):
         qs, distinct = super().get_search_results(request, qs, term)
         return qs.exclude(archived=True), distinct
+
+    def export_corporations(self, request, queryset):
+        """
+        Export all Corporations in Excel file.
+        """
+        export_fields = OrderedDict([
+            (getattr(f, 'verbose_name', f.name), f.name)
+            for f in Corporation._meta.get_fields() if f.name in (
+                'name', 'short_name', 'sector', 'typ', 'street', 'pcode',
+                'city', 'district', 'tel', 'email', 'web', 'ext_id', 'archived'
+            )
+        ])
+        export = OpenXMLExport('Exportation')
+        export.write_line(export_fields.keys(), bold=True)
+        for corp in queryset.values_list(*export_fields.values()):
+            values = []
+            for value, field_name in zip(corp, export_fields.values()):
+                if field_name == 'archived':
+                    value = 'Oui' if value else ''
+                values.append(value)
+            export.write_line(values)
+        return export.get_http_response('corporations_export')
+    export_corporations.short_description = 'Exportation Excel'
 
 
 class AvailabilityAdminForm(forms.ModelForm):
