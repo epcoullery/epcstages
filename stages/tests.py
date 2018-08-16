@@ -465,6 +465,10 @@ class ImportTests(TestCase):
         assc = Section.objects.create(name='ASSC')
         Option.objects.create(name='Accompagnement des enfants')
         k1 = Klass.objects.create(name='1ASSCFEa', section=assc, level=lev1)
+        teacher = Teacher.objects.create(
+            first_name='Jeanne', last_name='Dupond', birth_date='1974-08-08'
+        )
+
         # Corporation without ext_id will have its ext_id added.
         corp = Corporation.objects.create(name='Centre Cantonal de peinture', city='Marin-Epagnier')
         inst = CorpContact.objects.create(first_name="Roberto", last_name="Rastapopoulos")
@@ -483,8 +487,8 @@ class ImportTests(TestCase):
         msg = "\n".join(str(m) for m in response.context['messages'])
         self.assertIn("La classe '2ASSCFEa' n'existe pas encore", msg)
 
-        Klass.objects.create(name='2ASSCFEa', section=assc, level=lev2)
-        Klass.objects.create(
+        klass_assc = Klass.objects.create(name='2ASSCFEa', section=assc, level=lev2)
+        klass_epe = Klass.objects.create(
             name='2EDEpe',
             section=Section.objects.create(name='EDE'),
             level=lev2,
@@ -513,6 +517,9 @@ class ImportTests(TestCase):
         # Tournesol was archived
         stud_arch = Student.objects.get(ext_id=44444)
         self.assertTrue(stud_arch.archived)
+        # Klass teachers have been set
+        klass_assc.teacher = teacher
+        klass_epe.teacher = teacher
         # Corporation.ext_id is updated
         corp.refresh_from_db()
         self.assertEqual(corp.ext_id, 100)

@@ -91,6 +91,7 @@ class StudentImportView(ImportViewBase):
         'ELE_AVS': 'avs',
         'ELE_SEXE': 'gender',
         'INS_CLASSE': 'klass',
+        'INS_MC': 'teacher',
         'PROF_DOMAINE_SPEC': 'option_ase',
     }
     corporation_mapping = {
@@ -179,6 +180,8 @@ class StudentImportView(ImportViewBase):
         existing_students_ids = set(
             self._existing_students.values_list('ext_id', flat=True)
         )
+        seen_klasses = set()
+        prof_dict = {str(t): t for t in Teacher.objects.all()}
 
         for line in up_file:
             student_defaults = {
@@ -203,6 +206,22 @@ class StudentImportView(ImportViewBase):
                     student_defaults['option_ase'] = self.mapping_option_ase[student_defaults['option_ase']]
 
             defaults = self.clean_values(student_defaults)
+
+            if defaults.get('teacher') and defaults['klass'] not in seen_klasses:
+                klass = defaults['klass']
+                for full_name in defaults['teacher'].split(', '):
+                    if 'Secrétariat' in full_name:
+                        continue
+                    # Set the teacher for this klass
+                    try:
+                        klass.teacher = prof_dict[full_name]
+                        klass.save()
+                    except KeyError:
+                        err_msg.append(
+                            "L'enseignant {0} n'existe pas dans la base de données".format(full_name)
+                        )
+                    seen_klasses.add(klass)
+
             try:
                 student = Student.objects.get(ext_id=defaults['ext_id'])
                 modified = False
@@ -227,6 +246,7 @@ class StudentImportView(ImportViewBase):
                         defaults['klass'])
                     )
 
+                del defaults['teacher']
                 Student.objects.create(**defaults)
                 obj_created += 1
 
