@@ -246,7 +246,7 @@ class StudentImportView(ImportViewBase):
                         defaults['klass'])
                     )
 
-                del defaults['teacher']
+                defaults.pop('teacher', None)
                 Student.objects.create(**defaults)
                 obj_created += 1
 
