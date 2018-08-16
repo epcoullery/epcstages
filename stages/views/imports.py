@@ -91,6 +91,7 @@ class StudentImportView(ImportViewBase):
         'ELE_AVS': 'avs',
         'ELE_SEXE': 'gender',
         'INS_CLASSE': 'klass',
+        'INS_MC': 'teacher',
         'PROF_DOMAINE_SPEC': 'option_ase',
     }
     corporation_mapping = {
@@ -112,6 +113,7 @@ class StudentImportView(ImportViewBase):
     # Those values are always taken from the import file
     fields_to_overwrite = ['klass', 'login_rpn']
     klasses_to_skip = []
+    klass_teacher = dict()
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -135,7 +137,6 @@ class StudentImportView(ImportViewBase):
             except Klass.DoesNotExist:
                 raise Exception("La classe '%s' n'existe pas encore" % values['klass'])
             values['klass'] = k
-
         if 'option_ase' in values:
             if values['option_ase']:
                 try:
@@ -144,6 +145,14 @@ class StudentImportView(ImportViewBase):
                     values['option_ase'] = None
             else:
                 values['option_ase'] = None
+        if 'teacher' in values:
+            for f in values['teacher'].split(', '):
+                if 'Secrétariat' in f:
+                    continue
+                if values['klass'] in self.klass_teacher:
+                    continue
+                self.klass_teacher[values['klass']]=f
+
         return values
 
     @property
@@ -238,6 +247,16 @@ class StudentImportView(ImportViewBase):
             st.archived = True
             st.save()
             archived += 1
+
+        #Update klass teacher
+        profs = {str(t): t for t in Teacher.objects.all()}
+        for klass, value in self.klass_teacher.items():
+            try:
+                klass.teacher = profs[value]
+                klass.save()
+            except KeyError:
+                err_msg.append("L'enseignant {0} n'existe pas dans la base de données".format(value))
+
         return {
             'created': obj_created, 'modified': obj_modified, 'archived': archived,
             'errors': err_msg,
