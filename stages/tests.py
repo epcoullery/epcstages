@@ -438,6 +438,11 @@ class ImportTests(TestCase):
         for f in os.listdir(bulletins_dir):
             os.remove(os.path.join(bulletins_dir, f))
 
+    def check_form_errors(self, response):
+        if ('form' in response.context and response.context['form'].is_bound
+                and not response.context['form'].is_valid()):
+            self.fail(response.context['form'].errors)
+
     def test_import_students_EPC(self):
         """
         Import CLOEE file for FE students (ASAFE, ASEFE, ASSCF, EDE, EDS) version 2018!!
@@ -484,6 +489,7 @@ class ImportTests(TestCase):
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students'), {'upload': fh}, follow=True)
+        self.check_form_errors(response)
         msg = "\n".join(str(m) for m in response.context['messages'])
         self.assertIn("La classe '2ASSCFEa' n'existe pas encore", msg)
 
@@ -558,6 +564,7 @@ class ImportTests(TestCase):
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-students-ester'), {'upload': fh}, follow=True)
+        self.check_form_errors(response)
         msg = "\n".join(str(m) for m in response.context['messages'])
         self.assertIn("La classe '2MPS ASSC1' n'existe pas encore", msg)
 
@@ -585,6 +592,7 @@ class ImportTests(TestCase):
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp'), {'upload': fh}, follow=True)
+        self.check_form_errors(response)
         self.assertContains(response, "Objets créés : 13")
         self.assertContains(response, "Objets modifiés : 10")
         self.assertContains(response, "Impossible de trouver «Nom Inconnu» dans la liste des enseignant-e-s")
@@ -607,6 +615,7 @@ class ImportTests(TestCase):
         self.client.login(username='me', password='mepassword')
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp-contacts'), {'upload': fh}, follow=True)
+        self.check_form_errors(response)
         self.assertContains(response, "Impossible de trouver l&#39;étudiant avec le numéro 10")
         self.assertContains(response, "NoSIRET est vide à ligne 4. Ligne ignorée")
         st1.refresh_from_db()
