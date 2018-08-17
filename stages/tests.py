@@ -578,8 +578,8 @@ class ImportTests(TestCase):
         # Student already existed, klass changed
         student1 = Student.objects.get(ext_id=11111)
         self.assertEqual(student1.klass.name, '2MPTS ASE1')
-        self.assertEqual(student1.option_ase.name, 'Accompagnement des enfants')
         self.assertEqual(student1.city, 'Le Locle')
+        self.assertEqual(student1.email, 'seraphin.lampion@rpn.ch')
         # Castafiore was archived
         stud_arch = Student.objects.get(ext_id=22222)
         self.assertTrue(stud_arch.archived)

@@ -101,7 +101,7 @@ class StudentImportView(ImportViewBase):
         'ENT_NPA': 'pcode',
         'ENT_LOCALITE': 'city',
         'ENT_TEL': 'tel',
-        'ENT_CODE_CANTON' : 'district',
+        'ENT_CODE_CANTON': 'district',
     }
     mapping_option_ase = {
         'GEN': 'Généraliste',
@@ -111,7 +111,7 @@ class StudentImportView(ImportViewBase):
         'PAG': 'Accompagnement des personnes âgées',
     }
     # Those values are always taken from the import file
-    fields_to_overwrite = ['klass', 'login_rpn']
+    fields_to_overwrite = ['klass', 'district', 'login_rpn']
     klasses_to_skip = []
 
     def get_form_kwargs(self):
@@ -300,11 +300,15 @@ class StudentEsterImportView(StudentImportView):
         'ELE_AVS': 'avs',
         'ELE_SEXE': 'gender',
         'INS_CLASSE': 'klass',
-        'PROF_DOMAINE_SPEC': 'option_ase',
+        'ELE_CODE_CANTON': 'district',
+        'ELE_TEL_PRIVE': 'tel',
+        'ELE_TEL_MOBILE': 'mobile',
+        'ELE_EMAIL_RPN': 'email',
+        'ELE_COMPTE_RPN': 'login_rpn',
     }
     corporation_mapping = None
     # Those values are always taken from the import file
-    fields_to_overwrite = ['klass', 'street', 'city', 'option_ase']
+    fields_to_overwrite = ['klass', 'street', 'city','district', 'tel', 'mobile', 'email', 'login_rpn']
     klasses_to_skip = ['1CMS*']  # Abandon classes 1CMS ASE + 1CMS ASSC
 
     @property
