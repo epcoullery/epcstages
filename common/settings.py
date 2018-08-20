@@ -103,6 +103,9 @@ STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesSto
 
 ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 
+# candidats admin shows confirmation_date readonly field twice.
+SILENCED_SYSTEM_CHECKS = ['admin.E012']
+
 FABRIC_HOST = 'stages.pierre-coullery.ch'
 FABRIC_USERNAME = ''
 
