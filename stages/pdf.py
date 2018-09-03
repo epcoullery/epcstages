@@ -293,8 +293,7 @@ class CompensationForm:
     """Mixin class to host paiement formdata."""
     EXPERT_MANDAT = 'EXPERT'
     MENTOR_MANDAT = 'MENTOR'
-    EXPERT_ACCOUNT = "3'130'0003"
-    MENTOR_ACCOUNT = "3'000'0000"
+    EXPERT_ACCOUNT = MENTOR_ACCOUNT = "3'130'0003"
     OTP_EDE_PS_OTP = "CIFO01.03.02.07.02.01"
     OTP_EDE_PE_OTP = "CIFO01.03.02.07.01.01"
 
