@@ -4,7 +4,6 @@ from .models import Candidate, Interview
 
 
 class CandidateForm(forms.ModelForm):
-
     interview = forms.ModelChoiceField(queryset=Interview.objects.all(), required=False)
 
     class Meta:
