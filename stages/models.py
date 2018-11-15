@@ -81,10 +81,10 @@ class Klass(models.Model):
         return self.name
 
     def is_Ede_pe(self):
-        return 'EDEpe' in self.name
+        return 'EDE' in self.name and 'pe' in self.name
 
     def is_Ede_ps(self):
-        return 'EDEps' in self.name
+        return 'EDE' in self.name and 'ps' in self.name
 
 
 class Teacher(models.Model):
