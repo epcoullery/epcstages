@@ -4,6 +4,8 @@ Nous vous confirmons la bonne réception de l’inscription de {{ candidate.civi
 
 Le nom de la classe ainsi que les jours de cours vous seront communiqués dès que toutes les inscriptions seront rentrées, mais au plus tard durant la 1ère semaine de juillet.
 
+Nous attirons votre attention sur le fait que l'accès aux cours est autorisé sous réserve de l'approbation du contrat par l'autorité cantonale qui en est détentrice.
+
 Nous nous tenons à votre disposition pour tout renseignement complémentaire et vous prions de recevoir, Madame, Monsieur, nos salutations les plus cordiales.
 
 Secrétariat de l’EPC
