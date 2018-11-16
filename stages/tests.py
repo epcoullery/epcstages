@@ -274,6 +274,20 @@ tél. 032 886 33 00
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(len(response.content), 200)
 
+    def test_EDEpe_klass(self):
+        lev3 = Level.objects.create(name='3')
+        klass4 = Klass.objects.create(name="3EDEp_pe", section=Section.objects.get(name='EDE'), level=lev3)
+        self.assertTrue(klass4.is_Ede_pe())
+        klass5 = Klass.objects.create(name="3EDEpe", section=Section.objects.get(name='EDE'), level=lev3)
+        self.assertTrue(klass5.is_Ede_pe())
+
+    def test_EDEps_klass(self):
+        lev3 = Level.objects.create(name='3')
+        klass4 = Klass.objects.create(name="3EDEp_ps", section=Section.objects.get(name='EDE'), level=lev3)
+        self.assertTrue(klass4.is_Ede_ps())
+        klass5 = Klass.objects.create(name="3EDEps", section=Section.objects.get(name='EDE'), level=lev3)
+        self.assertTrue(klass5.is_Ede_ps())
+
 
 class PeriodTest(TestCase):
     def setUp(self):
