@@ -24,6 +24,8 @@ urlpatterns = [
 
     path('institutions/', views.CorporationListView.as_view(), name='corporations'),
     path('institutions/<int:pk>/', views.CorporationView.as_view(), name='corporation'),
+    path('institutions/export/', views.export.institutions_export, name='corporations-export'),
+
     path('classes/', views.KlassListView.as_view(), name='classes'),
     path('classes/<int:pk>/', views.KlassView.as_view(), name='class'),
     path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(),

@@ -456,3 +456,21 @@ def export_qualification_ede(request):
         export.write_line(values)
 
     return export.get_http_response('Export_qualif_EDE')
+
+
+def institutions_export(request):
+    def format_value(val):
+        return '' if val is None else str(val)
+
+    fields = [
+        (f.verbose_name, f.name)
+        for f in Corporation._meta.get_fields() if hasattr(f, 'verbose_name') and f.name not in ('archived',)
+    ]
+    headers = [f[0] for f in fields]
+
+    export = OpenXMLExport('Institutions')
+    export.write_line(headers, bold=True)
+    for corp in Corporation.objects.filter(archived=False).order_by('name'):
+        values = [format_value(getattr(corp, f[1])) for f in fields]
+        export.write_line(values)
+    return export.get_http_response('Institutions')

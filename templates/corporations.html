@@ -1,7 +1,12 @@
 {% extends "admin/base_site.html" %}
+{% load static %}
 
 {% block content %}
 <h2>Liste des institutions</h2>
+
+<div style="float:right;">
+    <a href="{% url 'corporations-export' %}"><img src="{% static 'img/xls.png' %}" title="Exportation Excel" width="24"></a>
+</div>
 
 <table>
 {% for corp in object_list %}
