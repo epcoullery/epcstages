@@ -19,7 +19,7 @@ from django.views.generic import DetailView, FormView, TemplateView, ListView
 from .base import EmailConfirmationBaseView, ZippedFilesBaseView
 from .export import OpenXMLExport
 from .imports import HPContactsImportView, HPImportView, ImportReportsView, StudentImportView
-from ..forms import EmailBaseForm
+from ..forms import CorporationMergeForm, EmailBaseForm
 from ..models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Period,
     Training, Availability
@@ -63,6 +63,27 @@ class CorporationView(DetailView):
                 pass
 
         context['years'] = school_years
+        return context
+
+
+class CorporationMergeView(FormView):
+    form_class = CorporationMergeForm
+    template_name = 'corporation_merge.html'
+    success_url = reverse_lazy('corporations')
+
+    def form_valid(self, form):
+        if form.data['step'] != '2':
+            return self.render_to_response(self.get_context_data(form=form))
+        form.merge_corps()
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['step'] = '1'
+        if context['form'].is_bound and context['form'].is_valid():
+            context['step'] = '2'
+            context['contacts_from'] = context['form'].cleaned_data['corp_merge_from'].corpcontact_set.all()
+            context['contacts_to'] = context['form'].cleaned_data['corp_merge_to'].corpcontact_set.all()
         return context
 
 

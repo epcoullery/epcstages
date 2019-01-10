@@ -290,6 +290,7 @@ class AvailabilityInline(admin.StackedInline):
     formfield_overrides = {
         models.TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':40})},
     }
+    autocomplete_fields = ['corporation']
 
 
 class PeriodAdmin(admin.ModelAdmin):

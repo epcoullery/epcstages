@@ -24,6 +24,7 @@ urlpatterns = [
 
     path('institutions/', views.CorporationListView.as_view(), name='corporations'),
     path('institutions/<int:pk>/', views.CorporationView.as_view(), name='corporation'),
+    path('institutions/merge/', views.CorporationMergeView.as_view(), name='corporations-merge'),
     path('institutions/export/', views.export.institutions_export, name='corporations-export'),
 
     path('classes/', views.KlassListView.as_view(), name='classes'),

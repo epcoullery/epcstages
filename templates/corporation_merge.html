@@ -1,0 +1,27 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="{% url 'admin:jsi18n' %}"></script>
+{{ form.media }}
+{% endblock %}
+
+{% block content %}
+<h2>Fusionner deux institutions</h2>
+
+<form method="post">{% csrf_token %}
+    <div>{{ form.corp_merge_from.label_tag }} {{ form.corp_merge_from }}
+        <ul>{% for contact in contacts_from %}
+            <li>{{ contact }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div>{{ form.corp_merge_to.label_tag }} {{ form.corp_merge_to }}
+        <ul>{% for contact in contacts_to %}
+            <li>{{ contact }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <input name="step" type="hidden" value="{{ step }}">
+    <button>Fusionner</button>
+</form>
+{% endblock %}
