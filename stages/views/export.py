@@ -65,9 +65,9 @@ EXPORT_FIELDS = [
     ('Date de naissance', 'student__birth_date'),
     ('No AVS', 'student__avs'),
     # Stage fields
-    ('Nom du stage', 'availability__period__title'),
+    ('Nom de la pratique professionnelle', 'availability__period__title'),
     ('Début', 'availability__period__start_date'), ('Fin', 'availability__period__end_date'),
-    ('Remarques stage', 'comment'),
+    ('Remarques pratique professionnelle', 'comment'),
     ('Prénom référent', 'referent__first_name'), ('Nom référent', 'referent__last_name'),
     ('Courriel référent', 'referent__email'),
     ('Institution', 'availability__corporation__name'),
@@ -90,7 +90,7 @@ EXPORT_FIELDS = [
 
 NON_ATTR_EXPORT_FIELDS = [
     ('Filière', 'period__section__name'),
-    ('Nom du stage', 'period__title'),
+    ('Nom de la pratique professionnelle', 'period__title'),
     ('Début', 'period__start_date'), ('Fin', 'period__end_date'),
     ('Institution', 'corporation__name'),
     ('Rue Inst', 'corporation__street'),
@@ -156,7 +156,7 @@ def stages_export(request, scope=None):
                 if not default_contacts[contact.corporation.name][sname]:
                     default_contacts[contact.corporation.name][sname] = contact
 
-    export = OpenXMLExport('Stages')
+    export = OpenXMLExport('Pratiques professionnelles')
     export.write_line(export_fields.keys(), bold=True)  # Headers
     # Data
     query_keys = [f for f in export_fields.values() if f is not None]
@@ -181,7 +181,7 @@ def stages_export(request, scope=None):
             ))
         export.write_line(values)
 
-    return export.get_http_response('stages_export')
+    return export.get_http_response('pp_export')
 
 
 def _ratio_Ede_Ase_Assc():

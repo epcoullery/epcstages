@@ -1,7 +1,7 @@
 {% load static %}
 <div id="previous_stages">
   <div id="previous_stages_head">
-    <em><img src="{% static 'img/closed.png' %}" data-imgtoggle="{% static 'img/open.png' %}"> Stages précédents ({{ previous_stages|length }}) :</em>
+    <em><img src="{% static 'img/closed.png' %}" data-imgtoggle="{% static 'img/open.png' %}"> Pratiques professionnelles précédentes ({{ previous_stages|length }}) :</em>
   </div>
   <ul id="previous_stages_list">
   {% for stage in previous_stages %}
@@ -14,5 +14,5 @@
   {{ object.first_name }} {{ object.last_name }}<br>
   {{ object.pcode }} {{ object.city }}<br>
   Date de naissance: {{ object.birth_date }}
-  {% if age_for_stage %}(<span title="Âge au début du stage" class="{{ age_style }}">{{ age_for_stage }}</span>){% endif %}
+  {% if age_for_stage %}(<span title="Âge au début de la pratique prof." class="{{ age_style }}">{{ age_for_stage }}</span>){% endif %}
 </div>

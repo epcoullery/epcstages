@@ -20,7 +20,7 @@
 </div>
 <h3>Liste des éléves</h3>
 <table>
-  <thead><th>Nom, prénom</th><th>Date naiss.</th>{% if klass.section.is_fe %}<th>Bulletins</th>{% endif %}<th>Récapitulatif des stages</th></thead>
+  <thead><th>Nom, prénom</th><th>Date naiss.</th>{% if klass.section.is_fe %}<th>Bulletins</th>{% endif %}<th>Récapitulatif des PP</th></thead>
 {% for student in students %}
   <tr class="{% cycle 'row1' 'row2' %}">
       <td><a href="{% url 'admin:stages_student_change' student.pk %}">{{ student }}</a></td>

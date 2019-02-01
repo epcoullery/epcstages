@@ -122,7 +122,8 @@ class Migration(migrations.Migration):
                 ('level', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='stages.Level', verbose_name='Niveau')),
             ],
             options={
-                'verbose_name': 'Période de stage',
+                'verbose_name': 'Période de pratique professionnnelle',
+                'verbose_name_plural': 'Périodes de pratique professionnnelle',
                 'ordering': ('-start_date',),
             },
         ),
@@ -198,7 +199,8 @@ class Migration(migrations.Migration):
                 ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stages.Student', verbose_name='Étudiant')),
             ],
             options={
-                'verbose_name': 'Stage',
+                'verbose_name': 'Pratique professionnelle',
+                'verbose_name_plural': 'Pratiques professionnelles',
                 'ordering': ('-availability__period',),
             },
         ),

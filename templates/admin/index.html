@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     <div class="module" id="custom-actions-module">
     <h2>Interfaces spécifiques</h2>
     <ul>
-      <li><a href="{% url 'attribution' %}">Attributions des stages</a></li>
+      <li><a href="{% url 'attribution' %}">Organisation de la pratique professionnelle</a></li>
     </ul>
     </div>
     <div class="module" id="custom-actions-module">
@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
         <li><a href="{% url 'import-students-ester' %}">Importer un fichier d'étudiants ESTER</a></li>
         <li><a href="{% url 'import-hp' %}">Importer le fichier HP</a></li>
         <li><a href="{% url 'import-hp-contacts' %}">Importer les formateurs (fichier HP)</a></li>
-        <li style="margin-top: 1em;"><a href="{% url 'stages_export' %}">Exporter les données de stages</a> (récentes)</li>
-        <li><a href="{% url 'stages_export' 'all' %}">Exporter les données de stages</a> (toutes)</li>
+        <li style="margin-top: 1em;"><a href="{% url 'stages_export' %}">Exporter les données de pratique professionnelle</a> (récentes)</li>
+        <li><a href="{% url 'stages_export' 'all' %}">Exporter les données de pratique professionnelle</a> (toutes)</li>
         <li><a href="{% url 'imputations_export' %}">Exporter les données comptables</a></li>
         <li><a href="{% url 'export_sap' %}">Exporter les données SAP</a></li>
         <li><a id="updateFormLink" href="{% url 'print_update_form' %}">Imprimer les formulaires de MAJ</a></li>

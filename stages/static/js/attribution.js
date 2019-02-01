@@ -95,7 +95,7 @@ function update_trainings(period_id) {
       $('input#export').hide();
   } else $('ul#training_list').load('/training/by_period/' + period_id + '/', function() {
       $('img.delete_training').click(function() {
-        if (!confirm("Voulez-vous vraiment supprimer ce stage ?")) return;
+        if (!confirm("Voulez-vous vraiment supprimer cette pratique professionnelle ?")) return;
         var li = $(this).parents('li');
         $.post('/training/del/',
           {pk: li.attr('id').split('_')[1],

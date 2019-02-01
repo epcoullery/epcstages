@@ -294,7 +294,7 @@ class Student(models.Model):
     subject = models.TextField('TD: titre provisoire', blank=True)
     title = models.TextField('TD: Titre définitif', blank=True)
     training_referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_training_referent',
-                                          on_delete=models.SET_NULL, verbose_name='Référent de stage')
+                                          on_delete=models.SET_NULL, verbose_name='Référent de PP')
     referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_referent',
                                  on_delete=models.SET_NULL, verbose_name='Référent avant-projet')
     internal_expert = models.ForeignKey(Teacher, related_name='rel_internal_expert', verbose_name='Expert interne',
@@ -472,7 +472,8 @@ class Period(models.Model):
     end_date = models.DateField(verbose_name='Date de fin')
 
     class Meta:
-        verbose_name = "Période de stage"
+        verbose_name = "Période de pratique professionnelle"
+        verbose_name_plural = "Périodes de pratique professionnelle"
         ordering = ('-start_date',)
 
     def __str__(self):
@@ -536,7 +537,8 @@ class Training(models.Model):
     comment = models.TextField(blank=True, verbose_name='Remarques')
 
     class Meta:
-        verbose_name = "Stage"
+        verbose_name = "Pratique professionnelle"
+        verbose_name_plural = "Pratiques professionnelles"
         ordering = ("-availability__period",)
 
     def __str__(self):

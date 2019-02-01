@@ -90,20 +90,20 @@
     <div id="contact_choice"><label for="contact_select">Contact institution:</label>
       <select id="contact_select"><option value="">-------</option></select>
     </div>
-    <div id="buttons_div"><input id="valid_training" type="button" value="Valider ce stage"></div>
+    <div id="buttons_div"><input id="valid_training" type="button" value="Valider cette pratique professionnelle"></div>
     </form>
   </div>
 </div>
 
 <div id="trainings">
-  <h3>Stages planifiés pour la période choisie</h3>
+  <h3>Pratiques professionnelles planifiées pour la période choisie</h3>
   <ul id="training_list">-
   </ul>
   <form id="list_export" method="get" action="{% url 'stages_export' %}">{% csrf_token %}
     <input id="period" name="period" type="hidden" value="">
     <input id="non_attr" name="non_attr" type="hidden" value="0">
     <input id="export" type="button" value="Exporter la liste">
-    <input id="export_non_attr" type="button" value="Exporter la liste des stages non attribués">
+    <input id="export_non_attr" type="button" value="Exporter la liste des places de PP non attribuées">
   </form>
 </div>
 {% endblock %}
