@@ -14,12 +14,12 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.dateformat import format as django_format
 from django.utils.text import slugify
-from django.views.generic import DetailView, FormView, TemplateView, ListView
+from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
 
 from .base import EmailConfirmationBaseView, ZippedFilesBaseView
 from .export import OpenXMLExport
 from .imports import HPContactsImportView, HPImportView, ImportReportsView, StudentImportView
-from ..forms import CorporationMergeForm, EmailBaseForm
+from ..forms import CorporationMergeForm, EmailBaseForm, StudentCommentForm
 from ..models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Period,
     Training, Availability
@@ -147,6 +147,18 @@ class KlassView(DetailView):
             export.write_line(values)
 
         return export.get_http_response('%s_export' % self.object.name.replace(' ', '_'))
+
+
+class StudentCommentView(UpdateView):
+    template_name = 'student_comment.html'
+    model = Student
+    form_class = StudentCommentForm
+
+    def get_success_url(self):
+        messages.success(
+            self.request, "L'enregistrement des commentaires pour %s a réussi." % self.object
+        )
+        return reverse('class', args=[self.object.klass.pk])
 
 
 class AttributionView(TemplateView):

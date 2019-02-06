@@ -307,6 +307,8 @@ class Student(models.Model):
     date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
     date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
     #  ============== Fields for examination ======================
+    mc_comment = models.TextField("Commentaires", blank=True)
+
     support_tabimport = True
 
     class Meta:
@@ -367,6 +369,15 @@ class Student(models.Model):
         if not self.internal_expert:
             missing.append("L’expert interne n’est pas défini")
         return missing
+
+
+class StudentFile(models.Model):
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    fichier = models.FileField(upload_to='etudiants')
+    titre = models.CharField("Titre", max_length=200)
+
+    def __str__(self):
+        return self.title
 
 
 class Corporation(models.Model):

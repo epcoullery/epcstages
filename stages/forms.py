@@ -2,11 +2,12 @@ from django import forms
 from django.contrib.admin.widgets import AutocompleteSelect
 from django.db import transaction
 from django.db.models.deletion import Collector
+from django.forms import inlineformset_factory
 from django.urls import reverse
 
 from tabimport import FileFactory, UnsupportedFileFormat
 
-from .models import Corporation, Section, Period
+from .models import Corporation, Period, Section, Student, StudentFile
 
 
 class StudentImportForm(forms.Form):
@@ -113,3 +114,24 @@ class CorporationMergeForm(forms.Form):
                 ).update(corporation=self.cleaned_data['corp_merge_to'])
             check_no_links(self.cleaned_data['corp_merge_from'])
             self.cleaned_data['corp_merge_from'].delete()
+
+
+class StudentCommentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ('mc_comment',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        FilesFormSet = inlineformset_factory(self._meta.model, StudentFile, fields='__all__', extra=1)
+        self.files_fset = FilesFormSet(
+            instance=self.instance, data=kwargs.get('data'), files=kwargs.get('files')
+        )
+
+    def is_valid(self):
+        return all([super().is_valid(), self.files_fset.is_valid()])
+
+    def save(self, **kwargs):
+        obj = super().save(**kwargs)
+        self.files_fset.save()
+        return obj

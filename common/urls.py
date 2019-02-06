@@ -32,6 +32,7 @@ urlpatterns = [
     path('classes/<int:pk>/import_reports/', views.ImportReportsView.as_view(),
         name='import-reports'),
     path('classes/print_klass_list/', views.PrintKlassList.as_view(), name='print-klass-list'),
+    path('student/<int:pk>/comment/', views.StudentCommentView.as_view(), name='student-comment'),
 
     path('candidate/<int:pk>/send_convocation/', candidats_views.ConvocationView.as_view(),
         name='candidate-convocation'),

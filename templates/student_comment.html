@@ -1,0 +1,56 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}{{ block.super }}
+<style>
+span.label { font-weight: bold; }
+div.block { width: 45%; display: inline-block; vertical-align: top; }
+textarea { width: 90%; }
+button.button { padding: 10px 15px; }
+fieldset { border: 1px solid #ccc; padding: 8px; }
+fieldset p { margin: 0; }
+input[name$='titre'] { width: 40em; }
+</style>
+{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">Accueil</a>
+&rsaquo; <a href="{% url 'classes' %}">Liste des classes</a>
+&rsaquo; <a href="{% url 'class' student.klass.pk %}">{{ student.klass.name }}</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<h2>{{ student }}
+{% if perms.stages.change_student %}<a class="changelink" href="{% url 'admin:stages_student_change' student.pk %}">&nbsp;</a>{% endif %}
+</h2>
+
+<div class="block">
+    <table>
+        <tr><td><span class="label">Date de naissance :</span></td><td>{{ student.birth_date }}</td></tr>
+        <tr><td><span class="label">Adresse :</span></td><td>{{ student.street }}, {{ student.pcode }} {{ student.city }} {{ student.district }}</td></tr>
+    </table>
+</div>
+<div class="block">
+    <table>
+        <tr><td><span class="label">Courriel :</span></td><td>{{ student.email }}</td></tr>
+        <tr><td><span class="label">Tél :</span></td><td>{{ student.tel }}</td></tr>
+        <tr><td><span class="label">Portable :</span></td><td>{{ student.mobile }}</td></tr>
+    </table>
+</div>
+{% if student.option_ase %}
+<div class="block"><span class="label">Orientation :</span> {{ student.option_ase }}</div>
+{% endif %}
+
+<form method="post" action="." enctype="multipart/form-data">{% csrf_token %}
+    {{ form.as_p }}
+
+    {{ form.files_fset.management_form }}
+    {% for frm in form.files_fset %}
+        <fieldset>{{ frm.as_p }}</fieldset>
+    {% endfor %}
+    <button class="button" type="submit">Enregistrer</button>
+</form>
+
+{% endblock %}

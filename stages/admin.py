@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from .models import (
-    Teacher, Option, Student, Section, Level, Klass, Corporation,
+    Teacher, Option, Student, StudentFile, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
     LogBookReason, LogBook, ExamEDESession, SupervisionBill
 )
@@ -329,6 +329,7 @@ admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
 admin.site.register(Option)
 admin.site.register(Student, StudentAdmin)
+admin.site.register(StudentFile)
 admin.site.register(Teacher, TeacherAdmin)
 admin.site.register(Course, CourseAdmin)
 admin.site.register(Corporation, CorporationAdmin)
