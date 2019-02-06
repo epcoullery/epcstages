@@ -2,7 +2,7 @@ import os
 
 from django.conf import settings
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import include, path, re_path
 from django.views.generic import RedirectView
 from django.views.static import serve
 
@@ -75,6 +75,7 @@ urlpatterns = [
     path('availability/<int:pk>/summary/', views.AvailabilitySummaryView.as_view()),
     path('corporation/<int:pk>/contacts/', views.CorpContactJSONView.as_view()),
 
+    path('summernote/', include('django_summernote.urls')),
     # Serve bulletins by Django to allow LoginRequiredMiddleware to apply
     path('media/bulletins/<path:path>', serve,
         {'document_root': os.path.join(settings.MEDIA_ROOT, 'bulletins'), 'show_indexes': False}

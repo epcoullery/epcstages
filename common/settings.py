@@ -92,6 +92,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.admin',
 
+    'django_summernote',
     'tabimport',
     'stages',
     'candidats',
@@ -105,6 +106,19 @@ ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
 
 # candidats admin shows confirmation_date readonly field twice.
 SILENCED_SYSTEM_CHECKS = ['admin.E012']
+
+SUMMERNOTE_CONFIG = {
+    'summernote': {
+        'toolbar': [
+            # [groupName, [list of button]]
+            ['style', ['bold', 'italic', 'underline', 'clear']],
+            ['font', ['strikethrough']],
+            ['fontsize', ['fontsize']],
+            ['color', ['color']],
+            ['para', ['ul', 'ol', 'paragraph']],
+        ]
+    }
+}
 
 FABRIC_HOST = 'gestion.pierre-coullery.ch'
 FABRIC_USERNAME = ''

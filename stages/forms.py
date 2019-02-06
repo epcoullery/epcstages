@@ -5,6 +5,7 @@ from django.db.models.deletion import Collector
 from django.forms import inlineformset_factory
 from django.urls import reverse
 
+from django_summernote.widgets import SummernoteWidget
 from tabimport import FileFactory, UnsupportedFileFormat
 
 from .models import Corporation, Period, Section, Student, StudentFile
@@ -120,6 +121,9 @@ class StudentCommentForm(forms.ModelForm):
     class Meta:
         model = Student
         fields = ('mc_comment',)
+        widgets = {
+            'mc_comment': SummernoteWidget,
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
