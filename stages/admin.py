@@ -65,6 +65,11 @@ class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section')
     ordering = ('name',)
     list_filter = ('section', 'level',)
+    fields = (
+        ('name',),
+        ('section', 'level'),
+        ('teacher', 'teacher_ecg', 'teacher_eps'),
+    )
     inlines = [StudentInline]
 
 

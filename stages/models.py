@@ -70,6 +70,10 @@ class Klass(models.Model):
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     teacher = models.ForeignKey('Teacher', blank=True, null=True,
         on_delete=models.SET_NULL, verbose_name='Maître de classe')
+    teacher_ecg = models.ForeignKey('Teacher', blank=True, null=True,
+        on_delete=models.SET_NULL, verbose_name='Maître ECG', related_name='+')
+    teacher_eps = models.ForeignKey('Teacher', blank=True, null=True,
+        on_delete=models.SET_NULL, verbose_name='Maître EPS', related_name='+')
 
     objects = models.Manager()
     active = ActiveKlassManager()

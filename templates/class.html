@@ -9,12 +9,20 @@
 {% endblock %}
 
 {% block content %}
-<h2>{{ klass.name }}</h2>
+<h2>Classe {{ klass.name }}
+{% if perms.stages.change_klass %}<a class="changelink" href="{% url 'admin:stages_klass_change' klass.pk %}">&nbsp;</a>{% endif %}
+</h2>
 
 <div style="float:right;">
     <a href="{% url 'class' object.pk %}?format=xls"><img src="{% static 'img/xls.png' %}" title="Exportation Excel" width="24"></a>
 </div>
-<h3>Liste des éléves</h3>
+
+<div style="margin-bottom: 0.7em;">
+Maître de classe : {{ klass.teacher }}<br>
+Enseignant-e ECG : {{ klass.teacher_ecg|default_if_none:'-' }}<br>
+Enseignant-e EPS : {{ klass.teacher_eps|default_if_none:'-' }}
+</div>
+
 <table>
   <thead>
       <th>Nom, prénom</th>
