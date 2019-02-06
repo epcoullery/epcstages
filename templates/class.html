@@ -17,17 +17,27 @@
 <h3>Liste des éléves</h3>
 <table>
   <thead>
-      <th>Nom, prénom</th><th>Date naiss.</th><th>Récapitulatif des PP</th>
+      <th>Nom, prénom</th>
+      <th>Date naiss.</th>
+      {% if show_option_ase %}<th>Orientation</th>{% endif %}
+      {% if show_pp %}<th>Récapitulatif des PP</th>{% endif %}
+      {% if show_employeur %}<th>Employeur</th>{% endif %}
   </thead>
 {% for student in students %}
   <tr class="{% cycle 'row1' 'row2' %}">
       <td><a href="{% url 'admin:stages_student_change' student.pk %}">{{ student }}</a></td>
       <td>{{ student.birth_date }}</td>
+      {% if show_option_ase %}
+      <td>{{ student.option_ase|default_if_none:'-' }}</td>
+      {% endif %}
+      {% if show_pp %}
       {% for train in student.training_set.all %}
       <td>{{ train.availability.period }}<br>{{ train.availability.corporation }}<br>
         {% if train.comment %}<div style="float: right;"><img src="{% static 'admin/img/icon-unknown.svg' %}" title="{{ train.comment }}"></div>{% endif %}
         <i>{{ train.availability.domain }}</i></td>
       {% endfor %}
+      {% endif %}
+      {% if show_employeur %}<td>{{ student.corporation.name }}, {{ student.corporation.city }}</td>{% endif %}
   </tr>
 {% endfor %}
 </table>

@@ -99,8 +99,13 @@ class KlassView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['students'] = self.object.student_set.filter(archived=False
-            ).prefetch_related('training_set').order_by('last_name', 'first_name')
+        context.update({
+            'students': self.object.student_set.filter(archived=False
+                ).prefetch_related('training_set').order_by('last_name', 'first_name'),
+            'show_option_ase': self.object.section.name.endswith('ASE'),
+            'show_pp': self.object.section.is_ESTER,
+            'show_employeur': not self.object.section.is_ESTER,
+        })
         return context
 
     def render_to_response(self, context, **response_kwargs):
@@ -108,22 +113,37 @@ class KlassView(DetailView):
             return super().render_to_response(context, **response_kwargs)
 
         export = OpenXMLExport(self.object.name)
-        # Headers
-        export.write_line([
-            'Nom', 'Prénom', 'Domicile', 'Date de naissance',
-            'Stage 1', 'Domaine 1', 'Stage 2', 'Domaine 2', 'Stage 3', 'Domaine 3',
-        ], bold=True, col_widths=[18, 15, 20, 14, 25, 12, 25, 12, 25, 12])
+        headers = ['Nom', 'Prénom', 'Domicile', 'Date de naissance']
+        col_widths = [18, 15, 20, 14]
+        if context['show_option_ase']:
+            headers.append('Orientation')
+            col_widths.append(20)
+        if context['show_employeur']:
+            headers.append('Employeur')
+            col_widths.append(24)
+        if context['show_pp']:
+            headers.extend(['Stage 1', 'Domaine 1', 'Stage 2', 'Domaine 2', 'Stage 3', 'Domaine 3'])
+            col_widths.extend([25, 12, 25, 12, 25, 12])
+        export.write_line(headers, bold=True, col_widths=col_widths)
         # Data
         for student in context['students']:
             values = [
                 student.last_name, student.first_name,
                 " ".join([student.pcode, student.city]), student.birth_date,
             ]
-            for training in student.training_set.select_related(
-                        'availability', 'availability__corporation', 'availability__domain'
-                    ).all():
-                values.append(training.availability.corporation.name)
-                values.append(training.availability.domain.name)
+            if context['show_option_ase']:
+                values.append(str(student.option_ase))
+            if context['show_employeur']:
+                values.append(
+                    ", ".join([student.corporation.name, student.corporation.city])
+                    if student.corporation else ''
+                )
+            if context['show_pp']:
+                for training in student.training_set.select_related(
+                            'availability', 'availability__corporation', 'availability__domain'
+                        ).all():
+                    values.append(training.availability.corporation.name)
+                    values.append(training.availability.domain.name)
             export.write_line(values)
 
         return export.get_http_response('%s_export' % self.object.name.replace(' ', '_'))
