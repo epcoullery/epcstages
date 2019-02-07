@@ -43,6 +43,7 @@ input[name$='titre'] { width: 40em; }
 <div class="block"><span class="label">Orientation :</span> {{ student.option_ase }}</div>
 {% endif %}
 
+{% if form %}
 <form method="post" action="." enctype="multipart/form-data">{% csrf_token %}
     {{ form.as_p }}
 
@@ -52,5 +53,6 @@ input[name$='titre'] { width: 40em; }
     {% endfor %}
     <button class="button" type="submit">Enregistrer</button>
 </form>
+{% endif %}
 
 {% endblock %}

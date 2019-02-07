@@ -1,5 +1,6 @@
 import json
 from collections import OrderedDict
+from contextlib import suppress
 from datetime import date, timedelta
 
 from django.conf import settings
@@ -104,6 +105,10 @@ class Teacher(models.Model):
     previous_report = models.IntegerField(default=0, verbose_name='Report précédent')
     next_report = models.IntegerField(default=0, verbose_name='Report suivant')
     archived = models.BooleanField(default=False)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        verbose_name='Compte utilisateur'
+    )
 
     class Meta:
         verbose_name='Enseignant'
@@ -361,6 +366,12 @@ class Student(models.Model):
         age_y = int(age)
         age_m = int((age - age_y) * 12)
         return '%d ans%s' % (age_y, ' %d m.' % age_m if age_m > 0 else '')
+
+    def can_comment(self, user):
+        """Return True if user is authorized to edit comments for this student."""
+        with suppress(Teacher.DoesNotExist):
+            return user.has_perm('stages.change_student') or user.teacher == self.klass.teacher
+        return False
 
     def missing_examination_data(self):
         missing = []

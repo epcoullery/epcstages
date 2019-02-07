@@ -17,7 +17,7 @@ from .models import (
 from .utils import school_year
 
 
-class StagesTest(TestCase):
+class StagesTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         Section.objects.bulk_create([
@@ -132,7 +132,31 @@ class StagesTest(TestCase):
         )
         self.assertNotContains(response, "Factures de supervision")
 
+    def test_comment_on_student(self):
+        teacher_user = User.objects.create_user('teach', 'teach@example.org', 'passd')
+        teacher = Teacher.objects.get(abrev='JCA')
+        teacher.user = teacher_user
+        teacher.save()
+        student = Student.objects.get(last_name='Dupond')
+        self.client.force_login(teacher_user)
+        response = self.client.get(
+            reverse("student-comment", args=(student.pk,))
+        )
+        # Cannot access form if not master teacher of that class.
+        self.assertNotContains(response, '<form')
+        student.klass.teacher = teacher
+        student.klass.save()
+        response = self.client.get(
+            reverse("student-comment", args=(student.pk,))
+        )
+        self.assertContains(
+            response,
+            '<textarea name="mc_comment" cols="40" rows="10" id="id_mc_comment" hidden="true">\n</textarea>',
+            html=True
+        )
+
     def test_attribution_view(self):
+        self.client.force_login(self.admin)
         response = self.client.get(reverse('attribution'))
         # Section select
         self.assertContains(response,
@@ -289,7 +313,7 @@ tél. 032 886 33 00
         self.assertTrue(klass5.is_Ede_ps())
 
 
-class PeriodTest(TestCase):
+class PeriodTests(TestCase):
     def setUp(self):
         self.section = Section.objects.create(name="MP_ASE")
         self.level1 = Level.objects.create(name='1')

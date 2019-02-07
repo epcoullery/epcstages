@@ -154,6 +154,13 @@ class StudentCommentView(UpdateView):
     model = Student
     form_class = StudentCommentForm
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Only authorized teachers can comment on the student.
+        if not self.object.can_comment(self.request.user):
+            del context['form']
+        return context
+
     def get_success_url(self):
         messages.success(
             self.request, "L'enregistrement des commentaires pour %s a réussi." % self.object

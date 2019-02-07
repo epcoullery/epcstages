@@ -122,9 +122,9 @@ class Migration(migrations.Migration):
                 ('level', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='stages.Level', verbose_name='Niveau')),
             ],
             options={
-                'verbose_name': 'Période de pratique professionnnelle',
-                'verbose_name_plural': 'Périodes de pratique professionnnelle',
                 'ordering': ('-start_date',),
+                'verbose_name': 'Période de pratique professionnelle',
+                'verbose_name_plural': 'Périodes de pratique professionnelle',
             },
         ),
         migrations.CreateModel(
