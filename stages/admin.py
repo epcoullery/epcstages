@@ -86,7 +86,8 @@ class TeacherAdmin(admin.ModelAdmin):
     fields = (('civility', 'last_name', 'first_name', 'abrev'),
               ('birth_date', 'email', 'ext_id'),
               ('contract', 'rate', 'archived'),
-              ('previous_report', 'next_report', 'total_logbook'))
+              ('previous_report', 'next_report', 'total_logbook'),
+              ('user'))
     readonly_fields = ('total_logbook',)
     actions = [print_charge_sheet]
     inlines = [LogBookInline]
