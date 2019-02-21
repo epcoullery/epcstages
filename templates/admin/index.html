@@ -87,6 +87,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
     </div>
     {% endif %}
 
+    {% if perms.stages.change_student %}
     <div class="module" id="custom-actions-module">
     <h2>Importation/exportation</h2>
     <ul>
@@ -103,6 +104,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         <li><a href="{% url 'ortra-export' %}">Exportation pour ORTRA</a></li>
     </ul>
     </div>
+    {% endif %}
 </div>
 {% endblock %}
 
