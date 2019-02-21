@@ -2,10 +2,12 @@ from collections import OrderedDict
 
 from django import forms
 from django.contrib import admin
+from django.contrib.auth.admin import GroupAdmin as AuthGroupAdmin
+from django.contrib.auth.models import Group
 from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 
 from .models import (
     Teacher, Option, Student, StudentFile, Section, Level, Klass, Corporation,
@@ -330,6 +332,17 @@ class CourseAdmin(admin.ModelAdmin):
     search_fields = ('teacher__last_name', 'public', 'subject')
 
 
+
+class GroupAdmin(AuthGroupAdmin):
+    list_display = ['name', 'membres']
+
+    def membres(self, grp):
+        return format_html_join(', ', '<a href="{}">{}</a>', [
+            (reverse('admin:auth_user_change', args=(user.pk,)), user.username)
+            for user in grp.user_set.all().order_by('username')
+        ])
+
+
 admin.site.register(Section)
 admin.site.register(Level)
 admin.site.register(Klass, KlassAdmin)
@@ -347,3 +360,6 @@ admin.site.register(Training, TrainingAdmin)
 admin.site.register(LogBookReason)
 admin.site.register(LogBook)
 admin.site.register(ExamEDESession)
+
+admin.site.unregister(Group)
+admin.site.register(Group, GroupAdmin)
