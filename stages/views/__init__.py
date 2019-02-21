@@ -5,6 +5,7 @@ from collections import OrderedDict
 from datetime import date, datetime, timedelta
 
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.mail import EmailMessage
 from django.db.models import Count
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
@@ -181,6 +182,7 @@ class AttributionView(TemplateView):
     When a student is chosen;
       * details of a student: StudentSummaryView
     """
+    permission_required = 'stages.change_training'
     template_name = 'attribution.html'
 
     def get_context_data(self, **kwargs):
