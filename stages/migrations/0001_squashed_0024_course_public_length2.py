@@ -200,7 +200,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'Pratique professionnelle',
-                'verbose_name_plural': 'Pratiques professionnelles',
+                'verbose_name_plural': 'Pratique professionnelle',
                 'ordering': ('-availability__period',),
             },
         ),

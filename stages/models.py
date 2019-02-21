@@ -218,6 +218,7 @@ class LogBookReason(models.Model):
 
     class Meta:
         verbose_name = 'Motif de carnet du lait'
+        verbose_name_plural = 'Motifs de carnet du lait'
 
 
 class LogBook(models.Model):
@@ -564,7 +565,7 @@ class Training(models.Model):
 
     class Meta:
         verbose_name = "Pratique professionnelle"
-        verbose_name_plural = "Pratiques professionnelles"
+        verbose_name_plural = "Pratique professionnelle"
         ordering = ("-availability__period",)
 
     def __str__(self):

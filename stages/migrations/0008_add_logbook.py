@@ -32,6 +32,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'verbose_name': 'Motif de carnet du lait',
+                'verbose_name_plural': 'Motifs de carnet du lait',
             },
         ),
         migrations.AddField(

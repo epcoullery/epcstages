@@ -94,7 +94,7 @@ INSTALLED_APPS = (
 
     'django_summernote',
     'tabimport',
-    'stages',
+    'stages.apps.StagesConfig',
     'candidats',
 )
 
