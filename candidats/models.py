@@ -104,7 +104,7 @@ class Candidate(models.Model):
 
     examination_teacher = models.ForeignKey(
         Teacher, null=True, blank=True, on_delete=models.SET_NULL,
-        limit_choices_to=Q(abrev='MME') | Q(abrev='CLG'), verbose_name='Correct. examen'
+        limit_choices_to={'can_examinate': True}, verbose_name='Correct. examen'
     )
     examination_result = models.PositiveSmallIntegerField('Points examen', blank=True, null=True)
     interview_result = models.PositiveSmallIntegerField('Points entretien prof.', blank=True, null=True)

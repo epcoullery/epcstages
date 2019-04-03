@@ -87,7 +87,7 @@ class TeacherAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), 'contract')
     fields = (('civility', 'last_name', 'first_name', 'abrev'),
               ('birth_date', 'email', 'ext_id'),
-              ('contract', 'rate', 'archived'),
+              ('contract', 'rate', 'can_examinate', 'archived'),
               ('previous_report', 'next_report', 'total_logbook'),
               ('user'))
     readonly_fields = ('total_logbook',)

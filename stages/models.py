@@ -104,6 +104,7 @@ class Teacher(models.Model):
     ext_id = models.IntegerField(blank=True, null=True)
     previous_report = models.IntegerField(default=0, verbose_name='Report précédent')
     next_report = models.IntegerField(default=0, verbose_name='Report suivant')
+    can_examinate = models.BooleanField("Peut corriger examens candidats", default=False)
     archived = models.BooleanField(default=False)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
