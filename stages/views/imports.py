@@ -205,11 +205,7 @@ class StudentImportView(ImportViewBase):
                 if student_defaults['option_ase'] in self.mapping_option_ase:
                     student_defaults['option_ase'] = self.mapping_option_ase[student_defaults['option_ase']]
 
-            try:
-                defaults = self.clean_values(student_defaults)
-            except Exception as err:
-                err_msg.append(str(err))
-                continue
+            defaults = self.clean_values(student_defaults)
 
             if defaults.get('teacher') and defaults['klass'] not in seen_klasses:
                 klass = defaults['klass']
