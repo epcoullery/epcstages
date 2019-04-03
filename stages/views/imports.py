@@ -118,7 +118,7 @@ class StudentImportView(ImportViewBase):
         kwargs = super().get_form_kwargs()
         kwargs.update({
             'file_label': 'Fichier des étudiants',
-            'mandatory_headers': self.student_mapping.keys(),
+            'mandatory_headers': [k for k in self.student_mapping.keys() if k != 'INS_MC'],
         })
         return kwargs
 
@@ -185,7 +185,7 @@ class StudentImportView(ImportViewBase):
 
         for line in up_file:
             student_defaults = {
-                val: strip(line[key]) for key, val in self.student_mapping.items()
+                val: strip(line.get(key, '')) for key, val in self.student_mapping.items()
             }
             if student_defaults['ext_id'] in seen_students_ids:
                 # Second line for student, ignore it
@@ -205,7 +205,11 @@ class StudentImportView(ImportViewBase):
                 if student_defaults['option_ase'] in self.mapping_option_ase:
                     student_defaults['option_ase'] = self.mapping_option_ase[student_defaults['option_ase']]
 
-            defaults = self.clean_values(student_defaults)
+            try:
+                defaults = self.clean_values(student_defaults)
+            except Exception as err:
+                err_msg.append(str(err))
+                continue
 
             if defaults.get('teacher') and defaults['klass'] not in seen_klasses:
                 klass = defaults['klass']
