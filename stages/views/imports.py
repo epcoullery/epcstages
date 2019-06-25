@@ -374,9 +374,9 @@ class HPImportView(ImportViewBase):
             try:
                 teacher = profs[line['NOMPERSO_ENS']]
             except KeyError:
-                errors.append(
-                    "Impossible de trouver «%s» dans la liste des enseignant-e-s" % line['NOMPERSO_ENS']
-                )
+                msg = "Impossible de trouver «%s» dans la liste des enseignant-e-s" % line['NOMPERSO_ENS']
+                if msg not in errors:
+                    errors.append(msg)
                 continue
 
             obj, created = Course.objects.get_or_create(
@@ -385,7 +385,7 @@ class HPImportView(ImportViewBase):
                 public=line['NOMPERSO_DIP'],
             )
 
-            period = int(float(line['TOTAL'].replace("'", "")))
+            period = int(float(line['TOTAL'].replace("'", "").replace('\xa0', '')))
             if created:
                 obj.period = period
                 obj_created += 1
