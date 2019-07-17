@@ -199,6 +199,8 @@ class StudentImportView(ImportViewBase):
                 corporation_defaults = {
                     val: strip(line[key]) for key, val in self.corporation_mapping.items()
                 }
+                if isinstance(corporation_defaults['pcode'], float):
+                    corporation_defaults['pcode'] = int(corporation_defaults['pcode'])
                 student_defaults['corporation'] = self.get_corporation(corporation_defaults)
 
             if 'option_ase' in self.fields_to_overwrite:
