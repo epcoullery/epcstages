@@ -68,7 +68,7 @@ class ImportViewBase(FormView):
             if 'modified' in stats:
                 messages.info(self.request, "Objets modifiés : %d" % stats['modified'])
             if non_fatal_errors:
-                messages.warning(self.request, "Erreurs rencontrées: %s" % "\n".join(non_fatal_errors))
+                messages.warning(self.request, "Erreurs rencontrées:\n %s" % "\n".join(non_fatal_errors))
         return HttpResponseRedirect(reverse('admin:index'))
 
 
@@ -131,11 +131,14 @@ class StudentImportView(ImportViewBase):
             values['pcode'], _, values['city'] = values['city'].partition(' ')
 
         if 'klass' in values:
-            try:
-                k = Klass.objects.get(name=values['klass'])
-            except Klass.DoesNotExist:
-                raise Exception("La classe '%s' n'existe pas encore" % values['klass'])
-            values['klass'] = k
+            if values['klass'] == '':
+                values['klass'] = None
+            else:
+                try:
+                    k = Klass.objects.get(name=values['klass'])
+                except Klass.DoesNotExist:
+                    raise Exception("La classe '%s' n'existe pas encore" % values['klass'])
+                values['klass'] = k
 
         if 'option_ase' in values:
             if values['option_ase']:
@@ -286,6 +289,11 @@ class StudentImportView(ImportViewBase):
                 corp.save()
             except Corporation.DoesNotExist:
                 raise
+        except Corporation.MultipleObjectsReturned:
+            raise ValueError(
+                "Il existe plusieurs institutions avec le numéro %s (%s, %s)" % (
+                    corp_values['ext_id'], corp_values['name'], corp_values['city']
+            ))
         return corp
 
 
