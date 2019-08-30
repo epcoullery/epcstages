@@ -43,7 +43,7 @@ class CorporationView(DetailView):
     context_object_name = 'corp'
 
     def get_context_data(self, **kwargs):
-        context = super(CorporationView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         # Create a structure like:
         #   {'2011-2012': {'avails': [avail1, avail2, ...], 'stats': {'fil': num}},
         #    '2012-2013': ...}
@@ -186,7 +186,7 @@ class AttributionView(TemplateView):
     template_name = 'attribution.html'
 
     def get_context_data(self, **kwargs):
-        context = super(AttributionView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         # Need 2 queries, because referents with no training item would not appear in the second query
         referents = Teacher.objects.filter(archived=False).order_by('last_name', 'first_name')
 
@@ -210,7 +210,7 @@ class StudentSummaryView(DetailView):
     template_name = 'student_summary.html'
 
     def get_context_data(self, **kwargs):
-        context = super(StudentSummaryView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['previous_stages'] = self.object.training_set.all(
             ).select_related('availability__corporation').order_by('availability__period__end_date')
         period_id = self.request.GET.get('period')

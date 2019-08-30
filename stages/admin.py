@@ -268,7 +268,7 @@ class AvailabilityAdminForm(forms.ModelForm):
         }
 
     def __init__(self, data=None, files=None, **kwargs):
-        super(AvailabilityAdminForm, self).__init__(data=data, files=files, **kwargs)
+        super().__init__(data=data, files=files, **kwargs)
         if self.instance.pk is not None:
             # Hide num_avail on existing instances
             self.fields['num_avail'].widget = forms.HiddenInput()
@@ -277,7 +277,7 @@ class AvailabilityAdminForm(forms.ModelForm):
             self.fields['contact'].queryset = self.instance.corporation.corpcontact_set
 
     def save(self, **kwargs):
-        instance = super(AvailabilityAdminForm, self).save(**kwargs)
+        instance = super().save(**kwargs)
         # Create supplementary availabilities depending on num_avail
         num_avail = self.cleaned_data.get('num_avail', 1) or 1
         for i in range(1, num_avail):
