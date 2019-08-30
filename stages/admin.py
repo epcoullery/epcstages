@@ -258,7 +258,7 @@ class AvailabilityAdminForm(forms.ModelForm):
     num_avail = forms.IntegerField(label="Nombre de places", initial=1, required=False)
 
     class Media:
-        js = ('js/avail_form.js',)
+        js = ('admin/js/jquery.init.js', 'js/avail_form.js',)
 
     class Meta:
         model = Availability
