@@ -137,7 +137,7 @@ class StudentAdmin(admin.ModelAdmin):
 
     def get_inline_instances(self, request, obj=None):
         # SupervisionBillInline is only adequate for EDE students
-        if obj is None or obj.klass.section.name != 'EDE':
+        if obj is None or not obj.klass or obj.klass.section.name != 'EDE':
             return []
         return super().get_inline_instances(request, obj=obj)
 
@@ -149,7 +149,7 @@ class StudentAdmin(admin.ModelAdmin):
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
     def examination_actions(self, obj):
-        if obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
+        if obj.klass and obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
             return format_html(
                 '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                 '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
