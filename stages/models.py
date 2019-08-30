@@ -394,7 +394,7 @@ class StudentFile(models.Model):
     titre = models.CharField("Titre", max_length=200)
 
     def __str__(self):
-        return self.title
+        return self.titre
 
 
 class Corporation(models.Model):
