@@ -175,7 +175,7 @@ INTERVIEW_CHOICES = (
 
 class Interview(models.Model):
     date = models.DateTimeField('Date')
-    room = models.CharField("Salle d'entretien", max_length=20)
+    room = models.CharField("Salle d'entretien", max_length=25)
     candidat = models.OneToOneField(Candidate, null=True, blank=True, on_delete=models.SET_NULL)
     teacher_int = models.ForeignKey(
         Teacher, null=True, blank=True, on_delete=models.SET_NULL, related_name='+',
