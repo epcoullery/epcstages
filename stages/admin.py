@@ -119,14 +119,19 @@ class StudentAdmin(admin.ModelAdmin):
                       )
                 }
          ),
-        ("Examen Qualification EDE", {
+        ("Examen Qualification ES", {
             'classes': ('collapse',),
             'fields': (
                         ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
                         ('training_referent', 'referent', 'mentor'),
-                        ('internal_expert', 'expert'),
+                      )
+        }),
+        ("Entretien professionnel ES", {
+            'classes': ('collapse',),
+            'fields': (
                         ('session', 'date_exam', 'room', 'mark'),
+                        ('internal_expert', 'expert'),
                         ('date_soutenance_mailed', 'date_confirm_received'),
                         ('examination_actions',)
                       )
@@ -160,7 +165,7 @@ class StudentAdmin(admin.ModelAdmin):
             )
         else:
             return ''
-    examination_actions.short_description = 'Actions pour les examens EDE'
+    examination_actions.short_description = 'Actions pour les examens ES'
 
 
 class CorpContactAdmin(admin.ModelAdmin):
