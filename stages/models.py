@@ -310,14 +310,34 @@ class Student(models.Model):
                                  on_delete=models.SET_NULL, verbose_name='Référent avant-projet')
     internal_expert = models.ForeignKey(Teacher, related_name='rel_internal_expert', verbose_name='Expert interne',
                                 null=True, blank=True, on_delete=models.SET_NULL)
-    session = models.ForeignKey(ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL)
+    session = models.ForeignKey(
+        ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL, related_name='students_es',
+    )
     date_exam = models.DateTimeField(blank=True, null=True)
     last_appointment = models.DateField(blank=True, null=True)
     room = models.CharField('Salle', max_length=15, blank=True)
     mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
     date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
     date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
-    #  ============== Fields for examination ======================
+    #  ============== Fields for Entretien professionnel =========
+    session_ep = models.ForeignKey(
+        ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Session EP',
+        related_name='students_ep',
+    )
+    date_exam_ep = models.DateTimeField("Date exam. EP", blank=True, null=True)
+    room_ep = models.CharField('Salle EP', max_length=15, blank=True)
+    mark_ep = models.DecimalField('Note EP', max_digits=3, decimal_places=2, blank=True, null=True)
+    internal_expert_ep = models.ForeignKey(
+        Teacher, related_name='rel_internal_expert_ep', verbose_name='Expert interne EP',
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
+    expert_ep = models.ForeignKey(
+        'CorpContact', related_name='rel_expert_ep', verbose_name='Expert externe EP',
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
+    date_soutenance_ep_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
+    date_confirm_ep_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
+    #  ===============
     mc_comment = models.TextField("Commentaires", blank=True)
 
     support_tabimport = True

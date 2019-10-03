@@ -106,7 +106,10 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'examination_actions', 'date_soutenance_mailed')
+    readonly_fields = (
+        'report_sem1_sent', 'report_sem2_sent', 'examination_actions',
+        'date_soutenance_mailed', 'date_soutenance_ep_mailed'
+    )
     fieldsets = (
         (None, {
             'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
@@ -122,18 +125,22 @@ class StudentAdmin(admin.ModelAdmin):
         ("Examen Qualification ES", {
             'classes': ('collapse',),
             'fields': (
+                        ('session', 'date_exam', 'room', 'mark'),
                         ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
                         ('training_referent', 'referent', 'mentor'),
+                        ('internal_expert', 'expert'),
+                        ('date_soutenance_mailed', 'date_confirm_received'),
+                        ('examination_actions',)
                       )
         }),
         ("Entretien professionnel ES", {
             'classes': ('collapse',),
             'fields': (
-                        ('session', 'date_exam', 'room', 'mark'),
-                        ('internal_expert', 'expert'),
-                        ('date_soutenance_mailed', 'date_confirm_received'),
-                        ('examination_actions',)
+                        ('session_ep', 'date_exam_ep', 'room_ep', 'mark_ep'),
+                        ('internal_expert_ep', 'expert_ep'),
+                        ('date_soutenance_ep_mailed', 'date_confirm_ep_received'),
+                        #('examination_actions',)
                       )
         }),
     )
