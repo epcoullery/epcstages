@@ -108,7 +108,7 @@ class StudentAdmin(admin.ModelAdmin):
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert', 'expert_ep')
     readonly_fields = (
         'report_sem1_sent', 'report_sem2_sent',
-        'examination_actions', 'examination_ep_actions',
+        'examination_ede_actions', 'examination_eds_actions',
         'date_soutenance_mailed', 'date_soutenance_ep_mailed'
     )
     fieldsets = (
@@ -132,7 +132,8 @@ class StudentAdmin(admin.ModelAdmin):
                         ('training_referent', 'referent', 'mentor'),
                         ('internal_expert', 'expert'),
                         ('date_soutenance_mailed', 'date_confirm_received'),
-                        ('examination_actions',)
+                        ('examination_ede_actions',),
+                        ('examination_eds_actions',),
                       )
         }),
         ("Entretien professionnel ES", {
@@ -141,7 +142,6 @@ class StudentAdmin(admin.ModelAdmin):
                         ('session_ep', 'date_exam_ep', 'room_ep', 'mark_ep'),
                         ('internal_expert_ep', 'expert_ep'),
                         ('date_soutenance_ep_mailed', 'date_confirm_ep_received'),
-                        ('examination_ep_actions',)
                       )
         }),
     )
@@ -161,7 +161,7 @@ class StudentAdmin(admin.ModelAdmin):
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
-    def examination_actions(self, obj):
+    def examination_ede_actions(self, obj):
         if obj.klass and obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
             return format_html(
                 '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
@@ -173,19 +173,21 @@ class StudentAdmin(admin.ModelAdmin):
             )
         else:
             return ''
-    examination_actions.short_description = 'Actions pour les examens ES'
+    examination_ede_actions.short_description = 'Actions pour les examens EDE'
 
-    def examination_ep_actions(self, obj):
+    def examination_eds_actions(self, obj):
         if obj.klass and obj.klass.section.name == 'EDS' and obj.klass.level.name == "3":
             return format_html(
                 '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
-                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;',
+                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
+                '<a class="button" href="{}">Indemnité au mentor</a>',
                 reverse('print-expert-compens-eds', args=[obj.pk]),
                 reverse('student-eds-convocation', args=[obj.pk]),
+                reverse('print-mentor-compens-ede', args=[obj.pk]),
             )
         else:
             return ''
-    examination_ep_actions.short_description = 'Actions pour les examens ES'
+    examination_eds_actions.short_description = 'Actions pour les examens EDS'
 
 
 class CorpContactAdmin(admin.ModelAdmin):
