@@ -105,7 +105,7 @@ class StudentAdmin(admin.ModelAdmin):
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
-    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
+    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert', 'expert_ep')
     readonly_fields = (
         'report_sem1_sent', 'report_sem2_sent',
         'examination_actions', 'examination_ep_actions',
@@ -180,7 +180,7 @@ class StudentAdmin(admin.ModelAdmin):
             return format_html(
                 '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                 '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;',
-                '', #reverse('print-expert-compens-eds', args=[obj.pk]),
+                reverse('print-expert-compens-eds', args=[obj.pk]),
                 reverse('student-eds-convocation', args=[obj.pk]),
             )
         else:

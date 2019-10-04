@@ -330,7 +330,7 @@ tél. 032 886 33 00
         st = Student.objects.get(first_name="Albin")
         url = reverse('print-expert-compens-ede', args=[st.pk])
         self.client.login(username='me', password='mepassword')
-        response = self.client.post(url, follow=True)
+        response = self.client.get(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
 
         st.expert = CorpContact.objects.get(last_name="Horner")
@@ -339,7 +339,7 @@ tél. 032 886 33 00
         st.room = "B123"
         st.save()
         self.client.login(username='me', password='mepassword')
-        response = self.client.post(url, follow=True)
+        response = self.client.get(url, follow=True)
         self.assertEqual(
             response['Content-Disposition'],
             'attachment; filename="dupond_albin_Expert.pdf"'
@@ -349,19 +349,51 @@ tél. 032 886 33 00
         # Expert without corporation
         st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
         st.save()
-        response = self.client.post(url, follow=True)
+        response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
         # Mentor form
         st.mentor = CorpContact.objects.get(last_name="Horner")
         st.save()
-        response = self.client.post(reverse('print-mentor-compens-ede', args=[st.pk]), follow=True)
+        response = self.client.get(reverse('print-mentor-compens-ede', args=[st.pk]), follow=True)
         self.assertEqual(
             response['Content-Disposition'],
             'attachment; filename="dupond_albin_Indemn_mentor.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(int(response['Content-Length']), 1000)
+
+    def test_print_eds_compensation_forms(self):
+        klass = Klass.objects.create(
+            name="3EDS", section=Section.objects.get(name='EDS'), level=Level.objects.get(name='3')
+        )
+        st = Student.objects.create(
+            first_name="Laurent", last_name="Hots", birth_date="1994-07-12",
+            pcode="2000", city="Neuchâtel", klass=klass
+        )
+        url = reverse('print-expert-compens-eds', args=[st.pk])
+        self.client.login(username='me', password='mepassword')
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, "Toutes les informations ne sont pas disponibles")
+
+        st.expert_ep = CorpContact.objects.get(last_name="Horner")
+        st.internal_expert_ep = Teacher.objects.get(last_name="Caux")
+        st.date_exam_ep = datetime(2018, 6, 28, 12, 00)
+        st.room_ep = "B123"
+        st.save()
+
+        response = self.client.get(url, follow=True)
+        self.assertEqual(
+            response['Content-Disposition'],
+            'attachment; filename="hots_laurent_Expert.pdf"'
+        )
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertGreater(int(response['Content-Length']), 1000)
+        # Expert without corporation
+        st.expert_ep = CorpContact.objects.create(first_name='James', last_name='Bond')
+        st.save()
+        response = self.client.get(url, follow=True)
+        self.assertEqual(response.status_code, 200)
 
     def test_EDEpe_klass(self):
         lev3 = Level.objects.create(name='3')

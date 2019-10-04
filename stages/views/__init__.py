@@ -18,7 +18,7 @@ from django.utils.dateformat import format as django_format
 from django.utils.text import slugify
 from django.views.generic import DetailView, FormView, ListView, TemplateView, UpdateView
 
-from .base import EmailConfirmationBaseView, ZippedFilesBaseView
+from .base import EmailConfirmationBaseView, PDFBaseView, ZippedFilesBaseView
 from .export import OpenXMLExport
 from .imports import HPContactsImportView, HPImportView, ImportReportsView, StudentImportView
 from ..forms import CorporationMergeForm, EmailBaseForm, StudentCommentForm
@@ -27,8 +27,8 @@ from ..models import (
     Training, Availability
 )
 from ..pdf import (
-    ChargeSheetPDF, ExpertEdeLetterPdf, UpdateDataFormPDF, MentorCompensationPdfForm,
-    KlassListPDF,
+    ChargeSheetPDF, ExpertEdeLetterPdf, ExpertEdsLetterPdf, UpdateDataFormPDF,
+    MentorCompensationPdfForm, KlassListPDF,
 )
 from ..utils import school_year_start
 
@@ -543,47 +543,73 @@ class PrintUpdateForm(ZippedFilesBaseView):
             yield ('{0}.pdf'.format(klass.name), buff.getvalue())
 
 
-def print_expert_ede_compensation_form(request, pk):
+class PrintExpertEDECompensationForm(PDFBaseView):
     """
     Imprime le PDF à envoyer à l'expert EDE en accompagnement du
     travail de diplôme
     """
-    student = Student.objects.get(pk=pk)
-    missing = student.missing_examination_data()
-    if missing:
-        messages.error(request, "\n".join(
-            ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]
-            + missing
-        ))
-        return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    buff = io.BytesIO()
-    pdf = ExpertEdeLetterPdf(buff, student)
-    pdf.produce()
-    filename = slugify(
-        '{0}_{1}'.format(student.last_name, student.first_name)
-    ) + '_Expert.pdf'
-    buff.seek(0)
-    return FileResponse(buff, as_attachment=True, filename=filename)
+    pdf_class = ExpertEdeLetterPdf
+
+    def filename(self, student):
+        return slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '_Expert.pdf'
+
+    def get_object(self):
+        return Student.objects.get(pk=self.kwargs['pk'])
+
+    def check_object(self, student):
+        missing = student.missing_examination_data()
+        if missing:
+            messages.error(self.request, "\n".join(
+                ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]
+                + missing
+            ))
+            return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+
+    def get(self, request, *args, **kwargs):
+        student = self.get_object()
+        response = self.check_object(student)
+        if response:
+            return response
+        return super().get(request, *args, **kwargs)
 
 
-def print_mentor_ede_compensation_form(request, pk):
+class PrintMentorEDECompensationForm(PDFBaseView):
     """
     Imprime le PDF à envoyer au mentor EDE pour le mentoring
     """
-    student = Student.objects.get(pk=pk)
-    if not student.mentor:
-        messages.error(request, "Aucun mentor n'est attribué à cet étudiant")
-        return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    buff = io.BytesIO()
-    pdf = MentorCompensationPdfForm(buff, student)
-    pdf.produce()
-    filename = slugify(
-        '{0}_{1}'.format(student.last_name, student.first_name)
-    ) + '_Indemn_mentor.pdf'
-    buff.seek(0)
-    return FileResponse(buff, as_attachment=True, filename=filename)
+    pdf_class = MentorCompensationPdfForm
+
+    def filename(self, student):
+        return slugify(
+            '{0}_{1}'.format(student.last_name, student.first_name)
+        ) + '_Indemn_mentor.pdf'
+
+    def get_object(self):
+        return Student.objects.get(pk=self.kwargs['pk'])
+
+    def get(self, request, *args, **kwargs):
+        student = self.get_object()
+        if not student.mentor:
+            messages.error(request, "Aucun mentor n'est attribué à cet étudiant")
+            return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+        return super().get(request, *args, **kwargs)
 
 
+class PrintExpertEDSCompensationForm(PrintExpertEDECompensationForm):
+    """
+    Imprime le PDF à envoyer à l'expert EDS en accompagnement du
+    travail final.
+    """
+    pdf_class = ExpertEdsLetterPdf
+
+    def check_object(self, student):
+        missing = student.missing_examination_ep_data()
+        if missing:
+            messages.error(self.request, "\n".join(
+                ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]
+                + missing
+            ))
+            return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
 
 
 class PrintKlassList(ZippedFilesBaseView):
@@ -594,7 +620,7 @@ class PrintKlassList(ZippedFilesBaseView):
             buff = io.BytesIO()
             pdf = KlassListPDF(buff, klass)
             pdf.produce(klass)
-            filename = slugify('{0}.pdf'.format(klass.name))
+            filename = slugify(klass.name + '.pdf')
             yield (filename, buff.getvalue())
 
 
@@ -612,5 +638,5 @@ class PrintChargeSheet(ZippedFilesBaseView):
             buff = io.BytesIO()
             pdf = ChargeSheetPDF(buff, teacher)
             pdf.produce(activities)
-            filename = slugify('{0}_{1}.pdf'.format(teacher.last_name, teacher.first_name))
+            filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
             yield (filename, buff.getvalue())

@@ -3,7 +3,6 @@ from datetime import date
 from django.conf import settings
 from django.contrib.staticfiles.finders import find
 from django.utils.dateformat import format as django_format
-from django.utils.text import slugify
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
@@ -411,6 +410,29 @@ class CompensationForm:
 
 
 class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
+    reference = 'ASH/val'
+    title = 'Travail de diplôme'
+    resp_filiere, resp_genre = settings.RESP_FILIERE_EDE
+    part1_text = """
+        {expert_civility},<br/><br/>
+        Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l'un-e de nos
+        étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
+        En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
+        ainsi que la grille d'évaluation commune aux deux membres du jury.<br/><br/>
+        La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
+    """
+    part2_text = """
+        <br/>
+        L'autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
+        <br/>
+        Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d'experts aux examens»
+        que vous voudrez bien compléter au niveau des «données privées / coordonnées de paiement» et nous retourner dans les meilleurs délais.
+        <br/><br/>
+        Restant à votre disposition pour tout complément d'information et en vous remerciant de
+        l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_civility}, l'asurance de notre considération distinguée.<br/>
+        <br/><br/><br/>
+    """
+
     def __init__(self, out, student):
         self.student = student
         super().__init__(out)
@@ -419,64 +441,69 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_iso),
         ])
 
-    def produce(self):
-        self.add_address(self.student.expert)
+    def exam_data(self):
+        return {
+            'expert': self.student.expert,
+            'internal_expert': self.student.internal_expert,
+            'date_exam': self.student.date_exam,
+            'room': self.student.room,
+        }
 
-        ptext = """
+    def produce(self):
+        exam_data = self.exam_data()
+        self.add_address(exam_data['expert'])
+
+        header_text = """
             <br/><br/><br/>
             La Chaux-de-Fonds, le {current_date}<br/>
-            N/réf.:ASH/val<br/>
+            N/réf.: {ref}<br/>
             <br/><br/><br/>
-            <strong>Travail de diplôme</strong>
+            <strong>{title}</strong>
             <br/><br/><br/>
-            {expert_civility},<br/><br/>
-            Vous avez accepté de fonctionner comme expert{expert_accord} pour un travail de diplôme de l'un-e de nos
-            étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
-            En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
-            ainsi que la grille d'évaluation commune aux deux membres du jury.<br/><br/>
-            La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
         """
-        self.story.append(Paragraph(ptext.format(
+        self.story.append(Paragraph(header_text.format(
             current_date=django_format(date.today(), 'j F Y'),
-            expert_civility=self.student.expert.civility,
-            expert_accord=self.student.expert.adjective_ending,
+            ref=self.reference,
+            title=self.title,
+        ), style_normal))
+
+        self.story.append(Paragraph(self.part1_text.format(
+            title_lower=self.title.lower(),
+            expert_civility=exam_data['expert'].civility,
+            expert_accord=exam_data['expert'].adjective_ending,
             student_civility_full_name=self.student.civility_full_name,
         ), style_normal))
-        ptext = "<br/>{0} à l'Ecole Santé-social Pierre-Coullery, salle {1}<br/><br/>"
-        self.story.append(Paragraph(ptext.format(
-            django_format(self.student.date_exam, 'l j F Y à H\hi'),
-            self.student.room
+
+        date_text = "<br/>{0} à l'Ecole Santé-social Pierre-Coullery, salle {1}<br/><br/>"
+        self.story.append(Paragraph(date_text.format(
+            django_format(exam_data['date_exam'], 'l j F Y à H\hi'),
+            exam_data['room'],
         ), style_bold_center))
 
-        ptext = """
-                <br/>
-                L'autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
-                <br/>
-                Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d'experts aux examens»
-                que vous voudrez bien compléter au niveau des «données privées / coordonnées de paiement» et nous retourner dans les meilleurs délais.
-                <br/><br/>
-                Restant à votre disposition pour tout complément d'information et en vous remerciant de
-                l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_civility}, l'asurance de notre considération distinguée.<br/>
-                <br/><br/><br/>
-                La responsable de filière:<br/>
-                <br/><br/>
-                {resp_filiere}
-                <br/><br/><br/>
-                Annexes: ment.
-                """
-        self.story.append(Paragraph(ptext.format(
-            internal_expert_civility=self.student.internal_expert.civility,
-            internal_expert_full_name=self.student.internal_expert.full_name,
-            internal_expert_role=self.student.internal_expert.role,
-            expert_civility=self.student.expert.civility,
-            resp_filiere=settings.RESP_FILIERE_EDE,
+        self.story.append(Paragraph(self.part2_text.format(
+            internal_expert_civility=exam_data['internal_expert'].civility,
+            internal_expert_full_name=exam_data['internal_expert'].full_name,
+            internal_expert_role=exam_data['internal_expert'].role,
+            expert_civility=exam_data['expert'].civility,
+        ), style_normal))
+
+        footer_text = """
+            {lela} responsable de filière:<br/>
+            <br/><br/>
+            {resp_filiere}
+            <br/><br/><br/>
+            Annexes: ment.
+        """
+        self.story.append(Paragraph(footer_text.format(
+            lela='Le' if self.resp_genre == 'M' else 'La',
+            resp_filiere=self.resp_filiere,
         ), style_normal))
 
         # ISO page
         self.story.append(NextPageTemplate('ISOPage'))
         self.story.append(PageBreak())
 
-        self.add_private_data(self.student.expert)
+        self.add_private_data(exam_data['expert'])
 
         self.story.append(Paragraph(
             "Mandat: Soutenance de {0} {1}, classe {2}".format(
@@ -484,13 +511,36 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             ), style_normal
         ))
         self.story.append(Paragraph(
-            "Date de l'examen : {}".format(django_format(self.student.date_exam, 'l j F Y')), style_normal
+            "Date de l'examen : {}".format(django_format(exam_data['date_exam'], 'l j F Y')), style_normal
         ))
         self.story.append(Spacer(0, 2 * cm))
 
         self.add_accounting_stamp(self.EXPERT_MANDAT)
 
         self.build(self.story)
+
+
+class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
+    reference = 'BAH/ner'
+    title = 'Travail final'
+    resp_filiere, resp_genre = settings.RESP_FILIERE_EDS
+    part1_text = """
+        {expert_civility},<br/><br/>
+        Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l'un-e de nos
+        étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
+        En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
+        ainsi que diverses informations sur le cadre de cet examen et la grille d'évaluation
+        commune aux deux membres du jury.<br/><br/>
+        La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
+    """
+
+    def exam_data(self):
+        return {
+            'expert': self.student.expert_ep,
+            'internal_expert': self.student.internal_expert_ep,
+            'date_exam': self.student.date_exam_ep,
+            'room': self.student.room_ep,
+        }
 
 
 class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):

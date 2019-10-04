@@ -1,10 +1,11 @@
+import io
 import os
 import tempfile
 import zipfile
 
 from django.contrib import messages
 from django.core.mail import EmailMessage
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.urls import reverse_lazy
 from django.views.generic import FormView, View
 
@@ -49,6 +50,18 @@ class EmailConfirmationBaseView(FormView):
             'title': self.title,
         })
         return context
+
+
+class PDFBaseView(View):
+    pdf_class = None
+
+    def get(self, request, *args, **kwargs):
+        obj = self.get_object()
+        buff = io.BytesIO()
+        pdf = self.pdf_class(buff, obj)
+        pdf.produce()
+        buff.seek(0)
+        return FileResponse(buff, as_attachment=True, filename=self.filename(obj))
 
 
 class ZippedFilesBaseView(View):
