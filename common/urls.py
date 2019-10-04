@@ -52,6 +52,10 @@ urlpatterns = [
     path('student_ede/export_qualif_ede/', views.export.export_qualification_ede,
         name='export-qualif-ede'),
 
+    # Qualification EDS
+    path('student_eds/<int:pk>/send_convocation/', views.StudentConvocationEDSView.as_view(),
+        name='student-eds-convocation'),
+
     path('imputations/export/', views.export.imputations_export, name='imputations_export'),
     path('export_sap/', views.export.export_sap, name='export_sap'),
     path('print/update_form/', views.PrintUpdateForm.as_view(), name='print_update_form'),

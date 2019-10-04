@@ -407,6 +407,18 @@ class Student(models.Model):
             missing.append("L’expert interne n’est pas défini")
         return missing
 
+    def missing_examination_ep_data(self):
+        missing = []
+        if not self.date_exam_ep:
+            missing.append("La date d’examen est manquante")
+        if not self.room_ep:
+            missing.append("La salle d’examen n’est pas définie")
+        if not self.expert_ep:
+            missing.append("L’expert externe n’est pas défini")
+        if not self.internal_expert_ep:
+            missing.append("L’expert interne n’est pas défini")
+        return missing
+
 
 class StudentFile(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)

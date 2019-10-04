@@ -26,6 +26,7 @@ class StagesTests(TestCase):
         sect_ase = Section.objects.get(name='MP_ASE')
         lev1 = Level.objects.create(name='1')
         lev2 = Level.objects.create(name='2')
+        lev3 = Level.objects.create(name='3')
         klass1 = Klass.objects.create(name="1ASE3", section=sect_ase, level=lev1)
         klass2 = Klass.objects.create(name="2ASE3", section=sect_ase, level=lev2)
         klass3 = Klass.objects.create(name="2EDS", section=Section.objects.get(name='EDS'), level=lev2)
@@ -260,6 +261,70 @@ tél. 032 886 33 00
         self.assertEqual(len(mail.outbox), 1)
         st.refresh_from_db()
         self.assertIsNotNone(st.date_soutenance_mailed)
+
+    def test_send_eds_convocation(self):
+        klass = Klass.objects.create(
+            name="3EDS", section=Section.objects.get(name='EDS'), level=Level.objects.get(name='3')
+        )
+        st = Student.objects.create(
+            first_name="Laurent", last_name="Hots", birth_date="1994-07-12",
+            pcode="2000", city="Neuchâtel", klass=klass
+        )
+
+        self.client.login(username='me', password='mepassword')
+        url = reverse('student-eds-convocation', args=[st.pk])
+        response = self.client.get(url, follow=True)
+        for err in ("L’étudiant-e n’a pas de courriel valide",
+                    "La date d’examen est manquante",
+                    "La salle d’examen n’est pas définie",
+                    "L’expert externe n’est pas défini",
+                    "L’expert interne n’est pas défini"):
+            self.assertContains(response, err)
+        st.email = 'hots@example.org'
+        st.date_exam_ep = datetime(2018, 6, 28, 12, 00)
+        st.room_ep = "B123"
+        st.expert_ep = CorpContact.objects.get(last_name="Horner")
+        st.internal_expert_ep = Teacher.objects.get(last_name="Caux")
+        st.save()
+        response = self.client.get(url, follow=True)
+        self.assertContains(response, "L’expert externe n’a pas de courriel valide !")
+        st.expert_ep.email = "horner@example.org"
+        st.expert_ep.save()
+        response = self.client.get(url)
+        expected_message = """ Laurent Hots,
+Madame Julie Caux,
+Monsieur Jean Horner,
+
+
+Nous vous informons que la soutenance du travail final de  Laurent Hots aura lieu dans les locaux de l’Ecole Santé-social Pierre-Coullery, rue Sophie-Mairet 29-31, 2300 La Chaux-de-Fonds en date du:
+
+ - jeudi 28 juin 2018 à 12h00 en salle B123
+
+
+Nous informons également Monsieur Horner que le mémoire lui est adressé ce jour par courrier postal.
+
+
+Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, Madame, Messieurs, nos salutations les meilleures.
+
+
+
+Secrétariat de la filière Education sociale, dipl. ES
+Jean Valjean
+me@example.org
+tél. 032 886 33 00
+"""
+        self.assertEqual(response.context['form'].initial['message'], expected_message)
+        # Now send the message
+        response = self.client.post(url, data={
+            'cci': 'me@example.org',
+            'to': st.email,
+            'subject': "Convocation",
+            'message': "Monsieur Albin, ...",
+            'sender': 'me@example.org',
+        })
+        self.assertEqual(len(mail.outbox), 1)
+        st.refresh_from_db()
+        self.assertIsNotNone(st.date_soutenance_ep_mailed)
 
     def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")

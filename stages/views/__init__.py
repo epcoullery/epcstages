@@ -398,36 +398,55 @@ class EmailConfirmationView(EmailConfirmationBaseView):
 class StudentConvocationExaminationView(EmailConfirmationView):
     success_message = "Le message de convocation a été envoyé pour l’étudiant {person}"
     title = "Convocation à la soutenance du travail de diplôme"
+    email_template = 'email/student_convocation_EDE.txt'
+
+    @property
+    def expert(self):
+        return self.student.expert
+
+    @property
+    def internal_expert(self):
+        return self.student.internal_expert
+
+    @property
+    def date_soutenance_mailed(self):
+        return self.student.date_soutenance_mailed
+
+    def missing_examination_data(self):
+        return self.student.missing_examination_data()
 
     def dispatch(self, request, *args, **kwargs):
         self.student = Student.objects.get(pk=self.kwargs['pk'])
-        errors = self.student.missing_examination_data()
-        if self.student.expert and not self.student.expert.email:
-            errors.append("L’expert externe n’a pas de courriel valide !")
-        if self.student.internal_expert and not self.student.internal_expert.email:
-            errors.append("L’expert interne n'a pas de courriel valide !")
-        if self.student.date_soutenance_mailed is not None:
-            errors.append("Une convocation a déjà été envoyée !")
+        errors = self.missing_examination_data()
+        errors.extend(self.check_errors())
         if errors:
             messages.error(request, "\n".join(errors))
             return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
         return super().dispatch(request, *args, **kwargs)
 
-    def get_initial(self):
-        initial = super().get_initial()
-        to = [self.student.email, self.student.expert.email, self.student.internal_expert.email]
-        src_email = 'email/student_convocation_EDE.txt'
+    def check_errors(self):
+        errors = []
+        if not self.student.email:
+            errors.append("L’étudiant-e n’a pas de courriel valide !")
+        if self.expert and not self.expert.email:
+            errors.append("L’expert externe n’a pas de courriel valide !")
+        if self.internal_expert and not self.internal_expert.email:
+            errors.append("L’expert interne n'a pas de courriel valide !")
+        if self.date_soutenance_mailed is not None:
+            errors.append("Une convocation a déjà été envoyée !")
+        return errors
 
+    def msg_context(self):
         # Recipients with ladies first!
         recip_names = sorted([
             self.student.civility_full_name,
-            self.student.expert.civility_full_name,
-            self.student.internal_expert.civility_full_name,
+            self.expert.civility_full_name,
+            self.internal_expert.civility_full_name,
         ])
         titles = [
             self.student.civility,
-            self.student.expert.civility,
-            self.student.internal_expert.civility,
+            self.expert.civility,
+            self.internal_expert.civility,
         ]
         mme_count = titles.count('Madame')
         # Civilities, with ladies first!
@@ -439,29 +458,65 @@ class StudentConvocationExaminationView(EmailConfirmationView):
             civilities = 'Mesdames, Monsieur'
         else:
             civilities = 'Mesdames'
-
-        msg_context = {
+        return {
             'recipient1': recip_names[0],
             'recipient2': recip_names[1],
             'recipient3': recip_names[2],
             'student': self.student,
             'sender': self.request.user,
             'global_civilities': civilities,
-            'date_examen': django_format(self.student.date_exam, 'l j F Y à H\hi'),
+            'date_examen': django_format(self.student.date_exam, 'l j F Y à H\hi') if self.student.date_exam else '-',
             'salle': self.student.room,
         }
+
+    def get_initial(self):
+        initial = super().get_initial()
+        to = [self.student.email, self.expert.email, self.internal_expert.email]
+
         initial.update({
             'cci': self.request.user.email,
             'to': '; '.join(to),
-            'subject': "Convocation à la soutenance de travail de diplôme",
-            'message': loader.render_to_string(src_email, msg_context),
+            'subject': self.title,
+            'message': loader.render_to_string(self.email_template, self.msg_context()),
             'sender': self.request.user.email,
         })
         return initial
 
     def on_success(self, student):
-        student.date_soutenance_mailed = timezone.now()
-        student.save()
+        self.student.date_soutenance_mailed = timezone.now()
+        self.student.save()
+
+
+class StudentConvocationEDSView(StudentConvocationExaminationView):
+    title = "Convocation à la soutenance du travail final"
+    email_template = 'email/student_convocation_EDS.txt'
+
+    @property
+    def expert(self):
+        return self.student.expert_ep
+
+    @property
+    def internal_expert(self):
+        return self.student.internal_expert_ep
+
+    @property
+    def date_soutenance_mailed(self):
+        return self.student.date_soutenance_ep_mailed
+
+    def missing_examination_data(self):
+        return self.student.missing_examination_ep_data()
+
+    def msg_context(self):
+        context = super().msg_context()
+        context.update({
+            'date_examen': django_format(self.student.date_exam_ep, 'l j F Y à H\hi'),
+            'salle': self.student.room_ep,
+        })
+        return context
+
+    def on_success(self, student):
+        self.student.date_soutenance_ep_mailed = timezone.now()
+        self.student.save()
 
 
 class PrintUpdateForm(ZippedFilesBaseView):

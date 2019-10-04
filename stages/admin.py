@@ -107,7 +107,8 @@ class StudentAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert')
     readonly_fields = (
-        'report_sem1_sent', 'report_sem2_sent', 'examination_actions',
+        'report_sem1_sent', 'report_sem2_sent',
+        'examination_actions', 'examination_ep_actions',
         'date_soutenance_mailed', 'date_soutenance_ep_mailed'
     )
     fieldsets = (
@@ -140,7 +141,7 @@ class StudentAdmin(admin.ModelAdmin):
                         ('session_ep', 'date_exam_ep', 'room_ep', 'mark_ep'),
                         ('internal_expert_ep', 'expert_ep'),
                         ('date_soutenance_ep_mailed', 'date_confirm_ep_received'),
-                        #('examination_actions',)
+                        ('examination_ep_actions',)
                       )
         }),
     )
@@ -173,6 +174,18 @@ class StudentAdmin(admin.ModelAdmin):
         else:
             return ''
     examination_actions.short_description = 'Actions pour les examens ES'
+
+    def examination_ep_actions(self, obj):
+        if obj.klass and obj.klass.section.name == 'EDS' and obj.klass.level.name == "3":
+            return format_html(
+                '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
+                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;',
+                '', #reverse('print-expert-compens-eds', args=[obj.pk]),
+                reverse('student-eds-convocation', args=[obj.pk]),
+            )
+        else:
+            return ''
+    examination_ep_actions.short_description = 'Actions pour les examens ES'
 
 
 class CorpContactAdmin(admin.ModelAdmin):
