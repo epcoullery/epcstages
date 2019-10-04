@@ -345,7 +345,7 @@ tél. 032 886 33 00
             'attachment; filename="dupond_albin_Expert.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertGreater(len(response.content), 200)
+        self.assertGreater(int(response['Content-Length']), 1000)
         # Expert without corporation
         st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
         st.save()
@@ -361,7 +361,7 @@ tél. 032 886 33 00
             'attachment; filename="dupond_albin_Indemn_mentor.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertGreater(len(response.content), 200)
+        self.assertGreater(int(response['Content-Length']), 1000)
 
     def test_EDEpe_klass(self):
         lev3 = Level.objects.create(name='3')

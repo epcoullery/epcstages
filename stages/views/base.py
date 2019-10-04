@@ -56,13 +56,14 @@ class ZippedFilesBaseView(View):
     filename = 'to_be_defined.zip'
 
     def generate_files(self):
+        """Generator yielding (file_name, file_data) tuples."""
         raise NotImplementedError()
 
     def get(self, request, *args, **kwargs):
         tmp_file = tempfile.NamedTemporaryFile()
         with zipfile.ZipFile(tmp_file, mode='w', compression=zipfile.ZIP_DEFLATED) as filezip:
-            for file_name in self.generate_files():
-                filezip.write(file_name, arcname=os.path.basename(file_name))
+            for file_name, file_data in self.generate_files():
+                filezip.writestr(file_name, file_data)
 
         with open(filezip.filename, mode='rb') as fh:
             response = HttpResponse(fh.read(), content_type='application/zip')

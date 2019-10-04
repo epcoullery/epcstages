@@ -1,3 +1,4 @@
+import io
 import json
 import os
 
@@ -8,7 +9,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.mail import EmailMessage
 from django.db.models import Count
-from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
+from django.http import FileResponse, HttpResponse, HttpResponseNotAllowed, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
 from django.urls import reverse, reverse_lazy
@@ -536,9 +537,10 @@ class PrintUpdateForm(ZippedFilesBaseView):
     def generate_files(self):
         for klass in Klass.objects.filter(level__gte=2
                 ).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
-            pdf = UpdateDataFormPDF('{0}.pdf'.format(klass.name), self.return_date)
+            buff = io.BytesIO()
+            pdf = UpdateDataFormPDF(buff, self.return_date)
             pdf.produce(klass)
-            yield pdf.filename
+            yield ('{0}.pdf'.format(klass.name), buff.getvalue())
 
 
 def print_expert_ede_compensation_form(request, pk):
@@ -554,13 +556,14 @@ def print_expert_ede_compensation_form(request, pk):
             + missing
         ))
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = ExpertEdeLetterPdf(student)
+    buff = io.BytesIO()
+    pdf = ExpertEdeLetterPdf(buff, student)
     pdf.produce()
-
-    with open(pdf.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
-    return response
+    filename = slugify(
+        '{0}_{1}'.format(student.last_name, student.first_name)
+    ) + '_Expert.pdf'
+    buff.seek(0)
+    return FileResponse(buff, as_attachment=True, filename=filename)
 
 
 def print_mentor_ede_compensation_form(request, pk):
@@ -571,13 +574,16 @@ def print_mentor_ede_compensation_form(request, pk):
     if not student.mentor:
         messages.error(request, "Aucun mentor n'est attribué à cet étudiant")
         return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
-    pdf = MentorCompensationPdfForm(student)
+    buff = io.BytesIO()
+    pdf = MentorCompensationPdfForm(buff, student)
     pdf.produce()
+    filename = slugify(
+        '{0}_{1}'.format(student.last_name, student.first_name)
+    ) + '_Indemn_mentor.pdf'
+    buff.seek(0)
+    return FileResponse(buff, as_attachment=True, filename=filename)
 
-    with open(pdf.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
-    return response
+
 
 
 class PrintKlassList(ZippedFilesBaseView):
@@ -585,9 +591,11 @@ class PrintKlassList(ZippedFilesBaseView):
 
     def generate_files(self):
         for klass in Klass.active.order_by('section', 'name'):
-            pdf = KlassListPDF(klass)
+            buff = io.BytesIO()
+            pdf = KlassListPDF(buff, klass)
             pdf.produce(klass)
-            yield pdf.filename
+            filename = slugify('{0}.pdf'.format(klass.name))
+            yield (filename, buff.getvalue())
 
 
 class PrintChargeSheet(ZippedFilesBaseView):
@@ -601,6 +609,8 @@ class PrintChargeSheet(ZippedFilesBaseView):
         queryset = Teacher.objects.filter(pk__in=self.request.GET.get('ids').split(','))
         for teacher in queryset:
             activities = teacher.calc_activity()
-            pdf = ChargeSheetPDF(teacher)
+            buff = io.BytesIO()
+            pdf = ChargeSheetPDF(buff, teacher)
             pdf.produce(activities)
-            yield pdf.filename
+            filename = slugify('{0}_{1}.pdf'.format(teacher.last_name, teacher.first_name))
+            yield (filename, buff.getvalue())

@@ -1,5 +1,3 @@
-import os
-import tempfile
 from datetime import date
 
 from django.conf import settings
@@ -50,10 +48,9 @@ class HorLine(Flowable):
 class EpcBaseDocTemplate(SimpleDocTemplate):
     points = '.' * 93
 
-    def __init__(self, filename, title=''):
-        path = os.path.join(tempfile.gettempdir(), filename)
+    def __init__(self, filelike, title=''):
         super().__init__(
-            path,
+            filelike,
             pagesize=A4,
             lefMargin=2.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=2.5 * cm
         )
@@ -117,10 +114,9 @@ class ChargeSheetPDF(EpcBaseDocTemplate):
     """
     Génération des feuilles de charges en pdf.
     """
-    def __init__(self, teacher):
+    def __init__(self, out, teacher):
         self.teacher = teacher
-        filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
-        super().__init__(filename)
+        super().__init__(out)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header)
         ])
@@ -185,8 +181,8 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
     """
     Génération des formulaires PDF de mise à jour des données.
     """
-    def __init__(self, filename, return_date):
-        super().__init__(filename)
+    def __init__(self, out, return_date):
+        super().__init__(out)
         self.text = (
             "Afin de mettre à jour nos bases de données, nous vous serions reconnaissant "
             "de contrôler les données ci-dessous qui vous concernent selon votre filière "
@@ -415,12 +411,9 @@ class CompensationForm:
 
 
 class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
-    def __init__(self, student):
+    def __init__(self, out, student):
         self.student = student
-        filename = slugify(
-            '{0}_{1}'.format(self.student.last_name, self.student.first_name)
-        ) + '_Expert.pdf'
-        super().__init__(filename)
+        super().__init__(out)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
             PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_iso),
@@ -501,12 +494,9 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
 
 
 class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
-    def __init__(self, student):
+    def __init__(self, out, student):
         self.student = student
-        filename = slugify(
-            '{0}_{1}'.format(self.student.last_name, self.student.first_name)
-        ) + '_Indemn_mentor.pdf'
-        super().__init__(filename)
+        super().__init__(out)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_iso)
         ])
@@ -533,10 +523,9 @@ class KlassListPDF(EpcBaseDocTemplate):
     """
     Génération des rôles de classes en pdf.
     """
-    def __init__(self, klass):
+    def __init__(self, out, klass):
         self.klass = klass
-        filename = slugify('{0}'.format(klass.name)) + '.pdf'
-        super().__init__(filename)
+        super().__init__(out)
 
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
