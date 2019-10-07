@@ -126,7 +126,7 @@ class StudentAdmin(admin.ModelAdmin):
         ("Examen Qualification ES", {
             'classes': ('collapse',),
             'fields': (
-                        ('session', 'date_exam', 'room', 'mark'),
+                        ('session', 'date_exam', 'room'),
                         ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
                         ('training_referent', 'referent', 'mentor'),
@@ -134,14 +134,16 @@ class StudentAdmin(admin.ModelAdmin):
                         ('date_soutenance_mailed', 'date_confirm_received'),
                         ('examination_ede_actions',),
                         ('examination_eds_actions',),
+                        ('mark', 'mark_acq'),
                       )
         }),
         ("Entretien professionnel ES", {
             'classes': ('collapse',),
             'fields': (
-                        ('session_ep', 'date_exam_ep', 'room_ep', 'mark_ep'),
+                        ('session_ep', 'date_exam_ep', 'room_ep'),
                         ('internal_expert_ep', 'expert_ep'),
                         ('date_soutenance_ep_mailed', 'date_confirm_ep_received'),
+                        ('mark_ep', 'mark_ep_acq'),
                       )
         }),
     )
