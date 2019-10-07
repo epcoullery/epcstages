@@ -263,6 +263,12 @@ GENDER_CHOICES = (
 )
 
 class Student(models.Model):
+    ACQ_MARK_CHOICES = (
+        ('non', 'Non acquis'),
+        ('part', 'Partiellement acquis'),
+        ('acq', 'Acquis'),
+    )
+
     ext_id = models.IntegerField(null=True, unique=True, verbose_name='ID externe')
     first_name = models.CharField(max_length=40, verbose_name='Prénom')
     last_name = models.CharField(max_length=40, verbose_name='Nom')
@@ -326,7 +332,7 @@ class Student(models.Model):
     )
     date_exam_ep = models.DateTimeField("Date exam. EP", blank=True, null=True)
     room_ep = models.CharField('Salle EP', max_length=15, blank=True)
-    mark_ep = models.DecimalField('Note EP', max_digits=3, decimal_places=2, blank=True, null=True)
+    mark_ep = models.CharField('Note EP', max_length=5, choices=ACQ_MARK_CHOICES, blank=True)
     internal_expert_ep = models.ForeignKey(
         Teacher, related_name='rel_internal_expert_ep', verbose_name='Expert interne EP',
         null=True, blank=True, on_delete=models.SET_NULL
@@ -648,7 +654,7 @@ class Course(models.Model):
     subject = models.CharField("Sujet", max_length=100, default='')
     period = models.IntegerField("Nb de périodes", default=0)
     # Imputation comptable: compte dans lequel les frais du cours seront imputés
-    imputation = models.CharField("Imputation", max_length=10, choices=IMPUTATION_CHOICES)
+    imputation = models.CharField("Imputation", max_length=12, choices=IMPUTATION_CHOICES)
 
     class Meta:
         verbose_name = 'Cours'
