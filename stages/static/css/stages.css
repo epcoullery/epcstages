@@ -1,3 +1,6 @@
+div.warning { font-weight: bold; color: red; }
+fieldset.hidden { display: none; }
+
 /* Menu above apps on index page */
 ul#main li { font-size: 14px; }
 

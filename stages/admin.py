@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from copy import deepcopy
 
 from django import forms
 from django.contrib import admin
@@ -8,6 +9,7 @@ from django.db import models
 from django.http import HttpResponse, HttpResponseRedirect
 from django.urls import reverse
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 
 from .models import (
     Teacher, Option, Student, StudentFile, Section, Level, Klass, Corporation,
@@ -111,7 +113,7 @@ class StudentAdmin(admin.ModelAdmin):
         'examination_ede_actions', 'examination_eds_actions',
         'date_soutenance_mailed', 'date_soutenance_ep_mailed'
     )
-    fieldsets = (
+    fieldsets = [
         (None, {
             'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
                       ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
@@ -124,7 +126,7 @@ class StudentAdmin(admin.ModelAdmin):
                 }
          ),
         ("Examen Qualification ES", {
-            'classes': ('collapse',),
+            'classes': ['collapse'],
             'fields': (
                         ('session', 'date_exam', 'room'),
                         ('supervisor',  'supervision_attest_received'),
@@ -138,7 +140,7 @@ class StudentAdmin(admin.ModelAdmin):
                       )
         }),
         ("Entretien professionnel ES", {
-            'classes': ('collapse',),
+            'classes': ['collapse'],
             'fields': (
                         ('session_ep', 'date_exam_ep', 'room_ep'),
                         ('internal_expert_ep', 'expert_ep'),
@@ -146,7 +148,7 @@ class StudentAdmin(admin.ModelAdmin):
                         ('mark_ep', 'mark_ep_acq'),
                       )
         }),
-    )
+    ]
     actions = ['archive']
     inlines = [SupervisionBillInline]
 
@@ -156,6 +158,21 @@ class StudentAdmin(admin.ModelAdmin):
             return []
         return super().get_inline_instances(request, obj=obj)
 
+    def get_fieldsets(self, request, obj=None):
+        if not self.is_ede_3(obj) and not self.is_eds_3(obj):
+            # Hide "Examen Qualification ES"/"Entretien professionnel ES"
+            fieldsets = deepcopy(self.fieldsets)
+            fieldsets[1][1]['classes'] = ['hidden']
+            fieldsets[2][1]['classes'] = ['hidden']
+            return fieldsets
+        return super().get_fieldsets(request, obj)
+
+    def is_ede_3(self, obj):
+        return obj and obj.klass and obj.klass.section.name == 'EDE' and obj.klass.level.name == '3'
+
+    def is_eds_3(self, obj):
+        return obj and obj.klass and obj.klass.section.name == 'EDS' and obj.klass.level.name == '3'
+
     def archive(self, request, queryset):
         for student in queryset:
             # Save each item individually to allow for custom save() logic.
@@ -164,29 +181,41 @@ class StudentAdmin(admin.ModelAdmin):
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
     def examination_ede_actions(self, obj):
-        if obj.klass and obj.klass.section.name == 'EDE' and obj.klass.level.name == "3":
-            return format_html(
-                '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
-                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                '<a class="button" href="{}">Indemnité au mentor</a>',
-                reverse('print-expert-compens-ede', args=[obj.pk]),
-                reverse('student-ede-convocation', args=[obj.pk]),
-                reverse('print-mentor-compens-ede', args=[obj.pk]),
-            )
+        if self.is_ede_3(obj):
+            if obj.missing_examination_data():
+                return mark_safe(
+                    '<div class="warning">Veuillez compléter les informations '
+                    'd’examen (date/salle/experts) pour accéder aux boutons d’impression.</div>'
+                )
+            else:
+                return format_html(
+                    '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
+                    '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
+                    '<a class="button" href="{}">Indemnité au mentor</a>',
+                    reverse('print-expert-compens-ede', args=[obj.pk]),
+                    reverse('student-ede-convocation', args=[obj.pk]),
+                    reverse('print-mentor-compens-ede', args=[obj.pk]),
+                )
         else:
             return ''
     examination_ede_actions.short_description = 'Actions pour les examens EDE'
 
     def examination_eds_actions(self, obj):
-        if obj.klass and obj.klass.section.name == 'EDS' and obj.klass.level.name == "3":
-            return format_html(
-                '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
-                '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                '<a class="button" href="{}">Indemnité au mentor</a>',
-                reverse('print-expert-compens-eds', args=[obj.pk]),
-                reverse('student-eds-convocation', args=[obj.pk]),
-                reverse('print-mentor-compens-ede', args=[obj.pk]),
-            )
+        if self.is_eds_3(obj):
+            if obj.missing_examination_data():
+                return mark_safe(
+                    '<div class="warning">Veuillez compléter les informations '
+                    'd’examen (date/salle/experts) pour accéder aux boutons d’impression.</div>'
+                )
+            else:
+                return format_html(
+                    '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
+                    '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
+                    '<a class="button" href="{}">Indemnité au mentor</a>',
+                    reverse('print-expert-compens-eds', args=[obj.pk]),
+                    reverse('student-eds-convocation', args=[obj.pk]),
+                    reverse('print-mentor-compens-ede', args=[obj.pk]),
+                )
         else:
             return ''
     examination_eds_actions.short_description = 'Actions pour les examens EDS'
