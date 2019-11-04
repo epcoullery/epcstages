@@ -492,33 +492,6 @@ class StudentConvocationEDSView(StudentConvocationExaminationView):
     title = "Convocation à la soutenance du travail final"
     email_template = 'email/student_convocation_EDS.txt'
 
-    @property
-    def expert(self):
-        return self.student.expert_ep
-
-    @property
-    def internal_expert(self):
-        return self.student.internal_expert_ep
-
-    @property
-    def date_soutenance_mailed(self):
-        return self.student.date_soutenance_ep_mailed
-
-    def missing_examination_data(self):
-        return self.student.missing_examination_ep_data()
-
-    def msg_context(self):
-        context = super().msg_context()
-        context.update({
-            'date_examen': django_format(self.student.date_exam_ep, 'l j F Y à H\hi'),
-            'salle': self.student.room_ep,
-        })
-        return context
-
-    def on_success(self, student):
-        self.student.date_soutenance_ep_mailed = timezone.now()
-        self.student.save()
-
 
 class PrintUpdateForm(ZippedFilesBaseView):
     """
@@ -603,7 +576,7 @@ class PrintExpertEDSCompensationForm(PrintExpertEDECompensationForm):
     pdf_class = ExpertEdsLetterPdf
 
     def check_object(self, student):
-        missing = student.missing_examination_ep_data()
+        missing = student.missing_examination_data()
         if missing:
             messages.error(self.request, "\n".join(
                 ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]

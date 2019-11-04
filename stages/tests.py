@@ -281,15 +281,15 @@ tél. 032 886 33 00
                     "L’expert interne n’est pas défini"):
             self.assertContains(response, err)
         st.email = 'hots@example.org'
-        st.date_exam_ep = datetime(2018, 6, 28, 12, 00)
-        st.room_ep = "B123"
-        st.expert_ep = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert_ep = Teacher.objects.get(last_name="Caux")
+        st.date_exam = datetime(2018, 6, 28, 12, 00)
+        st.room = "B123"
+        st.expert = CorpContact.objects.get(last_name="Horner")
+        st.internal_expert = Teacher.objects.get(last_name="Caux")
         st.save()
         response = self.client.get(url, follow=True)
         self.assertContains(response, "L’expert externe n’a pas de courriel valide !")
-        st.expert_ep.email = "horner@example.org"
-        st.expert_ep.save()
+        st.expert.email = "horner@example.org"
+        st.expert.save()
         response = self.client.get(url)
         expected_message = """ Laurent Hots,
 Madame Julie Caux,
@@ -324,7 +324,7 @@ tél. 032 886 33 00
         })
         self.assertEqual(len(mail.outbox), 1)
         st.refresh_from_db()
-        self.assertIsNotNone(st.date_soutenance_ep_mailed)
+        self.assertIsNotNone(st.date_soutenance_mailed)
 
     def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")
@@ -376,10 +376,10 @@ tél. 032 886 33 00
         response = self.client.get(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
 
-        st.expert_ep = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert_ep = Teacher.objects.get(last_name="Caux")
-        st.date_exam_ep = datetime(2018, 6, 28, 12, 00)
-        st.room_ep = "B123"
+        st.expert = CorpContact.objects.get(last_name="Horner")
+        st.internal_expert = Teacher.objects.get(last_name="Caux")
+        st.date_exam = datetime(2018, 6, 28, 12, 00)
+        st.room = "B123"
         st.save()
 
         response = self.client.get(url, follow=True)
@@ -390,7 +390,7 @@ tél. 032 886 33 00
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(int(response['Content-Length']), 1000)
         # Expert without corporation
-        st.expert_ep = CorpContact.objects.create(first_name='James', last_name='Bond')
+        st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
         st.save()
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)

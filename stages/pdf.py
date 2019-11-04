@@ -534,14 +534,6 @@ class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
         La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
     """
 
-    def exam_data(self):
-        return {
-            'expert': self.student.expert_ep,
-            'internal_expert': self.student.internal_expert_ep,
-            'date_exam': self.student.date_exam_ep,
-            'room': self.student.room_ep,
-        }
-
 
 class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
     def __init__(self, out, student):

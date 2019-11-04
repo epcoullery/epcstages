@@ -110,7 +110,7 @@ class StudentAdmin(admin.ModelAdmin):
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert', 'expert_ep')
     readonly_fields = (
         'report_sem1_sent', 'report_sem2_sent',
-        'examination_ede_actions', 'examination_eds_actions',
+        'examination_actions',
         'date_soutenance_mailed', 'date_soutenance_ep_mailed'
     )
     fieldsets = [
@@ -134,8 +134,7 @@ class StudentAdmin(admin.ModelAdmin):
                         ('training_referent', 'referent', 'mentor'),
                         ('internal_expert', 'expert'),
                         ('date_soutenance_mailed', 'date_confirm_received'),
-                        ('examination_ede_actions',),
-                        ('examination_eds_actions',),
+                        ('examination_actions',),
                         ('mark', 'mark_acq'),
                       )
         }),
@@ -180,7 +179,7 @@ class StudentAdmin(admin.ModelAdmin):
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
-    def examination_ede_actions(self, obj):
+    def examination_actions(self, obj):
         if self.is_ede_3(obj):
             if obj.missing_examination_data():
                 return mark_safe(
@@ -196,12 +195,7 @@ class StudentAdmin(admin.ModelAdmin):
                     reverse('student-ede-convocation', args=[obj.pk]),
                     reverse('print-mentor-compens-ede', args=[obj.pk]),
                 )
-        else:
-            return ''
-    examination_ede_actions.short_description = 'Actions pour les examens EDE'
-
-    def examination_eds_actions(self, obj):
-        if self.is_eds_3(obj):
+        elif self.is_eds_3(obj):
             if obj.missing_examination_data():
                 return mark_safe(
                     '<div class="warning">Veuillez compléter les informations '
@@ -218,7 +212,7 @@ class StudentAdmin(admin.ModelAdmin):
                 )
         else:
             return ''
-    examination_eds_actions.short_description = 'Actions pour les examens EDS'
+    examination_actions.short_description = 'Actions pour les examens'
 
 
 class CorpContactAdmin(admin.ModelAdmin):
