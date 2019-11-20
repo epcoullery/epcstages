@@ -243,7 +243,7 @@ class TrainingsByPeriodView(ListView):
 
 class CorpContactJSONView(ListView):
     """ Return all contacts from a given corporation """
-    return_fields = ['id', 'first_name', 'last_name', 'role', 'is_main']
+    return_fields = ['id', 'first_name', 'last_name', 'role', 'is_main', 'corporation_id']
 
     def get_queryset(self):
         return CorpContact.objects.filter(corporation__pk=self.kwargs['pk'], archived=False)

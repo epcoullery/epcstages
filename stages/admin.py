@@ -360,7 +360,7 @@ class PeriodAdmin(admin.ModelAdmin):
 
 
 class AvailabilityAdmin(admin.ModelAdmin):
-    list_display = ('corporation', 'period', 'domain')
+    list_display = ('corporation', 'period', 'domain', 'contact')
     list_filter = ('period',)
     fields = (('corporation', 'period'), 'domain', 'contact', 'priority', 'comment')
     form = AvailabilityAdminForm
@@ -370,7 +370,7 @@ class AvailabilityAdmin(admin.ModelAdmin):
             kwargs["queryset"] = Corporation.objects.filter(archived=False).order_by('name')
         if db_field.name == "contact":
             kwargs["queryset"] = CorpContact.objects.filter(archived=False)
-        return super(AvailabilityAdmin, self).formfield_for_foreignkey(db_field, request, **kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
 class TrainingAdmin(admin.ModelAdmin):
