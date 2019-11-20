@@ -17,7 +17,8 @@ CIVILITY_CHOICES = (
 
 class Section(models.Model):
     """ Filières """
-    name = models.CharField(max_length=20, verbose_name='Nom')
+    name = models.CharField("Nom", max_length=20)
+    has_stages = models.BooleanField("Planifie la PP sur ce site", default=False)
 
     class Meta:
         verbose_name = "Filière"
@@ -534,7 +535,7 @@ class Period(models.Model):
     """ Périodes de stages """
     title = models.CharField(max_length=150, verbose_name='Titre')
     section = models.ForeignKey(Section, verbose_name='Filière', on_delete=models.PROTECT,
-        limit_choices_to={'name__startswith': 'MP'})
+        limit_choices_to={'has_stages': True})
     level = models.ForeignKey(Level, verbose_name='Niveau', on_delete=models.PROTECT)
     start_date = models.DateField(verbose_name='Date de début')
     end_date = models.DateField(verbose_name='Date de fin')

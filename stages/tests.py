@@ -21,7 +21,9 @@ class StagesTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         Section.objects.bulk_create([
-            Section(name='MP_ASE'), Section(name='MP_ASSC'), Section(name='EDE'), Section(name='EDS')
+            Section(name='MP_ASE', has_stages=True),
+            Section(name='MP_ASSC', has_stages=True),
+            Section(name='EDE'), Section(name='EDS'),
         ])
         sect_ase = Section.objects.get(name='MP_ASE')
         lev1 = Level.objects.create(name='1')

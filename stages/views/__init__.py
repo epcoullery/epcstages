@@ -105,7 +105,7 @@ class KlassView(DetailView):
             'students': self.object.student_set.filter(archived=False
                 ).prefetch_related('training_set').order_by('last_name', 'first_name'),
             'show_option_ase': self.object.section.name.endswith('ASE'),
-            'show_pp': self.object.section.is_ESTER,
+            'show_pp': self.object.section.has_stages,
             'show_employeur': not self.object.section.is_ESTER,
         })
         return context
@@ -200,7 +200,7 @@ class AttributionView(TemplateView):
 
         context.update({
             #'period_form': PeriodForm(),
-            'sections': Section.objects.filter(name__startswith='MP'),
+            'sections': Section.objects.filter(has_stages=True),
             'referents': referents,
         })
         return context
