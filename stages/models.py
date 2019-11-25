@@ -393,6 +393,8 @@ class Student(models.Model):
 
     def age_at(self, date_):
         """Return age of student at `date_` time, as a string."""
+        if not self.birth_date:
+            return '?'
         age = (date.today() - self.birth_date) / timedelta(days=365.2425)
         age_y = int(age)
         age_m = int((age - age_y) * 12)
