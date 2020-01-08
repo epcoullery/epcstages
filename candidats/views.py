@@ -30,7 +30,7 @@ class ConfirmationView(CandidateConfirmationView):
     """
     Email confirming the receipt of the registration form
     """
-    success_message = "Une confirmation d'inscription a été envoyée à {person}"
+    success_message = "Une confirmation d’inscription a été envoyée à {person}"
     candidate_date_field = 'confirmation_date'
     title = "Confirmation de réception de dossier"
 

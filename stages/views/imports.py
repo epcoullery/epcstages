@@ -223,7 +223,7 @@ class StudentImportView(ImportViewBase):
                         klass.save()
                     except KeyError:
                         err_msg.append(
-                            "L'enseignant {0} n'existe pas dans la base de données".format(full_name)
+                            "L’enseignant {0} n'existe pas dans la base de données".format(full_name)
                         )
                     seen_klasses.add(klass)
 
@@ -428,7 +428,7 @@ class HPContactsImportView(ImportViewBase):
                 student = Student.objects.get(ext_id=int(line['UID_ETU']))
             except Student.DoesNotExist:
                 errors.append(
-                    "Impossible de trouver l'étudiant avec le numéro %s" % int(line['UID_ETU'])
+                    "Impossible de trouver l’étudiant avec le numéro %s" % int(line['UID_ETU'])
                 )
                 continue
             if not line['NoSIRET']:
@@ -440,7 +440,7 @@ class HPContactsImportView(ImportViewBase):
                 corp = Corporation.objects.get(ext_id=int(line['NoSIRET']))
             except Corporation.DoesNotExist:
                 errors.append(
-                    "Impossible de trouver l'institution avec le numéro %s" % int(line['NoSIRET'])
+                    "Impossible de trouver l’institution avec le numéro %s" % int(line['NoSIRET'])
                 )
                 continue
 
@@ -521,7 +521,7 @@ class ImportReportsView(FormView):
 
     def import_reports(self, pdf_path, semester):
         path = os.path.abspath(pdf_path)
-        student_regex = '[E|É]lève\s*:\s*([^\n]*)'
+        student_regex = r'[E|É]lève\s*:\s*([^\n]*)'
         # Directory automatically deleted when the variable is deleted
         _temp_dir = tempfile.TemporaryDirectory()
         temp_dir = _temp_dir.name

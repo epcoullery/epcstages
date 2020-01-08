@@ -753,7 +753,7 @@ class ImportTests(TestCase):
         with open(path, 'rb') as fh:
             response = self.client.post(reverse('import-hp-contacts'), {'upload': fh}, follow=True)
         self.check_form_errors(response)
-        self.assertContains(response, "Impossible de trouver l&#39;étudiant avec le numéro 10")
+        self.assertContains(response, "Impossible de trouver l’étudiant avec le numéro 10")
         self.assertContains(response, "NoSIRET est vide à ligne 4. Ligne ignorée")
         st1.refresh_from_db()
         self.assertEqual(st1.instructor.last_name, 'Geiser')

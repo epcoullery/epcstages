@@ -144,7 +144,7 @@ class CandidateTests(TestCase):
         # Mail content differ depending on the section
         self.assertEqual(mail.outbox[0].body, """Monsieur Henri Dupond,
 
-Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation Education de l&#39;enfance, dipl. ES, option «Enfance» et vous remercions de l’intérêt que vous portez à notre institution.
+Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation Education de l’enfance, dipl. ES, option «Enfance» et vous remercions de l’intérêt que vous portez à notre institution.
 
 Votre dossier sera traité dans les jours à venir et des nouvelles vous seront communiquées par courriel durant la 2ème quinzaine du mois de février.
 
@@ -257,7 +257,7 @@ En cas d’empêchement de dernière minute, nous vous remercions d’annoncer v
 Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), nous vous rappelons que vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Si vous n’avez pas déjà joint à votre dossier de candidature un document officiel (rapport d’orthophonie par exemple), vous devez impérativement nous le faire parvenir au moins 5 jours ouvrables avant la date du premier examen.
 
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
- - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
+ - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
 
 Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
 
@@ -281,7 +281,7 @@ tél. 032 886 33 00
         self.assertEqual(response.context['form'].initial['message'], expected_message.replace(
             """
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
- - Formulaire d&#39;inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
+ - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
 
 Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
 

@@ -24,7 +24,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
 
     def header(self, canvas, doc):
         section = "Filière EDE"
-        title = "Dossier d'inscription"
+        title = "Dossier d’inscription"
 
         canvas.saveState()
         canvas.drawImage(

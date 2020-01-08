@@ -14,7 +14,7 @@ SECTION_CHOICES = (
     ('ASA', 'Aide en soin et accompagnement AFP'),
     ('ASE', 'Assist. socio-éducatif-ve CFC'),
     ('ASSC', 'Assist. en soin et santé communautaire CFC'),
-    ('EDE', "Education de l'enfance, dipl. ES"),
+    ('EDE', "Education de l’enfance, dipl. ES"),
     ('EDS', 'Education sociale, dipl. ES'),
 )
 
@@ -89,7 +89,7 @@ class Candidate(models.Model):
     )
 
     # Checking for registration file
-    registration_form = models.BooleanField("Formulaire d'inscription", default=False)
+    registration_form = models.BooleanField("Formulaire d’inscription", default=False)
     certificate_of_payement = models.BooleanField("Attest. de paiement", default=False)
     police_record = models.BooleanField("Casier judic.", default=False)
     cv = models.BooleanField("CV", default=False)
