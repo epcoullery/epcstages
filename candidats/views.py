@@ -1,12 +1,14 @@
+import io
 import os
 
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponse
-from django.shortcuts import redirect
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.template import loader
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.text import slugify
 
 from stages.views.base import EmailConfirmationBaseView
 from candidats.models import Candidate, Interview
@@ -170,11 +172,10 @@ def inscription_summary(request, pk):
     """
     Print a PDF summary of inscription
     """
-    candidat = Candidate.objects.get(pk=pk)
-    pdf = InscriptionSummaryPDF(candidat)
+    candidat = get_object_or_404(Candidate, pk=pk)
+    buff = io.BytesIO()
+    pdf = InscriptionSummaryPDF(buff)
     pdf.produce(candidat)
-
-    with open(pdf.filename, mode='rb') as fh:
-        response = HttpResponse(fh.read(), content_type='application/pdf')
-        response['Content-Disposition'] = 'attachment; filename="{0}"'.format(os.path.basename(pdf.filename))
-    return response
+    filename = slugify('{0}_{1}'.format(candidat.last_name, candidat.first_name)) + '.pdf'
+    buff.seek(0)
+    return FileResponse(buff, as_attachment=True, filename=filename)

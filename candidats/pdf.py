@@ -4,7 +4,6 @@ from reportlab.lib.units import cm
 from reportlab.platypus import PageTemplate, Paragraph, Spacer, Table, TableStyle
 
 from django.utils.dateformat import format as django_format
-from django.utils.text import slugify 
 
 from stages.pdf import EpcBaseDocTemplate, LOGO_EPC, LOGO_ESNE, style_normal, style_bold
 from .models import (
@@ -17,9 +16,8 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
     """
     PDF for summary of inscription
     """
-    def __init__(self, candidate, **kwargs):
-        filename = slugify('{0}_{1}'.format(candidate.last_name, candidate.first_name)) + '.pdf'
-        super().__init__(filename, **kwargs)
+    def __init__(self, out, **kwargs):
+        super().__init__(out, **kwargs)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header)
         ])

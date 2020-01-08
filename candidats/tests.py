@@ -370,7 +370,7 @@ tél. 032 886 33 00
             'attachment; filename="dupond_henri.pdf"'
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
-        self.assertGreater(len(response.content), 200)
+        self.assertGreater(int(response['Content-Length']), 1000)
 
     def test_export_candidates(self):
         ede = Section.objects.create(name='EDE')
