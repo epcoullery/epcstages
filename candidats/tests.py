@@ -171,7 +171,7 @@ tél. 032 886 33 00"""
 
 Nous vous confirmons la bonne réception de l’inscription de Madame Joé Glatz dans la filière Assist. socio-éducatif-ve CFC pour la prochaine rentrée scolaire.
 
-Le nom de la classe ainsi que les jours de cours vous seront communiqués dès que toutes les inscriptions seront rentrées, mais au plus tard durant la 1ère semaine de juillet.
+Le nom de la classe ainsi que les jours de cours vous seront communiqués au début du mois de juin.
 
 Nous attirons votre attention sur le fait que l'accès aux cours est autorisé sous réserve de l'approbation du contrat par l'autorité cantonale qui en est détentrice.
 
