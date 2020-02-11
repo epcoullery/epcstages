@@ -199,7 +199,7 @@ tél. 032 886 33 00"""
 
 Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation Education sociale, dipl. ES et vous remercions de l’intérêt que vous portez à notre institution.
 
-Votre dossier sera traité début octobre 2018 et des nouvelles vous seront communiquées par courriel.
+Votre dossier sera traité début octobre et des nouvelles vous seront communiquées par courriel.
 
 
 Dans l’intervalle, nous vous adressons, Monsieur, nos salutations les plus cordiales.
