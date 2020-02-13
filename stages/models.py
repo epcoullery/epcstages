@@ -321,7 +321,6 @@ class Student(models.Model):
         ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL, related_name='students_es',
     )
     date_exam = models.DateTimeField(blank=True, null=True)
-    last_appointment = models.DateField(blank=True, null=True)
     room = models.CharField('Salle', max_length=15, blank=True)
     mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
     mark_acq = models.CharField('Note', max_length=5, choices=ACQ_MARK_CHOICES, blank=True)
