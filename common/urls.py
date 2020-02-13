@@ -49,14 +49,15 @@ urlpatterns = [
         name='print-expert-compens-ede'),
     path('student_ede/<int:pk>/examination/mentor/', views.PrintMentorEDECompensationForm.as_view(),
         name='print-mentor-compens-ede'),
-    path('student_ede/export_qualif_ede/', views.export.export_qualification_ede,
-        name='export-qualif-ede'),
 
     # Qualification EDS
     path('student_eds/<int:pk>/send_convocation/', views.StudentConvocationEDSView.as_view(),
         name='student-eds-convocation'),
     path('student_eds/<int:pk>/examination/expert/', views.PrintExpertEDSCompensationForm.as_view(),
         name='print-expert-compens-eds'),
+
+    path('student/export_qualif/<slug:section>/', views.export.export_qualification,
+        name='export-qualif'),
 
     path('imputations/export/', views.export.imputations_export, name='imputations_export'),
     path('export_sap/', views.export.export_sap, name='export_sap'),
