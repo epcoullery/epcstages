@@ -418,11 +418,9 @@ def ortra_export(request):
 def export_qualification(request, section='ede'):
     headers = [
         'Classe', 'Etudiant-e',
-        'Référent pratique', 'Résumé TD', 'Ens. référent', 'dernier RDV',
+        'Référent pratique', 'Titre TD', 'Résumé TD', 'Ens. référent',
         'Mentor',
-        'Session',
-        'Titre TD',
-        'Exp_int.',
+        'Session', 'Type', 'Exp_int.',
         'Expert ext. Civilité', 'Expert ext. Nom', 'Expert ext. Adresse', 'Expert ext. Localité',
         'Date', 'Salle', 'Note',
     ]
@@ -432,29 +430,41 @@ def export_qualification(request, section='ede'):
     export.write_line(headers, bold=True)
 
     # Data
+    empty_values = [''] * 7
     for student in Student.objects.filter(klass__name__startswith='3%s' % section.upper(), archived=False
             ).select_related('klass', 'referent', 'training_referent', 'mentor', 'expert', 'internal_expert',
+            ).prefetch_related('examination_set'
             ).order_by('klass__name', 'last_name'):
-        values = [
+        stud_values = [
             student.klass.name,
             student.full_name,
             student.training_referent.full_name if student.training_referent else '',
+            student.title,
             student.subject,
             student.referent.full_name if student.referent else '',
-            student.last_appointment,
             student.mentor.full_name if student.mentor else '',
-            str(student.session),
-            student.title,
-            student.internal_expert.full_name if student.internal_expert else '',
-            student.expert.civility if student.expert else '',
-            student.expert.full_name if student.expert else '',
-            student.expert.street if student.expert else '',
-            student.expert.pcode_city if student.expert else '',
-            student.date_exam,
-            student.room,
-            student.mark,
         ]
-        export.write_line(values)
+        lines_exported = 0
+        for exam in student.examination_set.all():
+            exam_values = [
+                str(exam.session),
+                exam.get_type_exam_display(),
+                exam.internal_expert.full_name if exam.internal_expert else '',
+                exam.external_expert.civility if exam.external_expert else '',
+                exam.external_expert.full_name if exam.external_expert else '',
+                exam.external_expert.street if exam.external_expert else '',
+                exam.external_expert.pcode_city if exam.external_expert else '',
+                exam.date_exam,
+                exam.room,
+                exam.mark,
+            ]
+            if lines_exported == 0:
+                export.write_line(stud_values + exam_values)
+            else:
+                export.write_line(empty_values + exam_values)
+            lines_exported += 1
+        if lines_exported == 0:
+            export.write_line(stud_values)
 
     return export.get_http_response(export_name)
 

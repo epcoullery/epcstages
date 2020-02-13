@@ -14,7 +14,7 @@ from django.utils.safestring import mark_safe
 from .models import (
     Teacher, Option, Student, StudentFile, Section, Level, Klass, Corporation,
     CorpContact, Domain, Period, Availability, Training, Course,
-    LogBookReason, LogBook, ExamEDESession, SupervisionBill
+    LogBookReason, LogBook, ExamEDESession, Examination, SupervisionBill
 )
 from .views.export import OpenXMLExport
 
@@ -87,6 +87,7 @@ class LogBookInline(admin.TabularInline):
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'abrev', 'email', 'contract', 'rate', 'total_logbook', 'archived')
     list_filter = (('archived', ArchivedListFilter), 'contract')
+    search_fields = ('last_name', 'first_name', 'email')
     fields = (('civility', 'last_name', 'first_name', 'abrev'),
               ('birth_date', 'email', 'ext_id'),
               ('contract', 'rate', 'can_examinate', 'archived'),
@@ -102,75 +103,104 @@ class SupervisionBillInline(admin.TabularInline):
     extra = 0
 
 
+class ExaminationInline(admin.StackedInline):
+    model = Examination
+    extra = 1
+    verbose_name = "Procédure de qualification"
+    verbose_name_plural = "Procédures de qualification"
+    autocomplete_fields = ('internal_expert', 'external_expert')
+    fields = (('session', 'type_exam', 'date_exam', 'room'),
+              ('internal_expert', 'external_expert'),
+              ('mark', 'mark_acq'),
+              ('examination_actions'),
+              ('date_soutenance_mailed', 'date_confirm_received'),)
+    readonly_fields = (
+        'examination_actions', 'date_soutenance_mailed'
+    )
+
+    def examination_actions(self, obj):
+        missing_message = mark_safe(
+            '<div class="warning">Veuillez compléter les informations '
+            'd’examen (date/salle/experts) pour accéder aux boutons d’impression.</div>'
+        )
+        if obj and obj.student.is_ede_3():
+            if obj.missing_examination_data():
+                return missing_message
+            else:
+                return format_html(
+                    '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
+                    '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
+                    '<a class="button" href="{}">Indemnité au mentor</a>',
+                    reverse('print-expert-compens-ede', args=[obj.student.pk]),
+                    reverse('student-ede-convocation', args=[obj.student.pk]),
+                    reverse('print-mentor-compens-ede', args=[obj.student.pk]),
+                )
+        elif obj and obj.student.is_eds_3():
+            if obj.missing_examination_data():
+                return missing_message
+            else:
+                return format_html(
+                    '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
+                    '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
+                    '<a class="button" href="{}">Indemnité au mentor</a>',
+                    reverse('print-expert-compens-eds', args=[obj.student.pk]),
+                    reverse('student-eds-convocation', args=[obj.student.pk]),
+                    reverse('print-mentor-compens-ede', args=[obj.student.pk]),
+                )
+        else:
+            return missing_message
+    examination_actions.short_description = 'Actions pour la procédure'
+
+
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert', 'expert_ep')
-    readonly_fields = (
-        'report_sem1_sent', 'report_sem2_sent',
-        'examination_actions',
-        'date_soutenance_mailed', 'date_soutenance_ep_mailed'
-    )
+    readonly_fields = ('report_sem1_sent', 'report_sem2_sent')
     fieldsets = [
         (None, {
-            'fields': (('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
-                      ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
-                      ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
-                      ('klass', 'option_ase'),
-                      ('report_sem1', 'report_sem1_sent'),
-                      ('report_sem2', 'report_sem2_sent'),
-                      ('corporation', 'instructor',)
-                      )
-                }
-         ),
-        ("Examen Qualification ES", {
+            'fields': (
+                ('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
+                ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
+                ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
+                ('klass', 'option_ase'),
+                ('report_sem1', 'report_sem1_sent'),
+                ('report_sem2', 'report_sem2_sent'),
+                ('corporation', 'instructor',)
+            )}
+        ),
+        ("Procédure de qualification", {
             'classes': ['collapse'],
             'fields': (
-                        ('session', 'date_exam', 'room'),
                         ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
                         ('training_referent', 'referent', 'mentor'),
-                        ('internal_expert', 'expert'),
-                        ('date_soutenance_mailed', 'date_confirm_received'),
-                        ('examination_actions',),
-                        ('mark', 'mark_acq'),
-                      )
-        }),
-        ("Entretien professionnel ES", {
-            'classes': ['collapse'],
-            'fields': (
-                        ('session_ep', 'date_exam_ep', 'room_ep'),
-                        ('internal_expert_ep', 'expert_ep'),
-                        ('date_soutenance_ep_mailed', 'date_confirm_ep_received'),
-                        ('mark_ep', 'mark_ep_acq'),
                       )
         }),
     ]
     actions = ['archive']
-    inlines = [SupervisionBillInline]
+    inlines = [ExaminationInline, SupervisionBillInline]
 
-    def get_inline_instances(self, request, obj=None):
-        # SupervisionBillInline is only adequate for EDE students
-        if obj is None or not obj.klass or obj.klass.section.name != 'EDE':
+    def get_inlines(self, request, obj=None):
+        if obj is None:
             return []
-        return super().get_inline_instances(request, obj=obj)
+        inlines = super().get_inlines(request, obj=obj)
+        # SupervisionBillInline is only adequate for EDE students
+        if not obj.klass or obj.klass.section.name != 'EDE':
+            inlines = [inl for inl in inlines if inl != SupervisionBillInline]
+        if not obj.is_ede_3() and not obj.is_eds_3():
+            inlines = [inl for inl in inlines if inl != ExaminationInline]
+        return inlines
 
     def get_fieldsets(self, request, obj=None):
-        if not self.is_ede_3(obj) and not self.is_eds_3(obj):
-            # Hide "Examen Qualification ES"/"Entretien professionnel ES"
+        if not obj or (not obj.is_ede_3() and not obj.is_eds_3()):
+            # Hide group "Procédure de qualification"
             fieldsets = deepcopy(self.fieldsets)
             fieldsets[1][1]['classes'] = ['hidden']
-            fieldsets[2][1]['classes'] = ['hidden']
             return fieldsets
         return super().get_fieldsets(request, obj)
-
-    def is_ede_3(self, obj):
-        return obj and obj.klass and obj.klass.section.name == 'EDE' and obj.klass.level.name == '3'
-
-    def is_eds_3(self, obj):
-        return obj and obj.klass and obj.klass.section.name == 'EDS' and obj.klass.level.name == '3'
 
     def archive(self, request, queryset):
         for student in queryset:
@@ -178,41 +208,6 @@ class StudentAdmin(admin.ModelAdmin):
             student.archived = True
             student.save()
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
-
-    def examination_actions(self, obj):
-        if self.is_ede_3(obj):
-            if obj.missing_examination_data():
-                return mark_safe(
-                    '<div class="warning">Veuillez compléter les informations '
-                    'd’examen (date/salle/experts) pour accéder aux boutons d’impression.</div>'
-                )
-            else:
-                return format_html(
-                    '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
-                    '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                    '<a class="button" href="{}">Indemnité au mentor</a>',
-                    reverse('print-expert-compens-ede', args=[obj.pk]),
-                    reverse('student-ede-convocation', args=[obj.pk]),
-                    reverse('print-mentor-compens-ede', args=[obj.pk]),
-                )
-        elif self.is_eds_3(obj):
-            if obj.missing_examination_data():
-                return mark_safe(
-                    '<div class="warning">Veuillez compléter les informations '
-                    'd’examen (date/salle/experts) pour accéder aux boutons d’impression.</div>'
-                )
-            else:
-                return format_html(
-                    '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
-                    '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                    '<a class="button" href="{}">Indemnité au mentor</a>',
-                    reverse('print-expert-compens-eds', args=[obj.pk]),
-                    reverse('student-eds-convocation', args=[obj.pk]),
-                    reverse('print-mentor-compens-ede', args=[obj.pk]),
-                )
-        else:
-            return ''
-    examination_actions.short_description = 'Actions pour les examens'
 
 
 class CorpContactAdmin(admin.ModelAdmin):
@@ -412,6 +407,7 @@ admin.site.register(Training, TrainingAdmin)
 admin.site.register(LogBookReason)
 admin.site.register(LogBook)
 admin.site.register(ExamEDESession)
+admin.site.register(Examination)
 
 admin.site.unregister(Group)
 admin.site.register(Group, GroupAdmin)

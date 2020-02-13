@@ -406,6 +406,12 @@ class Student(models.Model):
             return user.has_perm('stages.change_student') or user.teacher == self.klass.teacher
         return False
 
+    def is_ede_3(self):
+        return self.klass and self.klass.section.name == 'EDE' and self.klass.level.name == '3'
+
+    def is_eds_3(self):
+        return self.klass and self.klass.section.name == 'EDS' and self.klass.level.name == '3'
+
     def missing_examination_data(self):
         missing = []
         if not self.date_exam:
@@ -427,6 +433,53 @@ class Student(models.Model):
         if not self.expert_ep:
             missing.append("L’expert externe n’est pas défini")
         if not self.internal_expert_ep:
+            missing.append("L’expert interne n’est pas défini")
+        return missing
+
+
+class Examination(models.Model):
+    ACQ_MARK_CHOICES = (
+        ('non', 'Non acquis'),
+        ('part', 'Partiellement acquis'),
+        ('acq', 'Acquis'),
+    )
+    TYPE_EXAM_CHOICES = (
+        ('exam', 'Examen qualification'),
+        ('entr', 'Entretien professionnel'),
+    )
+
+    student = models.ForeignKey(Student, on_delete=models.CASCADE)
+    session = models.ForeignKey(
+        ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Session',
+    )
+    type_exam = models.CharField("Type", max_length=10, choices=TYPE_EXAM_CHOICES)
+    date_exam = models.DateTimeField(blank=True, null=True)
+    room = models.CharField('Salle', max_length=15, blank=True)
+    mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
+    mark_acq = models.CharField('Note', max_length=5, choices=ACQ_MARK_CHOICES, blank=True)
+    internal_expert = models.ForeignKey(
+        Teacher, verbose_name='Expert interne',
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
+    external_expert = models.ForeignKey(
+        'CorpContact', verbose_name='Expert externe',
+        null=True, blank=True, on_delete=models.SET_NULL
+    )
+    date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
+    date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
+
+    class Meta:
+        verbose_name = "Examen"
+
+    def missing_examination_data(self):
+        missing = []
+        if not self.date_exam:
+            missing.append("La date d’examen est manquante")
+        if not self.room:
+            missing.append("La salle d’examen n’est pas définie")
+        if not self.external_expert:
+            missing.append("L’expert externe n’est pas défini")
+        if not self.internal_expert:
             missing.append("L’expert interne n’est pas défini")
         return missing
 
