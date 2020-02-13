@@ -1,28 +1,25 @@
-# -*- coding: utf-8 -*-
 import os
 import sys
 
-from fabric.api import cd, env, get, local, prefix, prompt, run
-from fabric.contrib import django
-from fabric.utils import abort
+from fabric import task
+from invoke import Context, Exit
 
 APP_DIR = '/var/www/epcstages'
 VIRTUALENV_DIR = '/var/virtualenvs/stages/bin/activate'
 
 """Read settings from Django settings"""
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-django.settings_module('common.settings')
 from common import settings
 
-env.hosts = [settings.FABRIC_HOST]
-env.user = settings.FABRIC_USERNAME
+MAIN_HOST = settings.FABRIC_HOST
 
-
-def clone_remote_db():
+@task(hosts=[MAIN_HOST])
+def clone_remote_db(conn):
     """
     Copy remote data (JSON dump), download it locally and recreate a local
     SQLite database with those data.
     """
+    local = Context()
     db_name = settings.DATABASES['default']['NAME']
     is_sqlite = 'sqlite' in settings.DATABASES['default']['ENGINE']
 
@@ -30,43 +27,47 @@ def clone_remote_db():
         if is_sqlite:
             return os.path.exists(db_name)
         else:  # Assume postgres
-            db_list = local('psql --list', capture=True)
+            db_list = local.run('psql --list', capture=True)
             return (' ' + db_name + ' ') in db_list
 
     if exist_local_db():
-        rep = prompt('A local database named "%s" already exists. Overwrite? (y/n)' % db_name)
+        rep = input('A local database named "%s" already exists. Overwrite? (y/n)' % db_name)
         if rep == 'y':
             if is_sqlite:
                 os.remove(settings.DATABASES['default']['NAME'])
             else:
-                local('''sudo -u postgres psql -c "DROP DATABASE %(db)s;"'''  % {'db': db_name})
+                local.run('''sudo -u postgres psql -c "DROP DATABASE %(db)s;"'''  % {'db': db_name})
         else:
-            abort("Database not copied")
+            raise Exit("Database not copied")
 
     # Dump remote data and download the file
-    with cd(APP_DIR):
-        with prefix('source %s' % VIRTUALENV_DIR):
-            run('python manage.py dumpdata --natural-foreign --indent 1 -e auth.Permission auth stages candidats > epcstages.json')
-        get('epcstages.json', '.')
+    with conn.cd(APP_DIR):
+        with conn.prefix('source %s' % VIRTUALENV_DIR):
+            conn.run('python manage.py dumpdata --natural-foreign --indent 1 -e auth.Permission auth stages candidats > epcstages.json')
+        conn.get('epcstages.json', '.')
 
     if not is_sqlite:
-        local('''sudo -u postgres psql -c "CREATE DATABASE %(db)s OWNER=%(owner)s;"''' % {
-        'db': db_name, 'owner': settings.DATABASES['default']['USER']})
+        local.run(
+            '''sudo -u postgres psql -c "CREATE DATABASE %(db)s OWNER=%(owner)s;"''' % {
+                'db': db_name, 'owner': settings.DATABASES['default']['USER']
+            }
+        )
 
     # Recreate a fresh DB with downloaded data
-    local("python ../manage.py migrate")
-    local("python ../manage.py flush --noinput")
-    local("python ../manage.py loaddata epcstages.json")
+    local.run("python ../manage.py migrate")
+    local.run("python ../manage.py flush --noinput")
+    local.run("python ../manage.py loaddata epcstages.json")
 
 
-def deploy():
+@task(hosts=[MAIN_HOST])
+def deploy(conn):
     """
     Deploy project with latest Github code
     """
-    with cd(APP_DIR):
-        run("git pull")
-        with prefix('source %s' % VIRTUALENV_DIR):
-            run("python manage.py migrate")
-            run("python manage.py collectstatic --noinput")
-        run("touch common/wsgi.py")
+    with conn.cd(APP_DIR):
+        conn.run("git pull")
+        with conn.prefix('source %s' % VIRTUALENV_DIR):
+            conn.run("python manage.py migrate")
+            conn.run("python manage.py collectstatic --noinput")
+        conn.run("touch common/wsgi.py")
 
