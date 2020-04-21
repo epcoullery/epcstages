@@ -21,6 +21,9 @@ class EmailConfirmationBaseView(FormView):
     success_message = "Le message a été envoyé pour {person}"
     error_message = "Échec d’envoi pour {person} ({err})"
 
+    def get_person(self):
+        return self.person_model.objects.get(pk=self.kwargs['pk'])
+
     def form_valid(self, form):
         email = EmailMessage(
             subject=form.cleaned_data['subject'],
@@ -29,7 +32,7 @@ class EmailConfirmationBaseView(FormView):
             to=form.cleaned_data['to'].split(';'),
             bcc=form.cleaned_data['cci'].split(';'),
         )
-        person = self.person_model.objects.get(pk=self.kwargs['pk'])
+        person = self.get_person()
         try:
             email.send()
         except Exception as err:
@@ -46,7 +49,7 @@ class EmailConfirmationBaseView(FormView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context.update({
-            'person': self.person_model.objects.get(pk=self.kwargs['pk']),
+            'person': self.get_person(),
             'title': self.title,
         })
         return context

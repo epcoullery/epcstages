@@ -335,7 +335,7 @@ class CompensationForm:
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
 
-    def add_accounting_stamp(self, mandat=None):
+    def add_accounting_stamp(self, student, mandat=None):
         account = otp = total = ''
         if mandat == self.EXPERT_MANDAT:
             account = self.EXPERT_ACCOUNT
@@ -343,9 +343,9 @@ class CompensationForm:
             account = self.MENTOR_ACCOUNT
             total = '500.-'
 
-        if self.student.klass.is_Ede_pe():
+        if student.klass.is_Ede_pe():
             otp = self.OTP_EDE_PE_OTP
-        elif self.student.klass.is_Ede_ps():
+        elif student.klass.is_Ede_ps():
             otp = self.OTP_EDE_PS_OTP
 
         self.story.append((Paragraph(self.points * 2, style_normal)))
@@ -433,8 +433,8 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         <br/><br/><br/>
     """
 
-    def __init__(self, out, student):
-        self.student = student
+    def __init__(self, out, exam):
+        self.exam = exam
         super().__init__(out)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
@@ -443,10 +443,10 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
 
     def exam_data(self):
         return {
-            'expert': self.student.expert,
-            'internal_expert': self.student.internal_expert,
-            'date_exam': self.student.date_exam,
-            'room': self.student.room,
+            'expert': self.exam.external_expert,
+            'internal_expert': self.exam.internal_expert,
+            'date_exam': self.exam.date_exam,
+            'room': self.exam.room,
         }
 
     def produce(self):
@@ -471,7 +471,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             title_lower=self.title.lower(),
             expert_civility=exam_data['expert'].civility,
             expert_accord=exam_data['expert'].adjective_ending,
-            student_civility_full_name=self.student.civility_full_name,
+            student_civility_full_name=self.exam.student.civility_full_name,
         ), style_normal))
 
         date_text = "<br/>{0} à l'Ecole Santé-social Pierre-Coullery, salle {1}<br/><br/>"
@@ -507,7 +507,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
 
         self.story.append(Paragraph(
             "Mandat: Soutenance de {0} {1}, classe {2}".format(
-                self.student.civility, self.student.full_name, self.student.klass
+                self.exam.student.civility, self.exam.student.full_name, self.exam.student.klass
             ), style_normal
         ))
         self.story.append(Paragraph(
@@ -515,7 +515,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         ))
         self.story.append(Spacer(0, 2 * cm))
 
-        self.add_accounting_stamp(self.EXPERT_MANDAT)
+        self.add_accounting_stamp(self.exam.student, self.EXPERT_MANDAT)
 
         self.build(self.story)
 
@@ -556,7 +556,7 @@ class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
         ))
         self.story.append(Spacer(0, 3 * cm))
 
-        self.add_accounting_stamp(self.MENTOR_MANDAT)
+        self.add_accounting_stamp(self.student, self.MENTOR_MANDAT)
 
         self.build(self.story)
 

@@ -12,7 +12,7 @@ from django.utils.html import escape
 from candidats.models import Candidate
 from .models import (
     Level, Domain, Section, Klass, Option, Period, Student, Corporation, Availability,
-    CorpContact, Teacher, Training, Course,
+    CorpContact, Teacher, Training, Course, Examination, ExamEDESession,
 )
 from .utils import school_year
 
@@ -211,23 +211,24 @@ class StagesTests(TestCase):
 
     def test_send_ede_convocation(self):
         st = Student.objects.get(first_name="Albin")
+        exam = Examination.objects.create(student=st, session=ExamEDESession.objects.create(year=2020, season='1'))
         self.client.login(username='me', password='mepassword')
-        url = reverse('student-ede-convocation', args=[st.pk])
+        url = reverse('student-ede-convocation', args=[exam.pk])
         response = self.client.get(url, follow=True)
         for err in ("La date d’examen est manquante",
                     "La salle d’examen n’est pas définie",
                     "L’expert externe n’est pas défini",
                     "L’expert interne n’est pas défini"):
             self.assertContains(response, err)
-        st.date_exam = datetime(2018, 6, 28, 12, 00)
-        st.room = "B123"
-        st.expert = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert = Teacher.objects.get(last_name="Caux")
-        st.save()
+        exam.date_exam = datetime(2018, 6, 28, 12, 00)
+        exam.room = "B123"
+        exam.external_expert = CorpContact.objects.get(last_name="Horner")
+        exam.internal_expert = Teacher.objects.get(last_name="Caux")
+        exam.save()
         response = self.client.get(url, follow=True)
         self.assertContains(response, "L’expert externe n’a pas de courriel valide !")
-        st.expert.email = "horner@example.org"
-        st.expert.save()
+        exam.external_expert.email = "horner@example.org"
+        exam.external_expert.save()
         response = self.client.get(url)
         expected_message = """ Albin Dupond,
 Madame Julie Caux,
@@ -261,8 +262,8 @@ tél. 032 886 33 00
             'sender': 'me@example.org',
         })
         self.assertEqual(len(mail.outbox), 1)
-        st.refresh_from_db()
-        self.assertIsNotNone(st.date_soutenance_mailed)
+        exam.refresh_from_db()
+        self.assertIsNotNone(exam.date_soutenance_mailed)
 
     def test_send_eds_convocation(self):
         klass = Klass.objects.create(
@@ -272,9 +273,10 @@ tél. 032 886 33 00
             first_name="Laurent", last_name="Hots", birth_date="1994-07-12",
             pcode="2000", city="Neuchâtel", klass=klass
         )
+        exam = Examination.objects.create(student=st, session=ExamEDESession.objects.create(year=2020, season='1'))
 
         self.client.login(username='me', password='mepassword')
-        url = reverse('student-eds-convocation', args=[st.pk])
+        url = reverse('student-eds-convocation', args=[exam.pk])
         response = self.client.get(url, follow=True)
         for err in ("L’étudiant-e n’a pas de courriel valide",
                     "La date d’examen est manquante",
@@ -283,15 +285,16 @@ tél. 032 886 33 00
                     "L’expert interne n’est pas défini"):
             self.assertContains(response, err)
         st.email = 'hots@example.org'
-        st.date_exam = datetime(2018, 6, 28, 12, 00)
-        st.room = "B123"
-        st.expert = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert = Teacher.objects.get(last_name="Caux")
         st.save()
+        exam.date_exam = datetime(2018, 6, 28, 12, 00)
+        exam.room = "B123"
+        exam.external_expert = CorpContact.objects.get(last_name="Horner")
+        exam.internal_expert = Teacher.objects.get(last_name="Caux")
+        exam.save()
         response = self.client.get(url, follow=True)
         self.assertContains(response, "L’expert externe n’a pas de courriel valide !")
-        st.expert.email = "horner@example.org"
-        st.expert.save()
+        exam.external_expert.email = "horner@example.org"
+        exam.external_expert.save()
         response = self.client.get(url)
         expected_message = """ Laurent Hots,
 Madame Julie Caux,
@@ -325,21 +328,22 @@ tél. 032 886 33 00
             'sender': 'me@example.org',
         })
         self.assertEqual(len(mail.outbox), 1)
-        st.refresh_from_db()
-        self.assertIsNotNone(st.date_soutenance_mailed)
+        exam.refresh_from_db()
+        self.assertIsNotNone(exam.date_soutenance_mailed)
 
     def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")
-        url = reverse('print-expert-compens-ede', args=[st.pk])
+        exam = Examination.objects.create(student=st, session=ExamEDESession.objects.create(year=2020, season='1'))
+        url = reverse('print-expert-compens-ede', args=[exam.pk])
         self.client.login(username='me', password='mepassword')
         response = self.client.get(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
 
-        st.expert = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert = Teacher.objects.get(last_name="Caux")
-        st.date_exam = datetime(2018, 6, 28, 12, 00)
-        st.room = "B123"
-        st.save()
+        exam.external_expert = CorpContact.objects.get(last_name="Horner")
+        exam.internal_expert = Teacher.objects.get(last_name="Caux")
+        exam.date_exam = datetime(2018, 6, 28, 12, 00)
+        exam.room = "B123"
+        exam.save()
         self.client.login(username='me', password='mepassword')
         response = self.client.get(url, follow=True)
         self.assertEqual(
@@ -349,8 +353,8 @@ tél. 032 886 33 00
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(int(response['Content-Length']), 1000)
         # Expert without corporation
-        st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
-        st.save()
+        exam.external_expert = CorpContact.objects.create(first_name='James', last_name='Bond')
+        exam.save()
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 
@@ -373,16 +377,17 @@ tél. 032 886 33 00
             first_name="Laurent", last_name="Hots", birth_date="1994-07-12",
             pcode="2000", city="Neuchâtel", klass=klass
         )
-        url = reverse('print-expert-compens-eds', args=[st.pk])
+        exam = Examination.objects.create(student=st, session=ExamEDESession.objects.create(year=2020, season='1'))
+        url = reverse('print-expert-compens-eds', args=[exam.pk])
         self.client.login(username='me', password='mepassword')
         response = self.client.get(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
 
-        st.expert = CorpContact.objects.get(last_name="Horner")
-        st.internal_expert = Teacher.objects.get(last_name="Caux")
-        st.date_exam = datetime(2018, 6, 28, 12, 00)
-        st.room = "B123"
-        st.save()
+        exam.external_expert = CorpContact.objects.get(last_name="Horner")
+        exam.internal_expert = Teacher.objects.get(last_name="Caux")
+        exam.date_exam = datetime(2018, 6, 28, 12, 00)
+        exam.room = "B123"
+        exam.save()
 
         response = self.client.get(url, follow=True)
         self.assertEqual(
@@ -392,8 +397,8 @@ tél. 032 886 33 00
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(int(response['Content-Length']), 1000)
         # Expert without corporation
-        st.expert = CorpContact.objects.create(first_name='James', last_name='Bond')
-        st.save()
+        exam.external_expert = CorpContact.objects.create(first_name='James', last_name='Bond')
+        exam.save()
         response = self.client.get(url, follow=True)
         self.assertEqual(response.status_code, 200)
 

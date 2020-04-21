@@ -8,7 +8,7 @@ Nous vous informons que la soutenance du travail final de {{ student.civility_fu
  - {{ date_examen }} en salle {{ salle }}
 
 
-Nous informons également {{ student.expert.civility }} {{ student.expert.last_name }} que le mémoire lui est adressé ce jour par courrier postal.
+Nous informons également {{ external_expert.civility }} {{ external_expert.last_name }} que le mémoire lui est adressé ce jour par courrier postal.
 
 
 Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, {{ global_civilities }}, nos salutations les meilleures.

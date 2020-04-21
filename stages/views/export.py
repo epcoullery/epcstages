@@ -432,7 +432,7 @@ def export_qualification(request, section='ede'):
     # Data
     empty_values = [''] * 7
     for student in Student.objects.filter(klass__name__startswith='3%s' % section.upper(), archived=False
-            ).select_related('klass', 'referent', 'training_referent', 'mentor', 'expert', 'internal_expert',
+            ).select_related('klass', 'referent', 'training_referent', 'mentor',
             ).prefetch_related('examination_set'
             ).order_by('klass__name', 'last_name'):
         stud_values = [

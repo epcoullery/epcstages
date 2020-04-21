@@ -252,7 +252,8 @@ class ExamEDESession(models.Model):
     season = models.CharField('saison', max_length=10)
 
     class Meta:
-        verbose_name = "Session d’examen EDE"
+        verbose_name = "Session d’examen"
+        ordering = ['-year', 'season']
 
     def __str__(self):
         return '{0} {1}'.format(self.year, self.season)
@@ -315,36 +316,6 @@ class Student(models.Model):
                                           on_delete=models.SET_NULL, verbose_name='Référent de PP')
     referent = models.ForeignKey(Teacher, null=True, blank=True, related_name='rel_referent',
                                  on_delete=models.SET_NULL, verbose_name='Référent avant-projet')
-    internal_expert = models.ForeignKey(Teacher, related_name='rel_internal_expert', verbose_name='Expert interne',
-                                null=True, blank=True, on_delete=models.SET_NULL)
-    session = models.ForeignKey(
-        ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL, related_name='students_es',
-    )
-    date_exam = models.DateTimeField(blank=True, null=True)
-    room = models.CharField('Salle', max_length=15, blank=True)
-    mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
-    mark_acq = models.CharField('Note', max_length=5, choices=ACQ_MARK_CHOICES, blank=True)
-    date_soutenance_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
-    date_confirm_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
-    #  ============== Fields for Entretien professionnel =========
-    session_ep = models.ForeignKey(
-        ExamEDESession, null=True, blank=True, on_delete=models.SET_NULL, verbose_name='Session EP',
-        related_name='students_ep',
-    )
-    date_exam_ep = models.DateTimeField("Date exam. EP", blank=True, null=True)
-    room_ep = models.CharField('Salle EP', max_length=15, blank=True)
-    mark_ep = models.DecimalField('Note EP', max_digits=3, decimal_places=2, blank=True, null=True)
-    mark_ep_acq = models.CharField('Note EP', max_length=5, choices=ACQ_MARK_CHOICES, blank=True)
-    internal_expert_ep = models.ForeignKey(
-        Teacher, related_name='rel_internal_expert_ep', verbose_name='Expert interne EP',
-        null=True, blank=True, on_delete=models.SET_NULL
-    )
-    expert_ep = models.ForeignKey(
-        'CorpContact', related_name='rel_expert_ep', verbose_name='Expert externe EP',
-        null=True, blank=True, on_delete=models.SET_NULL
-    )
-    date_soutenance_ep_mailed = models.DateTimeField("Convoc. env.", blank=True, null=True)
-    date_confirm_ep_received = models.DateTimeField("Récept. confirm", blank=True, null=True)
     #  ===============
     mc_comment = models.TextField("Commentaires", blank=True)
 
@@ -410,30 +381,6 @@ class Student(models.Model):
 
     def is_eds_3(self):
         return self.klass and self.klass.section.name == 'EDS' and self.klass.level.name == '3'
-
-    def missing_examination_data(self):
-        missing = []
-        if not self.date_exam:
-            missing.append("La date d’examen est manquante")
-        if not self.room:
-            missing.append("La salle d’examen n’est pas définie")
-        if not self.expert:
-            missing.append("L’expert externe n’est pas défini")
-        if not self.internal_expert:
-            missing.append("L’expert interne n’est pas défini")
-        return missing
-
-    def missing_examination_ep_data(self):
-        missing = []
-        if not self.date_exam_ep:
-            missing.append("La date d’examen est manquante")
-        if not self.room_ep:
-            missing.append("La salle d’examen n’est pas définie")
-        if not self.expert_ep:
-            missing.append("L’expert externe n’est pas défini")
-        if not self.internal_expert_ep:
-            missing.append("L’expert interne n’est pas défini")
-        return missing
 
 
 class Examination(models.Model):

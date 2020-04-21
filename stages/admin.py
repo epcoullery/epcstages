@@ -131,8 +131,8 @@ class ExaminationInline(admin.StackedInline):
                     '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                     '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
                     '<a class="button" href="{}">Indemnité au mentor</a>',
-                    reverse('print-expert-compens-ede', args=[obj.student.pk]),
-                    reverse('student-ede-convocation', args=[obj.student.pk]),
+                    reverse('print-expert-compens-ede', args=[obj.pk]),
+                    reverse('student-ede-convocation', args=[obj.pk]),
                     reverse('print-mentor-compens-ede', args=[obj.student.pk]),
                 )
         elif obj and obj.student.is_eds_3():
@@ -143,8 +143,8 @@ class ExaminationInline(admin.StackedInline):
                     '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                     '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
                     '<a class="button" href="{}">Indemnité au mentor</a>',
-                    reverse('print-expert-compens-eds', args=[obj.student.pk]),
-                    reverse('student-eds-convocation', args=[obj.student.pk]),
+                    reverse('print-expert-compens-eds', args=[obj.pk]),
+                    reverse('student-eds-convocation', args=[obj.pk]),
                     reverse('print-mentor-compens-ede', args=[obj.student.pk]),
                 )
         else:
@@ -157,7 +157,7 @@ class StudentAdmin(admin.ModelAdmin):
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
-    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor', 'expert', 'expert_ep')
+    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor')
     readonly_fields = ('report_sem1_sent', 'report_sem2_sent')
     fieldsets = [
         (None, {

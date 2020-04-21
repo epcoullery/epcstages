@@ -24,7 +24,7 @@ from .imports import HPContactsImportView, HPImportView, ImportReportsView, Stud
 from ..forms import CorporationMergeForm, EmailBaseForm, StudentCommentForm
 from ..models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Period,
-    Training, Availability
+    Training, Availability, Examination,
 )
 from ..pdf import (
     ChargeSheetPDF, ExpertEdeLetterPdf, ExpertEdsLetterPdf, UpdateDataFormPDF,
@@ -401,53 +401,41 @@ class StudentConvocationExaminationView(EmailConfirmationView):
     title = "Convocation à la soutenance du travail de diplôme"
     email_template = 'email/student_convocation_EDE.txt'
 
-    @property
-    def expert(self):
-        return self.student.expert
-
-    @property
-    def internal_expert(self):
-        return self.student.internal_expert
-
-    @property
-    def date_soutenance_mailed(self):
-        return self.student.date_soutenance_mailed
-
-    def missing_examination_data(self):
-        return self.student.missing_examination_data()
-
     def dispatch(self, request, *args, **kwargs):
-        self.student = Student.objects.get(pk=self.kwargs['pk'])
-        errors = self.missing_examination_data()
+        self.exam = Examination.objects.get(pk=self.kwargs['pk'])
+        errors = self.exam.missing_examination_data()
         errors.extend(self.check_errors())
         if errors:
             messages.error(request, "\n".join(errors))
-            return redirect(reverse("admin:stages_student_change", args=(self.student.pk,)))
+            return redirect(reverse("admin:stages_student_change", args=(self.exam.student.pk,)))
         return super().dispatch(request, *args, **kwargs)
+
+    def get_person(self):
+        return self.exam.student
 
     def check_errors(self):
         errors = []
-        if not self.student.email:
+        if not self.exam.student.email:
             errors.append("L’étudiant-e n’a pas de courriel valide !")
-        if self.expert and not self.expert.email:
+        if self.exam.external_expert and not self.exam.external_expert.email:
             errors.append("L’expert externe n’a pas de courriel valide !")
-        if self.internal_expert and not self.internal_expert.email:
+        if self.exam.internal_expert and not self.exam.internal_expert.email:
             errors.append("L’expert interne n'a pas de courriel valide !")
-        if self.date_soutenance_mailed is not None:
+        if self.exam.date_soutenance_mailed is not None:
             errors.append("Une convocation a déjà été envoyée !")
         return errors
 
     def msg_context(self):
         # Recipients with ladies first!
         recip_names = sorted([
-            self.student.civility_full_name,
-            self.expert.civility_full_name,
-            self.internal_expert.civility_full_name,
+            self.exam.student.civility_full_name,
+            self.exam.external_expert.civility_full_name,
+            self.exam.internal_expert.civility_full_name,
         ])
         titles = [
-            self.student.civility,
-            self.expert.civility,
-            self.internal_expert.civility,
+            self.exam.student.civility,
+            self.exam.external_expert.civility,
+            self.exam.internal_expert.civility,
         ]
         mme_count = titles.count('Madame')
         # Civilities, with ladies first!
@@ -463,16 +451,18 @@ class StudentConvocationExaminationView(EmailConfirmationView):
             'recipient1': recip_names[0],
             'recipient2': recip_names[1],
             'recipient3': recip_names[2],
-            'student': self.student,
+            'student': self.exam.student,
             'sender': self.request.user,
             'global_civilities': civilities,
-            'date_examen': django_format(self.student.date_exam, 'l j F Y à H\hi') if self.student.date_exam else '-',
-            'salle': self.student.room,
+            'date_examen': django_format(self.exam.date_exam, 'l j F Y à H\hi') if self.exam.date_exam else '-',
+            'salle': self.exam.room,
+            'internal_expert': self.exam.internal_expert,
+            'external_expert': self.exam.external_expert,
         }
 
     def get_initial(self):
         initial = super().get_initial()
-        to = [self.student.email, self.expert.email, self.internal_expert.email]
+        to = [self.exam.student.email, self.exam.external_expert.email, self.exam.internal_expert.email]
 
         initial.update({
             'cci': self.request.user.email,
@@ -484,8 +474,8 @@ class StudentConvocationExaminationView(EmailConfirmationView):
         return initial
 
     def on_success(self, student):
-        self.student.date_soutenance_mailed = timezone.now()
-        self.student.save()
+        self.exam.date_soutenance_mailed = timezone.now()
+        self.exam.save()
 
 
 class StudentConvocationEDSView(StudentConvocationExaminationView):
@@ -523,24 +513,24 @@ class PrintExpertEDECompensationForm(PDFBaseView):
     """
     pdf_class = ExpertEdeLetterPdf
 
-    def filename(self, student):
-        return slugify('{0}_{1}'.format(student.last_name, student.first_name)) + '_Expert.pdf'
+    def filename(self, exam):
+        return slugify('{0}_{1}'.format(exam.student.last_name, exam.student.first_name)) + '_Expert.pdf'
 
     def get_object(self):
-        return Student.objects.get(pk=self.kwargs['pk'])
+        return Examination.objects.get(pk=self.kwargs['pk'])
 
-    def check_object(self, student):
-        missing = student.missing_examination_data()
+    def check_object(self, exam):
+        missing = exam.missing_examination_data()
         if missing:
             messages.error(self.request, "\n".join(
                 ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]
                 + missing
             ))
-            return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+            return redirect(reverse("admin:stages_student_change", args=(exam.student.pk,)))
 
     def get(self, request, *args, **kwargs):
-        student = self.get_object()
-        response = self.check_object(student)
+        exam = self.get_object()
+        response = self.check_object(exam)
         if response:
             return response
         return super().get(request, *args, **kwargs)
@@ -575,14 +565,14 @@ class PrintExpertEDSCompensationForm(PrintExpertEDECompensationForm):
     """
     pdf_class = ExpertEdsLetterPdf
 
-    def check_object(self, student):
-        missing = student.missing_examination_data()
+    def check_object(self, exam):
+        missing = exam.missing_examination_data()
         if missing:
             messages.error(self.request, "\n".join(
                 ["Toutes les informations ne sont pas disponibles pour la lettre à l’expert!"]
                 + missing
             ))
-            return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+            return redirect(reverse("admin:stages_student_change", args=[exam.student.pk]))
 
 
 class PrintKlassList(ZippedFilesBaseView):
