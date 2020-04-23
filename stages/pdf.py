@@ -286,6 +286,7 @@ class UpdateDataFormPDF(EpcBaseDocTemplate):
 
 class CompensationForm:
     """Mixin class to host paiement formdata."""
+    AMOUNT = ''
     EXPERT_MANDAT = 'EXPERT'
     MENTOR_MANDAT = 'MENTOR'
     EXPERT_ACCOUNT = MENTOR_ACCOUNT = "3'130'0003"
@@ -336,12 +337,12 @@ class CompensationForm:
         self.story.append(Spacer(0, 0.5 * cm))
 
     def add_accounting_stamp(self, student, mandat=None):
-        account = otp = total = ''
+        account = otp = ''
+        total = self.AMOUNT
         if mandat == self.EXPERT_MANDAT:
             account = self.EXPERT_ACCOUNT
         elif mandat == self.MENTOR_MANDAT:
             account = self.MENTOR_ACCOUNT
-            total = '500.-'
 
         if student.klass.is_Ede_pe():
             otp = self.OTP_EDE_PE_OTP
@@ -535,30 +536,57 @@ class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
     """
 
 
-class MentorCompensationPdfForm(CompensationForm, EpcBaseDocTemplate):
-    def __init__(self, out, student):
-        self.student = student
-        super().__init__(out)
+class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
+    def __init__(self, out, *args, **kwargs):
+        super().__init__(out, *args, **kwargs)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_iso)
         ])
 
     def produce(self):
-        self.add_private_data(self.student.mentor)
+        self.add_private_data(self.expert)
 
         self.story.append(Paragraph(
-            "Mandat : Mentoring de {0} {1}, classe {2}".format(
+            self.mandat_template.format(
                 self.student.civility, self.student.full_name, self.student.klass
             ), style_normal_center
         ))
-        self.story.append(Paragraph(
-            "Montant forfaitaire de Fr 500.- payable à la fin de la session d'examen", style_normal_center
-        ))
+        self.story.append(Paragraph(self.montant_template, style_normal_center))
         self.story.append(Spacer(0, 3 * cm))
 
-        self.add_accounting_stamp(self.student, self.MENTOR_MANDAT)
+        self.add_accounting_stamp(self.student, self.mandat_type)
 
         self.build(self.story)
+
+
+class MentorCompensationPdfForm(CompensationPDFForm):
+    mandat_type = CompensationPDFForm.MENTOR_MANDAT
+    mandat_template = "Mandat : Mentoring de {0} {1}, classe {2}"
+    montant_template = "Montant forfaitaire de Fr 500.- payable à la fin de la session d’examen"
+    AMOUNT = '500.-'
+
+    def __init__(self, out, student):
+        self.student = student
+        self.expert = student.mentor
+        super().__init__(out)
+
+
+class EntretienProfCompensationPdfForm(CompensationPDFForm):
+    mandat_type = CompensationPDFForm.EXPERT_MANDAT
+    mandat_template = "Mandat : Entretien professionnel pour {0} {1}, classe {2}"
+    montant_template = "Montant forfaitaire de Fr 200.- payable à la fin de la session d’examen"
+    AMOUNT = '200.-'
+
+    def __init__(self, out, exam):
+        self.student = exam.student
+        self.expert = exam.external_expert
+        super().__init__(out)
+
+
+class SoutenanceCompensationPdfForm(EntretienProfCompensationPdfForm):
+    mandat_template = "Mandat : Soutenance pour {0} {1}, classe {2}"
+    montant_template = "Montant forfaitaire de Fr 200.- payable à la fin de la session d’examen"
+    AMOUNT = '200.-'
 
 
 class KlassListPDF(EpcBaseDocTemplate):

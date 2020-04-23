@@ -26,10 +26,7 @@ from ..models import (
     Klass, Section, Student, Teacher, Corporation, CorpContact, Period,
     Training, Availability, Examination,
 )
-from ..pdf import (
-    ChargeSheetPDF, ExpertEdeLetterPdf, ExpertEdsLetterPdf, UpdateDataFormPDF,
-    MentorCompensationPdfForm, KlassListPDF,
-)
+from .. import pdf
 from ..utils import school_year_start
 
 
@@ -501,8 +498,8 @@ class PrintUpdateForm(ZippedFilesBaseView):
         for klass in Klass.objects.filter(level__gte=2
                 ).exclude(section__name='MP_ASSC').exclude(section__name='MP_ASE'):
             buff = io.BytesIO()
-            pdf = UpdateDataFormPDF(buff, self.return_date)
-            pdf.produce(klass)
+            pdf_doc = pdf.UpdateDataFormPDF(buff, self.return_date)
+            pdf_doc.produce(klass)
             yield ('{0}.pdf'.format(klass.name), buff.getvalue())
 
 
@@ -511,7 +508,7 @@ class PrintExpertEDECompensationForm(PDFBaseView):
     Imprime le PDF à envoyer à l'expert EDE en accompagnement du
     travail de diplôme
     """
-    pdf_class = ExpertEdeLetterPdf
+    pdf_class = pdf.ExpertEdeLetterPdf
 
     def filename(self, exam):
         return slugify('{0}_{1}'.format(exam.student.last_name, exam.student.first_name)) + '_Expert.pdf'
@@ -536,25 +533,40 @@ class PrintExpertEDECompensationForm(PDFBaseView):
         return super().get(request, *args, **kwargs)
 
 
-class PrintMentorEDECompensationForm(PDFBaseView):
+class PrintCompensationForm(PDFBaseView):
     """
     Imprime le PDF à envoyer au mentor EDE pour le mentoring
     """
-    pdf_class = MentorCompensationPdfForm
+    @property
+    def pdf_class(self):
+        return {
+            'mentor': pdf.MentorCompensationPdfForm,
+            'ep': pdf.EntretienProfCompensationPdfForm,
+            'sout': pdf.SoutenanceCompensationPdfForm,
+        }.get(self.typ)
 
-    def filename(self, student):
+    def filename(self, obj):
+        student = obj if self.typ == 'mentor' else obj.student
         return slugify(
             '{0}_{1}'.format(student.last_name, student.first_name)
-        ) + '_Indemn_mentor.pdf'
+        ) + f'_Indemn_{self.typ}.pdf'
 
     def get_object(self):
-        return Student.objects.get(pk=self.kwargs['pk'])
+        model = Student if self.typ == 'mentor' else Examination
+        return model.objects.get(pk=self.kwargs['pk'])
 
     def get(self, request, *args, **kwargs):
-        student = self.get_object()
-        if not student.mentor:
-            messages.error(request, "Aucun mentor n'est attribué à cet étudiant")
-            return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+        self.typ = self.kwargs['typ']
+        if self.typ == 'mentor':
+            student = self.get_object()
+            if not student.mentor:
+                messages.error(request, "Aucun mentor n’est attribué à cet étudiant")
+                return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+        else:
+            exam = self.get_object()
+            if not exam.external_expert:
+                messages.error(request, "Aucun expert n’est attribué à cet examen")
+                return redirect(reverse("admin:stages_student_change", args=(exam.student.pk,)))
         return super().get(request, *args, **kwargs)
 
 
@@ -563,7 +575,7 @@ class PrintExpertEDSCompensationForm(PrintExpertEDECompensationForm):
     Imprime le PDF à envoyer à l'expert EDS en accompagnement du
     travail final.
     """
-    pdf_class = ExpertEdsLetterPdf
+    pdf_class = pdf.ExpertEdsLetterPdf
 
     def check_object(self, exam):
         missing = exam.missing_examination_data()
@@ -581,8 +593,8 @@ class PrintKlassList(ZippedFilesBaseView):
     def generate_files(self):
         for klass in Klass.active.order_by('section', 'name'):
             buff = io.BytesIO()
-            pdf = KlassListPDF(buff, klass)
-            pdf.produce(klass)
+            pdf_doc = pdf.KlassListPDF(buff, klass)
+            pdf_doc.produce(klass)
             filename = slugify(klass.name + '.pdf')
             yield (filename, buff.getvalue())
 
@@ -599,7 +611,7 @@ class PrintChargeSheet(ZippedFilesBaseView):
         for teacher in queryset:
             activities = teacher.calc_activity()
             buff = io.BytesIO()
-            pdf = ChargeSheetPDF(buff, teacher)
-            pdf.produce(activities)
+            pdf_doc = pdf.ChargeSheetPDF(buff, teacher)
+            pdf_doc.produce(activities)
             filename = slugify('{0}_{1}'.format(teacher.last_name, teacher.first_name)) + '.pdf'
             yield (filename, buff.getvalue())

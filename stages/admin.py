@@ -130,10 +130,12 @@ class ExaminationInline(admin.StackedInline):
                 return format_html(
                     '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                     '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                    '<a class="button" href="{}">Indemnité au mentor</a>',
-                    reverse('print-expert-compens-ede', args=[obj.pk]),
+                    '<a class="button" href="{}">Indemnité EP</a>&nbsp;'
+                    '<a class="button" href="{}">Indemnité soutenance</a>',
+                    reverse('print-expert-letter-ede', args=[obj.pk]),
                     reverse('student-ede-convocation', args=[obj.pk]),
-                    reverse('print-mentor-compens-ede', args=[obj.student.pk]),
+                    reverse('print-compens-form', args=[obj.pk, 'ep']),
+                    reverse('print-compens-form', args=[obj.pk, 'sout']),
                 )
         elif obj and obj.student.is_eds_3():
             if obj.missing_examination_data():
@@ -142,10 +144,12 @@ class ExaminationInline(admin.StackedInline):
                 return format_html(
                     '<a class="button" href="{}">Courrier pour l’expert</a>&nbsp;'
                     '<a class="button" href="{}">Mail convocation soutenance</a>&nbsp;'
-                    '<a class="button" href="{}">Indemnité au mentor</a>',
-                    reverse('print-expert-compens-eds', args=[obj.pk]),
+                    '<a class="button" href="{}">Indemnité EP</a>&nbsp;'
+                    '<a class="button" href="{}">Indemnité soutenance</a>',
+                    reverse('print-expert-letter-eds', args=[obj.pk]),
                     reverse('student-eds-convocation', args=[obj.pk]),
-                    reverse('print-mentor-compens-ede', args=[obj.student.pk]),
+                    reverse('print-compens-form', args=[obj.pk, 'ep']),
+                    reverse('print-compens-form', args=[obj.pk, 'sout']),
                 )
         else:
             return missing_message
@@ -158,7 +162,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent')
+    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'mentor_indemn')
     fieldsets = [
         (None, {
             'fields': (
@@ -176,12 +180,22 @@ class StudentAdmin(admin.ModelAdmin):
             'fields': (
                         ('supervisor',  'supervision_attest_received'),
                         ('subject', 'title'),
-                        ('training_referent', 'referent', 'mentor'),
+                        ('training_referent', 'referent'),
+                        ('mentor', 'mentor_indemn'),
                       )
         }),
     ]
     actions = ['archive']
     inlines = [ExaminationInline, SupervisionBillInline]
+
+    def mentor_indemn(self, obj):
+        if obj is None or not obj.mentor:
+            return '-'
+        return format_html(
+            '<a class="button" href="{}">Indemnité au mentor</a>',
+            reverse('print-mentor-compens-form', args=[obj.pk]),
+        )
+    mentor_indemn.short_description = 'Indemnité'
 
     def get_inlines(self, request, obj=None):
         if obj is None:

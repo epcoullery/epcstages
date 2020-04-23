@@ -334,7 +334,7 @@ tél. 032 886 33 00
     def test_print_ede_compensation_forms(self):
         st = Student.objects.get(first_name="Albin")
         exam = Examination.objects.create(student=st, session=ExamEDESession.objects.create(year=2020, season='1'))
-        url = reverse('print-expert-compens-ede', args=[exam.pk])
+        url = reverse('print-expert-letter-ede', args=[exam.pk])
         self.client.login(username='me', password='mepassword')
         response = self.client.get(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")
@@ -361,7 +361,7 @@ tél. 032 886 33 00
         # Mentor form
         st.mentor = CorpContact.objects.get(last_name="Horner")
         st.save()
-        response = self.client.get(reverse('print-mentor-compens-ede', args=[st.pk]), follow=True)
+        response = self.client.get(reverse('print-mentor-compens-form', args=[st.pk]), follow=True)
         self.assertEqual(
             response['Content-Disposition'],
             'attachment; filename="dupond_albin_Indemn_mentor.pdf"'
@@ -378,7 +378,7 @@ tél. 032 886 33 00
             pcode="2000", city="Neuchâtel", klass=klass
         )
         exam = Examination.objects.create(student=st, session=ExamEDESession.objects.create(year=2020, season='1'))
-        url = reverse('print-expert-compens-eds', args=[exam.pk])
+        url = reverse('print-expert-letter-eds', args=[exam.pk])
         self.client.login(username='me', password='mepassword')
         response = self.client.get(url, follow=True)
         self.assertContains(response, "Toutes les informations ne sont pas disponibles")

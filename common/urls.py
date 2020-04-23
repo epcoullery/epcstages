@@ -42,19 +42,22 @@ urlpatterns = [
         name='candidate-validation'),
     path('candidate/<int:pk>/summary/', candidats_views.inscription_summary, name='candidate-summary'),
 
+    path('student/<int:pk>/examination/mentor/', views.PrintCompensationForm.as_view(), {'typ': 'mentor'},
+        name='print-mentor-compens-form'),
+    path('exam/<int:pk>/indemn/<slug:typ>/', views.PrintCompensationForm.as_view(),
+        name='print-compens-form'),
+
     # Qualification EDE
     path('student_ede/<int:pk>/send_convocation/', views.StudentConvocationExaminationView.as_view(),
         name='student-ede-convocation'),
     path('student_ede/<int:pk>/examination/expert/', views.PrintExpertEDECompensationForm.as_view(),
-        name='print-expert-compens-ede'),
-    path('student_ede/<int:pk>/examination/mentor/', views.PrintMentorEDECompensationForm.as_view(),
-        name='print-mentor-compens-ede'),
+        name='print-expert-letter-ede'),
 
     # Qualification EDS
     path('student_eds/<int:pk>/send_convocation/', views.StudentConvocationEDSView.as_view(),
         name='student-eds-convocation'),
     path('student_eds/<int:pk>/examination/expert/', views.PrintExpertEDSCompensationForm.as_view(),
-        name='print-expert-compens-eds'),
+        name='print-expert-letter-eds'),
 
     path('student/export_qualif/<slug:section>/', views.export.export_qualification,
         name='export-qualif'),
