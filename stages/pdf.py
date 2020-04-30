@@ -290,7 +290,7 @@ class CompensationForm:
     EXPERT_MANDAT = 'EXPERT'
     MENTOR_MANDAT = 'MENTOR'
     EXPERT_ACCOUNT = '30 490 002'
-    MENTOR_ACCOUNT = "3'130'0003"
+    MENTOR_ACCOUNT = "30 490 002"
     OTP_EDE_PS_OTP = "CIFO01.03.02.07.02.01"
     OTP_EDE_PE_OTP = "CIFO01.03.02.07.01.01"
 
@@ -316,7 +316,7 @@ class CompensationForm:
             ],
             [
                 self.formating('N° AVS :'), person.avs or '.' * 30,
-                self.formating('Employeur :'), person.corporation.name if person.corporation else self.points,
+                self.formating('Employeur :'), person.corporation.name if person.corporation else '.' * 30,
             ],
             [Spacer(0, 0.2 * cm)],
         ]
@@ -566,8 +566,10 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
                 self.student.civility, self.student.full_name, self.student.klass
             ), style_normal_center
         ))
-        if self.montant_template:
-            self.story.append(Paragraph(self.montant_template, style_normal_center))
+        self.story.append(Spacer(0, 0.2 * cm))
+        self.story.append(Paragraph("Date des examens : {}".format(
+            django_format(self.exam.date_exam, 'j F Y') if self.exam else self.points
+        ), style_normal_center))
         self.story.append(Spacer(0, 3 * cm))
 
         self.add_accounting_stamp(self.student, self.mandat_type)
@@ -578,31 +580,30 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
 class MentorCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.MENTOR_MANDAT
     mandat_template = "Mandat : Mentoring de {0} {1}, classe {2}"
-    montant_template = "Montant forfaitaire de Fr 500.- payable à la fin de la session d’examen"
-    AMOUNT = '500.-'
+    AMOUNT = ''
 
     def __init__(self, out, student):
         self.student = student
         self.expert = student.mentor
+        self.exam = None
         super().__init__(out)
 
 
 class EntretienProfCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.EXPERT_MANDAT
     mandat_template = "Mandat : Entretien professionnel pour {0} {1}, classe {2}"
-    montant_template = ""
-    AMOUNT = '200.-'
+    AMOUNT = ''
 
     def __init__(self, out, exam):
         self.student = exam.student
         self.expert = exam.external_expert
+        self.exam = exam
         super().__init__(out)
 
 
 class SoutenanceCompensationPdfForm(EntretienProfCompensationPdfForm):
     mandat_template = "Mandat : Soutenance pour {0} {1}, classe {2}"
-    montant_template = ""
-    AMOUNT = '200.-'
+    AMOUNT = ''
 
 
 class KlassListPDF(EpcBaseDocTemplate):
