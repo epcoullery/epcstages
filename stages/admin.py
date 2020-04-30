@@ -234,7 +234,7 @@ class CorpContactAdmin(admin.ModelAdmin):
               ('birth_date',),
               ('corporation',),
               ('sections', 'is_main', 'always_cc', 'archived'),
-              ('role', 'ext_id'), ('tel', 'email'),
+              ('role', 'ext_id'), ('tel', 'email'), ('avs',),
               ('ccp', 'bank', 'clearing' ),
               ('iban',),
               ('qualification', 'fields_of_interest'),

@@ -491,6 +491,7 @@ class CorpContact(models.Model):
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
 
+    avs = models.CharField('No AVS', max_length=20, blank=True)
     ccp = models.CharField('Compte de chèque postal', max_length=15, blank=True)
     bank = models.CharField('Banque (nom et ville)', max_length=200, blank=True)
     clearing = models.CharField('No clearing', max_length=5, blank=True)
