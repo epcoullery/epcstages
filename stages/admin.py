@@ -235,8 +235,7 @@ class CorpContactAdmin(admin.ModelAdmin):
               ('corporation',),
               ('sections', 'is_main', 'always_cc', 'archived'),
               ('role', 'ext_id'), ('tel', 'email'), ('avs',),
-              ('ccp', 'bank', 'clearing' ),
-              ('iban',),
+              ('iban', 'bank', 'clearing' ),
               ('qualification', 'fields_of_interest'),
              )
     formfield_overrides = {

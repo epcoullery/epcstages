@@ -95,8 +95,8 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         canvas.drawString(8 * cm, doc.height - 2.5 * cm, "Ecole Santé-social Pierre-Coullery")
         canvas.restoreState()
 
-    def formating(self, text):
-        return Preformatted(text, style_normal, maxLineLength=25)
+    def formating(self, text, maxLineLength=25):
+        return Preformatted(text, style_normal, maxLineLength=maxLineLength)
 
     def add_address(self, person):
         self.story.append(Spacer(0, 2 * cm))
@@ -289,7 +289,8 @@ class CompensationForm:
     AMOUNT = ''
     EXPERT_MANDAT = 'EXPERT'
     MENTOR_MANDAT = 'MENTOR'
-    EXPERT_ACCOUNT = MENTOR_ACCOUNT = "3'130'0003"
+    EXPERT_ACCOUNT = '30 490 002'
+    MENTOR_ACCOUNT = "3'130'0003"
     OTP_EDE_PS_OTP = "CIFO01.03.02.07.02.01"
     OTP_EDE_PE_OTP = "CIFO01.03.02.07.01.01"
 
@@ -298,24 +299,39 @@ class CompensationForm:
         self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
         self.story.append(Spacer(0, 0.2 * cm))
         data = [
-            [self.formating('Nom : '), person.last_name or self.points],
-            [self.formating('Prénom :'), person.first_name or self.points],
+            [self.formating('Nom : '), person.last_name or self.points, '', ''],
+            [self.formating('Prénom :'), person.first_name or self.points, '', ''],
+            [self.formating('Adresse complète :'), person.street or self.points, '', ''],
+            ['', person.pcode_city if person.pcode else self.points, '', ''],
+            ['', self.points, '', ''],
             [
                 self.formating('Date de naissance :'),
-                django_format(person.birth_date, 'j F Y') if person.birth_date else self.points
+                django_format(person.birth_date, 'j F Y') if person.birth_date else '.' * 30,
+                self.formating('Nationalité :'),
+                '.' * 30,
             ],
-            [self.formating('N° de téléphone :'), person.tel or self.points],
-            [self.formating('Adresse complète :'), person.street or self.points],
-            ['', person.pcode_city if person.pcode else self.points],
-            ['', self.points],
-            [self.formating('Employeur :'), person.corporation.name if person.corporation else self.points],
+            [
+                self.formating('N° de téléphone :'), person.tel or '.' * 30,
+                self.formating('Si étranger, joindre copie permis de séjour', maxLineLength=None), ''
+            ],
+            [
+                self.formating('N° AVS :'), person.avs or '.' * 30,
+                self.formating('Employeur :'), person.corporation.name if person.corporation else self.points,
+            ],
             [Spacer(0, 0.2 * cm)],
         ]
 
         t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[4 * cm, 4 * cm, 3 * cm, 5 * cm], hAlign=TA_LEFT)
         t.setStyle(TableStyle([
             ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
             ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+            ('SPAN', (1, 0), (-1, 0)),
+            ('SPAN', (1, 1), (-1, 1)),
+            ('SPAN', (1, 2), (-1, 2)),
+            ('SPAN', (1, 3), (-1, 3)),
+            ('SPAN', (1, 4), (-1, 4)),
+            ('SPAN', (2, 6), (-1, 6)),
         ]))
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
@@ -323,9 +339,8 @@ class CompensationForm:
         self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
         self.story.append(Spacer(0, 0.2 * cm))
         data = [
-            [self.formating('N° de ccp ou compte bancaire :'), person.ccp or self.points],
+            [self.formating('N° de ccp ou compte bancaire (IBAN) :'), person.iban or self.points],
             [self.formating('Si banque, nom et adresse de celle-ci :'), person.bank or self.points],
-            [self.formating('ainsi que N° IBAN :'), person.iban or self.points],
         ]
 
         t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
@@ -551,7 +566,8 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
                 self.student.civility, self.student.full_name, self.student.klass
             ), style_normal_center
         ))
-        self.story.append(Paragraph(self.montant_template, style_normal_center))
+        if self.montant_template:
+            self.story.append(Paragraph(self.montant_template, style_normal_center))
         self.story.append(Spacer(0, 3 * cm))
 
         self.add_accounting_stamp(self.student, self.mandat_type)
@@ -574,7 +590,7 @@ class MentorCompensationPdfForm(CompensationPDFForm):
 class EntretienProfCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.EXPERT_MANDAT
     mandat_template = "Mandat : Entretien professionnel pour {0} {1}, classe {2}"
-    montant_template = "Montant forfaitaire de Fr 200.- payable à la fin de la session d’examen"
+    montant_template = ""
     AMOUNT = '200.-'
 
     def __init__(self, out, exam):
@@ -585,7 +601,7 @@ class EntretienProfCompensationPdfForm(CompensationPDFForm):
 
 class SoutenanceCompensationPdfForm(EntretienProfCompensationPdfForm):
     mandat_template = "Mandat : Soutenance pour {0} {1}, classe {2}"
-    montant_template = "Montant forfaitaire de Fr 200.- payable à la fin de la session d’examen"
+    montant_template = ""
     AMOUNT = '200.-'
 
 
