@@ -567,9 +567,7 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
             ), style_normal_center
         ))
         self.story.append(Spacer(0, 0.2 * cm))
-        self.story.append(Paragraph("Date des examens : {}".format(
-            django_format(self.exam.date_exam, 'j F Y') if self.exam else self.points
-        ), style_normal_center))
+        self.produce_under_mandat()
         self.story.append(Spacer(0, 3 * cm))
 
         self.add_accounting_stamp(self.student, self.mandat_type)
@@ -588,6 +586,9 @@ class MentorCompensationPdfForm(CompensationPDFForm):
         self.exam = None
         super().__init__(out)
 
+    def produce_under_mandat(self):
+        pass
+
 
 class EntretienProfCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.EXPERT_MANDAT
@@ -599,6 +600,11 @@ class EntretienProfCompensationPdfForm(CompensationPDFForm):
         self.expert = exam.external_expert
         self.exam = exam
         super().__init__(out)
+
+    def produce_under_mandat(self):
+        self.story.append(Paragraph("Date des examens : {}".format(
+            django_format(self.exam.date_exam, 'j F Y') if self.exam else self.points
+        ), style_normal_center))
 
 
 class SoutenanceCompensationPdfForm(EntretienProfCompensationPdfForm):
