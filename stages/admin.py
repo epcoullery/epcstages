@@ -231,7 +231,7 @@ class CorpContactAdmin(admin.ModelAdmin):
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('civility', 'last_name', 'first_name'),
               ('street', 'pcode', 'city'),
-              ('birth_date',),
+              ('birth_date', 'nation'),
               ('corporation',),
               ('sections', 'is_main', 'always_cc', 'archived'),
               ('role', 'ext_id'), ('tel', 'email'), ('avs',),

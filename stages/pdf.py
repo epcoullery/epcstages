@@ -307,8 +307,7 @@ class CompensationForm:
             [
                 self.formating('Date de naissance :'),
                 django_format(person.birth_date, 'j F Y') if person.birth_date else '.' * 30,
-                self.formating('Nationalité :'),
-                '.' * 30,
+                self.formating('Nationalité :'), person.nation or '.' * 30,
             ],
             [
                 self.formating('N° de téléphone :'), person.tel or '.' * 30,
