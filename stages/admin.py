@@ -123,7 +123,7 @@ class ExaminationInline(admin.StackedInline):
             '<div class="warning">Veuillez compléter les informations '
             'd’examen (date/salle/experts) pour accéder aux boutons d’impression.</div>'
         )
-        if obj and obj.student.is_ede_3():
+        if obj and obj.student.is_ede():
             if obj.missing_examination_data():
                 return missing_message
             else:
@@ -137,7 +137,7 @@ class ExaminationInline(admin.StackedInline):
                     reverse('print-compens-form', args=[obj.pk, 'ep']),
                     reverse('print-compens-form', args=[obj.pk, 'sout']),
                 )
-        elif obj and obj.student.is_eds_3():
+        elif obj and obj.student.is_eds():
             if obj.missing_examination_data():
                 return missing_message
             else:
@@ -204,12 +204,12 @@ class StudentAdmin(admin.ModelAdmin):
         # SupervisionBillInline is only adequate for EDE students
         if not obj.klass or obj.klass.section.name != 'EDE':
             inlines = [inl for inl in inlines if inl != SupervisionBillInline]
-        if not obj.is_ede_3() and not obj.is_eds_3():
+        if not obj.is_ede() and not obj.is_eds():
             inlines = [inl for inl in inlines if inl != ExaminationInline]
         return inlines
 
     def get_fieldsets(self, request, obj=None):
-        if not obj or (not obj.is_ede_3() and not obj.is_eds_3()):
+        if not obj or (not obj.is_ede() and not obj.is_eds()):
             # Hide group "Procédure de qualification"
             fieldsets = deepcopy(self.fieldsets)
             fieldsets[1][1]['classes'] = ['hidden']

@@ -376,11 +376,11 @@ class Student(models.Model):
             return user.has_perm('stages.change_student') or user.teacher == self.klass.teacher
         return False
 
-    def is_ede_3(self):
-        return self.klass and self.klass.section.name == 'EDE' and self.klass.level.name == '3'
+    def is_ede(self):
+        return self.klass and self.klass.section.name == 'EDE'
 
-    def is_eds_3(self):
-        return self.klass and self.klass.section.name == 'EDS' and self.klass.level.name == '3'
+    def is_eds(self):
+        return self.klass and self.klass.section.name == 'EDS'
 
 
 class Examination(models.Model):
