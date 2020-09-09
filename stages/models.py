@@ -400,7 +400,7 @@ class Examination(models.Model):
     )
     type_exam = models.CharField("Type", max_length=10, choices=TYPE_EXAM_CHOICES)
     date_exam = models.DateTimeField(blank=True, null=True)
-    room = models.CharField('Salle', max_length=15, blank=True)
+    room = models.CharField('Salle', max_length=30, blank=True)
     mark = models.DecimalField('Note', max_digits=3, decimal_places=2, blank=True, null=True)
     mark_acq = models.CharField('Note', max_length=5, choices=ACQ_MARK_CHOICES, blank=True)
     internal_expert = models.ForeignKey(
