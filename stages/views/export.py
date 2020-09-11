@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from datetime import date
+from tempfile import NamedTemporaryFile
 
 from django.conf import settings
 from django.db.models import Q, Sum
@@ -8,7 +9,6 @@ from django.http import HttpResponse
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
-from openpyxl.writer.excel import save_virtual_workbook
 
 from ..models import (
     Availability, CorpContact, Corporation, Course, Section, Student, Teacher,
@@ -42,11 +42,15 @@ class OpenXMLExport:
             if col_widths:
                 self.ws.column_dimensions[get_column_letter(col_idx)].width = col_widths[col_idx - 1]
         self.row_idx += 1
-        
+
     def get_http_response(self, filename_base):
-        response = HttpResponse(save_virtual_workbook(self.wb), content_type=openxml_contenttype)
-        response['Content-Disposition'] = 'attachment; filename=%s_%s.xlsx' % (
-            filename_base, date.strftime(date.today(), '%Y-%m-%d'))
+        with NamedTemporaryFile() as tmp:
+            self.wb.save(tmp.name)
+            tmp.seek(0)
+            response = HttpResponse(tmp, content_type=openxml_contenttype)
+            response['Content-Disposition'] = 'attachment; filename=%s_%s.xlsx' % (
+                filename_base, date.strftime(date.today(), '%Y-%m-%d')
+            )
         return response
 
 
@@ -197,8 +201,8 @@ def _ratio_Ede_Ase_Assc():
     tot_asscfe = Course.objects.filter(imputation='ASSCFE').aggregate(Sum('period'))['period__sum'] or 0
     tot_mps = Course.objects.filter(imputation='MPS').aggregate(Sum('period'))['period__sum'] or 0
     asscfe_ratio = 1 if tot_asscfe + tot_mps == 0 else tot_asscfe / (tot_asscfe + tot_mps)
-    
-    return {'edepe':edepe_ratio, 'asefe':asefe_ratio, 'asscfe': asscfe_ratio}
+
+    return {'edepe': edepe_ratio, 'asefe': asefe_ratio, 'asscfe': asscfe_ratio}
 
 
 def imputations_export(request):

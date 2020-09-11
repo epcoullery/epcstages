@@ -3,6 +3,7 @@ from copy import deepcopy
 
 from django import forms
 from django.contrib import admin
+from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth.admin import GroupAdmin as AuthGroupAdmin
 from django.contrib.auth.models import Group
 from django.db import models
@@ -22,7 +23,7 @@ from .views.export import OpenXMLExport
 def print_charge_sheet(modeladmin, request, queryset):
     return HttpResponseRedirect(
         reverse('print-charge-sheet') + '?ids=%s' % ",".join(
-            request.POST.getlist(admin.ACTION_CHECKBOX_NAME)
+            request.POST.getlist(ACTION_CHECKBOX_NAME)
         )
     )
 print_charge_sheet.short_description = "Imprimer les feuilles de charge"
