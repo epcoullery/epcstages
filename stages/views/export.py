@@ -326,6 +326,12 @@ GENERAL_EXPORT_FIELDS = [
     ('Nom_Form', 'instructor__last_name'),
     ('Tel_Form', 'instructor__tel'),
     ('Email_Form', 'instructor__email'),
+    ('Num_Form2', 'instructor2__ext_id'),
+    ('Titre_Form2', 'instructor2__civility'),
+    ('Prenom_Form2', 'instructor2__first_name'),
+    ('Nom_Form2', 'instructor2__last_name'),
+    ('Tel_Form2', 'instructor2__tel'),
+    ('Email_Form2', 'instructor2__email'),
     ('EmailCopie_Form', None),
 ]
 

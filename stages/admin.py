@@ -161,7 +161,7 @@ class StudentAdmin(admin.ModelAdmin):
     ordering = ('last_name', 'first_name')
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
-    autocomplete_fields = ('corporation', 'instructor', 'supervisor', 'mentor')
+    autocomplete_fields = ('corporation', 'instructor', 'instructor2', 'supervisor', 'mentor')
     readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'mentor_indemn')
     fieldsets = [
         (None, {
@@ -172,7 +172,7 @@ class StudentAdmin(admin.ModelAdmin):
                 ('klass', 'option_ase'),
                 ('report_sem1', 'report_sem1_sent'),
                 ('report_sem2', 'report_sem2_sent'),
-                ('corporation', 'instructor',)
+                ('corporation', 'instructor', 'instructor2')
             )}
         ),
         ("Procédure de qualification", {
