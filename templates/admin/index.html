@@ -94,15 +94,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
         <li><a href="{% url 'import-students' %}">Importer un fichier d'étudiants EPC</a></li>
         <li><a href="{% url 'import-students-ester' %}">Importer un fichier d'étudiants ESTER</a></li>
         <li><a href="{% url 'import-hp' %}">Importer le fichier HP</a></li>
-        <li><a href="{% url 'import-hp-contacts' %}">Importer les formateurs (fichier HP)</a></li>
-        <li><a href="{% url 'imputations_export' %}">Exporter les données comptables</a></li>
+        <!--li><a href="{ url 'import-hp-contacts' }">Importer les formateurs (fichier HP)</a></li-->
+        <li style="margin-top: 0.7em;"><a href="{% url 'imputations_export' %}">Exporter les données comptables</a></li>
         <li><a href="{% url 'export_sap' %}">Exporter les données SAP</a></li>
-        <li><a id="updateFormLink" href="{% url 'print_update_form' %}">Imprimer les formulaires de MAJ</a></li>
-        <li><a href="{% url 'print-klass-list' %}">Imprimer les rôles de classes</a></li>
+        <!--li><a id="updateFormLink" href="{ url 'print_update_form' }">Imprimer les formulaires de MAJ</a></li-->
+        <!--li><a href="{ url 'print-klass-list' }">Imprimer les rôles de classes</a></li-->
         <li><a href="{% url 'general-export' %}">Exportation générale des élèves</a></li>
         <li><a href="{% url 'export-qualif' 'ede' %}">Exportation qualif. EDE</a></li>
         <li><a href="{% url 'export-qualif' 'eds' %}">Exportation qualif. EDS</a></li>
-        <li><a href="{% url 'ortra-export' %}">Exportation pour ORTRA</a></li>
+        <!--li><a href="{ url 'ortra-export' }">Exportation pour ORTRA</a></li-->
     </ul>
     </div>
     {% endif %}
