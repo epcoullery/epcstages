@@ -235,7 +235,7 @@ Madame Julie Caux,
 Monsieur Jean Horner,
 
 
-Nous vous informons que la soutenance du travail de diplôme de  Albin Dupond aura lieu dans les locaux de l’Ecole Santé-social Pierre-Coullery, rue de la Prévoyance 82, 2300 La Chaux-de-Fonds en date du:
+Nous vous informons que la soutenance du travail de diplôme de  Albin Dupond aura lieu dans les locaux de l’Ecole Santé-social Pierre-Coullery, 2300 La Chaux-de-Fonds en date du:
 
  - jeudi 28 juin 2018 à 12h00 en salle B123
 

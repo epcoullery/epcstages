@@ -430,21 +430,21 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
     resp_filiere, resp_genre = settings.RESP_FILIERE_EDE
     part1_text = """
         {expert_civility},<br/><br/>
-        Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l'un-e de nos
+        Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l’un-e de nos
         étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
-        En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
-        ainsi que la grille d'évaluation commune aux deux membres du jury.<br/><br/>
+        En annexe, nous avons l’avantage de vous remettre le travail de {student_civility_full_name},
+        ainsi que la grille d’évaluation commune aux deux membres du jury.<br/><br/>
         La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
     """
     part2_text = """
         <br/>
-        L'autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
+        L’autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
         <br/>
-        Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d'experts aux examens»
+        Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d’experts aux examens»
         que vous voudrez bien compléter au niveau des «données privées / coordonnées de paiement» et nous retourner dans les meilleurs délais.
         <br/><br/>
-        Restant à votre disposition pour tout complément d'information et en vous remerciant de
-        l'attention que vous porterez à la présente, nous vous prions d'agréer, {expert_civility}, l'asurance de notre considération distinguée.<br/>
+        Restant à votre disposition pour tout complément d’information et en vous remerciant de
+        l’attention que vous porterez à la présente, nous vous prions d’agréer, {expert_civility}, l’assurance de notre considération distinguée.<br/>
         <br/><br/><br/>
     """
 
