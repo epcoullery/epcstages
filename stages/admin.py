@@ -386,6 +386,11 @@ class TrainingAdmin(admin.ModelAdmin):
     search_fields = ('student__first_name', 'student__last_name', 'availability__corporation__name')
     raw_id_fields = ('availability',)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "referent":
+            kwargs["queryset"] = Teacher.objects.filter(archived=False).order_by('last_name', 'first_name')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'public', 'subject', 'period', 'imputation')
