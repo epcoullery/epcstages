@@ -1,6 +1,6 @@
 Django>=3.0,<3.2
 tabimport>=0.4.0
-xlrd  # Required by tabimport
+xlrd<2  # Required by tabimport
 openpyxl==3.0.5
 reportlab
 django-summernote==0.8.11.6
