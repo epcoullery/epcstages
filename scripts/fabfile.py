@@ -27,8 +27,8 @@ def clone_remote_db(conn):
         if is_sqlite:
             return os.path.exists(db_name)
         else:  # Assume postgres
-            db_list = local.run('psql --list', capture=True)
-            return (' ' + db_name + ' ') in db_list
+            res = local.run('psql --list', hide='stdout')
+            return db_name in res.stdout.split()
 
     if exist_local_db():
         rep = input('A local database named "%s" already exists. Overwrite? (y/n)' % db_name)
@@ -44,7 +44,7 @@ def clone_remote_db(conn):
     with conn.cd(APP_DIR):
         with conn.prefix('source %s' % VIRTUALENV_DIR):
             conn.run('python manage.py dumpdata --natural-foreign --indent 1 -e auth.Permission auth stages candidats > epcstages.json')
-        conn.get('epcstages.json', '.')
+        conn.get('/var/www/epcstages/epcstages.json', None)
 
     if not is_sqlite:
         local.run(
