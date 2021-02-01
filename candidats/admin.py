@@ -48,7 +48,7 @@ def export_candidates(modeladmin, request, queryset):
     for cand in queryset.values_list(*export_fields.values()):
         values = []
         for value, field_name in zip(cand, export_fields.values()):
-            if value != '' and field_name in choice_fields:
+            if value != '' and value is not None and field_name in choice_fields:
                 value = choice_fields[field_name][value]
             if field_name in boolean_fields:
                 value = 'Oui' if value else ''
