@@ -28,6 +28,9 @@ style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=6, al
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
 LOGO_EPC_LONG = find('img/header.gif')
+LOGO_CIFOM = find('img/logo_CIFOM.png')
+LOGO_CPLN = find('img/logo_CPLN.jpg')
+LOGO_CPMB = find('img/logo_CPMB.png')
 
 
 class HorLine(Flowable):
@@ -76,27 +79,23 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         footer.drawOn(canvas, doc.leftMargin, h)
         canvas.restoreState()
 
-    def header_iso(self, canvas, doc):
+    def header_cifom(self, canvas, doc):
         canvas.saveState()
-        canvas.setStrokeColor(colors.black)
-        canvas.setFillColorRGB(0, 0, 0, 0.2)
-        canvas.rect(2.5 * cm, doc.height - 0.5 * cm, doc.width, 1.5 * cm, fill=True)
-        canvas.setFillColor(colors.black)
-        canvas.setFont('Helvetica-Bold', 11)
-        canvas.drawString(2.7 * cm, doc.height + 0.5 * cm, "CIFOM")
-        canvas.setFont('Helvetica', 7)
-        canvas.drawString(2.7 * cm, doc.height + 0.1 * cm, "Centre interrégional de formation")
-        canvas.drawString(2.7 * cm, doc.height - 0.15 * cm, "des montagnes neuchâteloises")
-        canvas.setFont('Helvetica-Bold', 12)
-        canvas.drawString(8 * cm, doc.height + 0.5 * cm, "INDEMNISATION D'EXPERTS")
-        canvas.drawString(16 * cm, doc.height + 0.5 * cm, "51.05 FO 05")
-        canvas.drawString(8 * cm, doc.height - 0.1 * cm, "AUX EXAMENS")
-        canvas.setFont('Helvetica-Bold', 11)
-        canvas.drawString(8 * cm, doc.height - 2.5 * cm, "Ecole Santé-social Pierre-Coullery")
+        top = doc.height - 1.5 * cm
+        logo_height = 1.5 * cm
+        canvas.drawImage(
+            LOGO_CIFOM, doc.leftMargin, top, 1.7 * cm, logo_height, preserveAspectRatio=True
+        )
+        canvas.drawImage(
+            LOGO_CPLN, doc.leftMargin + 2.4 * cm, top, 1.5 * cm, logo_height, preserveAspectRatio=True
+        )
+        canvas.drawImage(
+            LOGO_CPMB, doc.leftMargin + 4.6 * cm, top, 3.6 * cm, logo_height, preserveAspectRatio=True
+        )
         canvas.restoreState()
 
-    def formating(self, text, maxLineLength=25):
-        return Preformatted(text, style_normal, maxLineLength=maxLineLength)
+    def formating(self, text, style=style_normal, maxLineLength=25):
+        return Preformatted(text, style, maxLineLength=maxLineLength)
 
     def add_address(self, person):
         self.story.append(Spacer(0, 2 * cm))
@@ -296,56 +295,51 @@ class CompensationForm:
 
     def add_private_data(self, person):
         self.story.append(Spacer(0, 0.5 * cm))
-        self.story.append(Paragraph('DONNÉES PRIVÉES', style_bold))
+        style = PS(name='Title1', fontName='Helvetica', fontSize=12, alignment=TA_CENTER)
+        self.story.append(Paragraph('INDEMNISATION D’EXPERTS', style))
         self.story.append(Spacer(0, 0.2 * cm))
         data = [
-            [self.formating('Nom : '), person.last_name or self.points, '', ''],
+            [self.formating('ECOLE :', style=style_bold), 'École Santé-social Pierre-Coullery', '', ''],
+            [Paragraph('<u>COORDONNÉES DE L’EXPERT</u>', style=style_bold), '', '', ''],
+            [self.formating('NOM : '), person.last_name or self.points, '', ''],
             [self.formating('Prénom :'), person.first_name or self.points, '', ''],
-            [self.formating('Adresse complète :'), person.street or self.points, '', ''],
-            ['', person.pcode_city if person.pcode else self.points, '', ''],
-            ['', self.points, '', ''],
+            [self.formating('Adresse complète :'), person.street, '', ''],
+            ['', person.pcode_city if person.pcode else '', '', ''],
+            ['', '', '', ''],
             [
                 self.formating('Date de naissance :'),
-                django_format(person.birth_date, 'j F Y') if person.birth_date else '.' * 30,
-                self.formating('Nationalité :'), person.nation or '.' * 30,
+                django_format(person.birth_date, 'j F Y') if person.birth_date else '',
+                self.formating('Nationalité :'), person.nation or '',
             ],
             [
-                self.formating('N° de téléphone :'), person.tel or '.' * 30,
-                self.formating('Si étranger, joindre copie permis de séjour', maxLineLength=None), ''
+                self.formating('N° de téléphone :'), person.tel or '',
+                self.formating('Si étranger, joindre copie permis de séjour', style=style_bold, maxLineLength=None), ''
             ],
             [
-                self.formating('N° AVS :'), person.avs or '.' * 30,
-                self.formating('Employeur :'), person.corporation.name if person.corporation else '.' * 30,
+                self.formating('N° AVS :'), person.avs or '',
+                self.formating('Employeur :'), Paragraph(person.corporation.name if person.corporation else '', style=style_normal),
             ],
-            [Spacer(0, 0.2 * cm)],
+            [Paragraph('<u>COORDONNÉES DE PAIEMENT</u>', style=style_bold), '', '', ''],
+            [Paragraph('N° de ccp ou compte bancaire (<b>IBAN</b>) :', style_normal), person.iban or '', '', ''],
+            [Paragraph('Si banque, nom et adresse de celle-ci :', style_normal), person.bank or '', '', ''],
         ]
 
-        t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
-        t = Table(data, colWidths=[4 * cm, 4 * cm, 3 * cm, 5 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[4 * cm, 4 * cm, 2 * cm, 6 * cm], hAlign=TA_LEFT)
         t.setStyle(TableStyle([
             ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-            ('SPAN', (1, 0), (-1, 0)),
-            ('SPAN', (1, 1), (-1, 1)),
-            ('SPAN', (1, 2), (-1, 2)),
-            ('SPAN', (1, 3), (-1, 3)),
-            ('SPAN', (1, 4), (-1, 4)),
+            ('BOX', (0, 0), (-1, 9), 0.25, colors.black),
+            ('BOX', (0, 10), (-1, -1), 0.25, colors.black),
+            ('SPAN', (1, 0), (-1, 0)),  # ecole
+            ('TOPPADDING', (0, 0), (-1, 0), 12),  # ecole
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # ecole
+            ('SPAN', (0, 1), (-1, 1)),  # coord expert
+            ('SPAN', (1, 2), (-1, 2)),  # nom
+            ('SPAN', (1, 3), (-1, 3)),  # prenom
+            ('SPAN', (1, 4), (-1, 4)),  # adresse
             ('SPAN', (2, 6), (-1, 6)),
-        ]))
-        self.story.append(t)
-        self.story.append(Spacer(0, 0.5 * cm))
-
-        self.story.append(Paragraph('COORDONNÉES DE PAIEMENT', style_bold))
-        self.story.append(Spacer(0, 0.2 * cm))
-        data = [
-            [self.formating('N° de ccp ou compte bancaire (IBAN) :'), person.iban or self.points],
-            [self.formating('Si banque, nom et adresse de celle-ci :'), person.bank or self.points],
-        ]
-
-        t = Table(data, colWidths=[4 * cm, 12 * cm], hAlign=TA_LEFT)
-        t.setStyle(TableStyle([
-            ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
+            ('VALIGN', (0, 9), (-1, 9), 'TOP'),  # avs / employeur
+            ('SPAN', (0, 10), (-1, 10)),  # coord paiement
+            ('TOPPADDING', (0, 10), (-1, 10), 8),  # coord paiement
         ]))
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
@@ -363,8 +357,6 @@ class CompensationForm:
         elif student.klass.is_Ede_ps():
             otp = self.OTP_EDE_PS_OTP
 
-        self.story.append((Paragraph(self.points * 2, style_normal)))
-        self.story.append((Paragraph("À remplir par la comptabilité", style_normal)))
         self.story.append(Spacer(0, 0.5 * cm))
         if mandat == self.EXPERT_MANDAT:
             data = [
@@ -389,39 +381,16 @@ class CompensationForm:
         else:
             self.story.append(Spacer(0, 2 * cm))
 
-        data = [['Visa chef de service:', "Donneur d'ordre et visa:", "Total en Fr:"]]
-        t = Table(
-            data, colWidths=[4 * cm, 4 * cm, 4 * cm], rowHeights=(1.2 * cm,), hAlign=TA_CENTER
-        )
-        t.setStyle(TableStyle(
-            [
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('FONTSIZE', (0, 0), (-1, -1), 7),
-                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ]
+        self.story.append(Spacer(0, 1.5 * cm))
+        self.story.append(Paragraph(
+            f'Veuillez indiquer l’OTP (champ obligatoire): {otp}',
+            style_normal
         ))
-        self.story.append(t)
-
-        data = [
-            ['No écriture', "Compte à débiter", "CC / OTP", " Montants"],
-            ["Pièces annexées", account, otp, 'Fr.  {0}'.format(total)],
-            ["Ordre", '', '', 'Fr.'],
-            ["No fournisseur", '', '', 'Fr.'],
-            ["Date scannage et visa", '', '', 'Fr.'],
-        ]
-        t = Table(data, colWidths=[3 * cm] * 4, hAlign=TA_CENTER)
-        t.setStyle(TableStyle(
-            [
-                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('FONTSIZE', (0, 0), (-1, -1), 7),
-                ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
-                ('GRID', (0, 0), (-1, -1), 0.25, colors.black),
-            ]
+        self.story.append(Spacer(0, 1.5 * cm))
+        self.story.append(Paragraph(
+            'Date et signature de la direction de l’établissement ou du/de la responsable',
+            style_normal
         ))
-        self.story.append(t)
 
 
 class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
@@ -453,7 +422,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         super().__init__(out)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
-            PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_iso),
+            PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_cifom),
         ])
 
     def exam_data(self):
@@ -554,20 +523,28 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
     def __init__(self, out, *args, **kwargs):
         super().__init__(out, *args, **kwargs)
         self.addPageTemplates([
-            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_iso)
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_cifom)
         ])
 
     def produce(self):
         self.add_private_data(self.expert)
 
+        self.story.append(Paragraph('<b>Mandat ou autre type d’indemnité</b> (préciser) :', style_normal))
         self.story.append(Paragraph(
             self.mandat_template.format(
                 self.student.civility, self.student.full_name, self.student.klass
-            ), style_normal_center
+            ), style_normal
         ))
         self.story.append(Spacer(0, 0.2 * cm))
-        self.produce_under_mandat()
-        self.story.append(Spacer(0, 3 * cm))
+        self.story.append(Paragraph(
+            '<b>Examen</b>, type d’épreuve et date-s (rédaction, surveillance, correction, travail diplôme, nombre, etc) :',
+            style_normal
+        ))
+        self.story.append(Paragraph("Date des examens : {}".format(
+            django_format(self.exam.date_exam, 'j F Y') if self.exam else ''
+        ), style_normal))
+
+        self.story.append(Spacer(0, 0.2 * cm))
 
         self.add_accounting_stamp(self.student, self.mandat_type)
 
@@ -576,7 +553,7 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
 
 class MentorCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.MENTOR_MANDAT
-    mandat_template = "Mandat : Mentoring de {0} {1}, classe {2}"
+    mandat_template = "Mentoring de {0} {1}, classe {2}"
     AMOUNT = ''
 
     def __init__(self, out, student):
@@ -585,13 +562,10 @@ class MentorCompensationPdfForm(CompensationPDFForm):
         self.exam = None
         super().__init__(out)
 
-    def produce_under_mandat(self):
-        pass
-
 
 class EntretienProfCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.EXPERT_MANDAT
-    mandat_template = "Mandat : Entretien professionnel pour {0} {1}, classe {2}"
+    mandat_template = "Entretien professionnel pour {0} {1}, classe {2}"
     AMOUNT = ''
 
     def __init__(self, out, exam):
@@ -600,14 +574,9 @@ class EntretienProfCompensationPdfForm(CompensationPDFForm):
         self.exam = exam
         super().__init__(out)
 
-    def produce_under_mandat(self):
-        self.story.append(Paragraph("Date des examens : {}".format(
-            django_format(self.exam.date_exam, 'j F Y') if self.exam else self.points
-        ), style_normal_center))
-
 
 class SoutenanceCompensationPdfForm(EntretienProfCompensationPdfForm):
-    mandat_template = "Mandat : Soutenance pour {0} {1}, classe {2}"
+    mandat_template = "Soutenance pour {0} {1}, classe {2}"
     AMOUNT = ''
 
 
