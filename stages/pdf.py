@@ -529,20 +529,20 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
     def produce(self):
         self.add_private_data(self.expert)
 
+        data = {
+            'student_civility': self.student.civility,
+            'student_fullname': self.student.full_name,
+            'klass': self.student.klass,
+            'date_exam': django_format(self.exam.date_exam, 'j F Y') if self.exam else ''
+        }
         self.story.append(Paragraph('<b>Mandat ou autre type d’indemnité</b> (préciser) :', style_normal))
-        self.story.append(Paragraph(
-            self.mandat_template.format(
-                self.student.civility, self.student.full_name, self.student.klass
-            ), style_normal
-        ))
+        self.story.append(Paragraph(self.mandat_template.format(**data), style_normal))
         self.story.append(Spacer(0, 0.2 * cm))
         self.story.append(Paragraph(
             '<b>Examen</b>, type d’épreuve et date-s (rédaction, surveillance, correction, travail diplôme, nombre, etc) :',
             style_normal
         ))
-        self.story.append(Paragraph("Date des examens : {}".format(
-            django_format(self.exam.date_exam, 'j F Y') if self.exam else ''
-        ), style_normal))
+        self.story.append(Paragraph(self.examen_template.format(**data), style_normal))
 
         self.story.append(Spacer(0, 0.2 * cm))
 
@@ -553,7 +553,8 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
 
 class MentorCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.MENTOR_MANDAT
-    mandat_template = "Mentoring de {0} {1}, classe {2}"
+    mandat_template = "Mentoring de {student_civility} {student_fullname}, classe {klass}"
+    examen_template = ""
     AMOUNT = ''
 
     def __init__(self, out, student):
@@ -565,7 +566,11 @@ class MentorCompensationPdfForm(CompensationPDFForm):
 
 class EntretienProfCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.EXPERT_MANDAT
-    mandat_template = "Entretien professionnel pour {0} {1}, classe {2}"
+    mandat_template = "Expert·e aux examens finaux"
+    examen_template = (
+        "Date des examens : {date_exam}, entretien professionnel de "
+        "{student_civility} {student_fullname}, classe {klass}"
+    )
     AMOUNT = ''
 
     def __init__(self, out, exam):
@@ -576,7 +581,11 @@ class EntretienProfCompensationPdfForm(CompensationPDFForm):
 
 
 class SoutenanceCompensationPdfForm(EntretienProfCompensationPdfForm):
-    mandat_template = "Soutenance pour {0} {1}, classe {2}"
+    mandat_template = "Expert·e aux examens finaux"
+    examen_template = (
+        "Date des examens : {date_exam}, soutenance de Travail de diplôme de "
+        "{student_civility} {student_fullname}, classe {klass}"
+    )
     AMOUNT = ''
 
 
