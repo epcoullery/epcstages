@@ -207,6 +207,12 @@ class StudentAdmin(admin.ModelAdmin):
             inlines = [inl for inl in inlines if inl != SupervisionBillInline]
         if not obj.is_ede() and not obj.is_eds():
             inlines = [inl for inl in inlines if inl != ExaminationInline]
+        if request.method == 'POST':
+            # Special case where inlines would be different before and after POST
+            if SupervisionBillInline in inlines and not 'supervisionbill_set-TOTAL_FORMS' in request.POST:
+                inlines.remove(SupervisionBillInline)
+            if ExaminationInline in inlines and not 'examination_set-TOTAL_FORMS' in request.POST:
+                inlines.remove(ExaminationInline)
         return inlines
 
     def get_fieldsets(self, request, obj=None):
