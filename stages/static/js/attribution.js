@@ -188,14 +188,16 @@ $(document).ready(function() {
     var sel = $('#contact_select');
     sel.html('<option value="">-------</option>');
     var id_corp = $(this).find("option:selected").data('idCorp');
-    $.getJSON('/corporation/' + id_corp + '/contacts/', function(data) {
-        $.each(data, function(key, contact) {
-            var item = contact.first_name + ' ' + contact.last_name;
-            if (contact.role.length) item += ' (' + contact.role + ')';
-            sel.append($("<option />").val(contact.id).text(item));
+    if (id_corp) {
+        $.getJSON('/corporation/' + id_corp + '/contacts/', function(data) {
+            $.each(data, function(key, contact) {
+                var item = contact.first_name + ' ' + contact.last_name;
+                if (contact.role.length) item += ' (' + contact.role + ')';
+                sel.append($("<option />").val(contact.id).text(item));
+            });
+            if (data.length == 1) sel.val(data[0].id);
         });
-        if (data.length == 1) sel.val(data[0].id);
-    });
+    }
   });
 
   $('#valid_training').click(function() {

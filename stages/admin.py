@@ -223,6 +223,12 @@ class StudentAdmin(admin.ModelAdmin):
             return fieldsets
         return super().get_fieldsets(request, obj)
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        ffield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name in self.autocomplete_fields:
+            ffield.widget.attrs.update({'data-minimum-input-length': 3})
+        return ffield
+
     def archive(self, request, queryset):
         for student in queryset:
             # Save each item individually to allow for custom save() logic.
@@ -366,6 +372,12 @@ class AvailabilityInline(admin.StackedInline):
         models.TextField: {'widget': forms.Textarea(attrs={'rows':2, 'cols':40})},
     }
     autocomplete_fields = ['corporation']
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        ffield = super().formfield_for_foreignkey(db_field, request, **kwargs)
+        if db_field.name in self.autocomplete_fields:
+            ffield.widget.attrs.update({'data-minimum-input-length': 3})
+        return ffield
 
 
 class PeriodAdmin(admin.ModelAdmin):
