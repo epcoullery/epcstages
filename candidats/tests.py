@@ -246,11 +246,11 @@ tél. 032 886 33 00"""
 
 Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
 
-Vous êtes attendu à l’École Santé-social Pierre-Coullery, à La Chaux-de-Fonds aux lieux et dates suivantes:
+Vous êtes attendu à l’École Santé-social Pierre-Coullery, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
 
- - rue de la Prévoyance 82, mercredi 7 mars 2018, à 13h30, salle A405, pour l’examen écrit (analyse de texte d’une durée de 2h30 env.);
+ - le mercredi 7 mars 2018, à 13h30, salle A405 pour l’examen écrit (analyse de texte d’une durée de 2h30 env.) ; le numéro de la classe sera indiqué sur un panneau à l’entrée du bâtiment ;
 
- - rue Sophie-Mairet 29-31, samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 20 min.).
+ - le samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 20 min.).
 
 En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
 
@@ -259,7 +259,7 @@ Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
  - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
 
-Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
+Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cpne.ch/formations/educateur-trice-de-lenfance/.
 
 Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, votre dossier ne sera pas pris en considération et vous ne pourrez pas vous présenter à l’examen d’admission.
 
@@ -283,7 +283,7 @@ tél. 032 886 33 00
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
  - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
 
-Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cifom.ch/index.php/ecoles/epc/formations-epc/educateur-de-l-enfance-epc.
+Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cpne.ch/formations/educateur-trice-de-lenfance/.
 
 Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, votre dossier ne sera pas pris en considération et vous ne pourrez pas vous présenter à l’examen d’admission.""", "")
         )
