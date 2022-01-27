@@ -4,7 +4,7 @@ Nous vous adressons par la présente votre convocation personnelle à la procéd
 
 Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} à l’École Santé-social Pierre-Coullery, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
 
- - le {{ date_lieu_examen }} pour l’examen écrit (analyse de texte d’une durée de 2h30 env.) ; le numéro de la classe sera indiqué sur un panneau à l’entrée du bâtiment ;
+ - le {{ date_lieu_examen }} pour l’examen écrit (analyse de texte d’une durée de 2h30 env.). Le numéro de la classe sera indiqué sur un panneau à l’entrée du bâtiment ;
 
  - le {{ date_entretien }}, en salle {{ salle_entretien }}, pour l’entretien d’admission (durée 20 min.).
 
