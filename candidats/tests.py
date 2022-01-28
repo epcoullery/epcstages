@@ -250,7 +250,7 @@ Vous êtes attendu à l’École Santé-social Pierre-Coullery, rue Sophie-Maire
 
  - le mercredi 7 mars 2018, à 13h30, salle A405 pour l’examen écrit (analyse de texte d’une durée de 2h30 env.). Le numéro de la classe sera indiqué sur un panneau à l’entrée du bâtiment ;
 
- - le samedi 10 mars 2018 à 10h30, en salle B103, pour l’entretien d’admission (durée 20 min.).
+ - le samedi 10 mars 2018 à 10h30, en B103, pour l’entretien d’admission (durée 20 min.).
 
 En cas d’empêchement de dernière minute, nous vous remercions d’annoncer votre absence au secrétariat (Tél. 032 886 33 00).
 
