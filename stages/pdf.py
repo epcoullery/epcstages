@@ -17,6 +17,7 @@ from reportlab.platypus import (
 style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
 style_normal_center = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_CENTER)
 style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=8, spaceBefore=0.3 * cm, alignment=TA_LEFT)
+style_bold_italic = PS(name='CORPS', fontName='Helvetica-BoldOblique', fontSize=8, spaceBefore=0.3 * cm, alignment=TA_LEFT)
 style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1 * cm)
 style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=10 * cm)
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
@@ -295,51 +296,57 @@ class CompensationForm:
 
     def add_private_data(self, person):
         self.story.append(Spacer(0, 0.5 * cm))
-        style = PS(name='Title1', fontName='Helvetica', fontSize=12, alignment=TA_CENTER)
-        self.story.append(Paragraph('INDEMNISATION D’EXPERTS', style))
+        style_titre1 = PS(name='Title1', fontName='Helvetica-Bold', fontSize=12, alignment=TA_CENTER)
+        self.story.append(Paragraph('INDEMNISATION D’EXPERTS', style_titre1))
         self.story.append(Spacer(0, 0.2 * cm))
+        quest_url = 'https://edus2.rpn.ch/DocumentsRHPersonnelEcolesPro/Formulaire%20imp%C3%B4t%20%C3%A0%20la%20source%202021.pdf'
         data = [
-            [self.formating('ECOLE :', style=style_bold), 'École Santé-social Pierre-Coullery', '', ''],
-            [Paragraph('<u>COORDONNÉES DE L’EXPERT</u>', style=style_bold), '', '', ''],
-            [self.formating('NOM : '), person.last_name or self.points, '', ''],
-            [self.formating('Prénom :'), person.first_name or self.points, '', ''],
+            [self.formating('CENTRE/ECOLE :', style=style_normal), 'École Santé-social Pierre-Coullery', '', ''],
+            [Paragraph('<u>COORDONNÉES PERSONNELLES </u>:', style=style_bold_italic), '', '', ''],
+            [self.formating('Nom : '), person.last_name or self.points, self.formating('N° de téléphone :'), person.tel or ''],
+            [self.formating('Prénom :'), person.first_name or self.points, self.formating('N° AVS :'), person.avs or ''],
+            ['', '', self.formating('(joindre copie de la carte AVS ou carte d’assurance-maladie)', maxLineLength=None), ''],
             [self.formating('Adresse complète :'), person.street, '', ''],
             ['', person.pcode_city if person.pcode else '', '', ''],
             ['', '', '', ''],
             [
                 self.formating('Date de naissance :'),
                 django_format(person.birth_date, 'j F Y') if person.birth_date else '',
+                self.formating('État civil :'), self.formating('Depuis le :'),
+            ],
+            [
                 self.formating('Nationalité :'), person.nation or '',
-            ],
-            [
-                self.formating('N° de téléphone :'), person.tel or '',
-                self.formating('Si étranger, joindre copie permis de séjour', style=style_bold, maxLineLength=None), ''
-            ],
-            [
-                self.formating('N° AVS :'), person.avs or '',
                 self.formating('Employeur :'), Paragraph(person.corporation.name if person.corporation else '', style=style_normal),
             ],
-            [Paragraph('<u>COORDONNÉES DE PAIEMENT</u>', style=style_bold), '', '', ''],
-            [Paragraph('N° de ccp ou compte bancaire (<b>IBAN</b>) :', style_normal), person.iban or '', '', ''],
+            [
+                self.formating('Permis de séjour :'), person.permis_sejour,
+                self.formating('Date de validité :'), django_format(person.date_validite, 'j F Y') if person.date_validite else '',
+            ],
+            [Paragraph('(Pour les titulaires d’un permis (sauf permis C), compléter le formulaire « déclaration d’impôt '
+                       f'à la source » en cliquant sur le lien suivant : <font color="blue"><link href="{quest_url}">'
+                       'Questionnaire impôt à la source</link></font> et le joindre à la présente fiche).',
+                       style=style_bold_italic), '', '', ''],
+
+            [Paragraph('<u>COORDONNÉES DE PAIEMENT</u> :', style=style_bold_italic), '', '', ''],
+            [Paragraph('N° de ccp ou compte bancaire (IBAN) :', style_normal), person.iban or '', '', ''],
             [Paragraph('Si banque, nom et adresse de celle-ci :', style_normal), person.bank or '', '', ''],
         ]
 
-        t = Table(data, colWidths=[4 * cm, 4 * cm, 2 * cm, 6 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[3.5 * cm, 4 * cm, 3 * cm, 5.5 * cm], hAlign=TA_LEFT)
         t.setStyle(TableStyle([
+            #('INNERGRID', (0,0), (-1,-1), 0.25, colors.black), # Might help debugging
             ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-            ('BOX', (0, 0), (-1, 9), 0.25, colors.black),
-            ('BOX', (0, 10), (-1, -1), 0.25, colors.black),
+            ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
             ('SPAN', (1, 0), (-1, 0)),  # ecole
             ('TOPPADDING', (0, 0), (-1, 0), 12),  # ecole
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # ecole
-            ('SPAN', (0, 1), (-1, 1)),  # coord expert
-            ('SPAN', (1, 2), (-1, 2)),  # nom
-            ('SPAN', (1, 3), (-1, 3)),  # prenom
-            ('SPAN', (1, 4), (-1, 4)),  # adresse
+            #('BOTTOMPADDING', (0, 0), (-1, 0), 12),  # ecole
+            ('SPAN', (0, 1), (-1, 1)),  # coord perso
+            ('SPAN', (2, 4), (-1, 4)),  # info avs
             ('SPAN', (2, 6), (-1, 6)),
             ('VALIGN', (0, 9), (-1, 9), 'TOP'),  # avs / employeur
-            ('SPAN', (0, 10), (-1, 10)),  # coord paiement
-            ('TOPPADDING', (0, 10), (-1, 10), 8),  # coord paiement
+            ('SPAN', (0, 11), (-1, 11)),  # infos permis
+            ('SPAN', (0, 12), (-1, 12)),  # coord paiement
+            ('TOPPADDING', (0, 12), (-1, 12), 14),  # coord paiement
         ]))
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
@@ -383,7 +390,7 @@ class CompensationForm:
 
         self.story.append(Spacer(0, 1.5 * cm))
         self.story.append(Paragraph(
-            f'Veuillez indiquer l’OTP (champ obligatoire): {otp}',
+            f'Veuillez indiquer l’OTP <font color="red">(champ obligatoire)</font> : {otp}',
             style_normal
         ))
         self.story.append(Spacer(0, 1.5 * cm))
