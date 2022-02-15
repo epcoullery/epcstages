@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='candidate',
             name='convocation_date',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Envoi mail de confirmation'),
+            field=models.DateTimeField(blank=True, null=True, verbose_name='Envoi mail de convocation'),
         ),
         migrations.RenameField(
             model_name='candidate',

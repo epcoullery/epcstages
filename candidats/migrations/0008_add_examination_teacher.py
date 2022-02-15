@@ -16,6 +16,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='candidate',
             name='examination_teacher',
-            field=models.ForeignKey(blank=True, limit_choices_to=models.Q(('abrev', 'MME'), ('abrev', 'CLG'), _connector='OR'), null=True, on_delete=models.deletion.SET_NULL, to='stages.Teacher', verbose_name='Correct. examen'),
+            field=models.ForeignKey(blank=True, limit_choices_to={'can_examinate': True}, null=True, on_delete=models.deletion.SET_NULL, to='stages.teacher', verbose_name='Correct. examen'),
         ),
     ]
