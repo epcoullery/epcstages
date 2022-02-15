@@ -188,7 +188,7 @@ class StudentImportView(ImportViewBase):
 
         for line in up_file:
             student_defaults = {
-                val: strip(line.get(key, '')) for key, val in self.student_mapping.items()
+                val: '' if line[key] is None else strip(line[key]) for key, val in self.student_mapping.items()
             }
             if student_defaults['ext_id'] in seen_students_ids:
                 # Second line for student, ignore it
@@ -200,7 +200,7 @@ class StudentImportView(ImportViewBase):
 
             if self.corporation_mapping:
                 corporation_defaults = {
-                    val: strip(line[key]) for key, val in self.corporation_mapping.items()
+                    val: '' if line[key] is None else strip(line[key]) for key, val in self.corporation_mapping.items()
                 }
                 if isinstance(corporation_defaults['pcode'], float):
                     corporation_defaults['pcode'] = int(corporation_defaults['pcode'])
@@ -271,7 +271,7 @@ class StudentImportView(ImportViewBase):
     def get_corporation(self, corp_values):
         if corp_values['ext_id'] == '':
             return None
-        if 'city' in corp_values and is_int(corp_values['city'][:4]):
+        if corp_values.get('city') and is_int(corp_values['city'][:4]):
             corp_values['pcode'], _, corp_values['city'] = corp_values['city'].partition(' ')
         try:
             corp, created = Corporation.objects.get_or_create(
