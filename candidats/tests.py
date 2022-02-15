@@ -244,7 +244,7 @@ tél. 032 886 33 00"""
         self.assertContains(response, '<input type="text" name="to" value="henri@example.org" size="60" id="id_to" required>', html=True)
         expected_message = """Monsieur Henri Dupond,
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Education de l’enfance, dipl. ES.
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Éducation de l’enfance, dipl. ES.
 
 Vous êtes attendu à l’École Santé-social Pierre-Coullery, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
 
@@ -265,7 +265,7 @@ Sans nouvelles de votre part 5 jours ouvrables avant la date du premier examen, 
 
 Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, Monsieur, nos salutations les meilleures.
 
-Secrétariat de la filière Education de l’enfance, dipl. ES
+Secrétariat de la filière Éducation de l’enfance, dipl. ES
 Hans Schmid
 me@example.org
 tél. 032 886 33 00

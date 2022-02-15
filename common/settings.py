@@ -143,6 +143,7 @@ GLOBAL_CHARGE_PERCENT = 21.5
 
 RESP_FILIERE_EDE = ("Ann Schaub-Murray", 'F')
 DATE_LIEU_EXAMEN_EDE = "mercredi 7 mars 2018, à 13h30, salle A405"
+DATE_LIEU_EXAMEN_EDS = "mercredi 7 mars 2018, à 13h30, salle A405"
 RESP_FILIERE_EDS = ("Brahim Ali Hemma", 'M')
 
 if 'TRAVIS' in os.environ:

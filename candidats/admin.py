@@ -129,7 +129,7 @@ class CandidateAdmin(admin.ModelAdmin):
         return format_html(
             '<a class="button" href="{}">Confirmation de l’inscription FE + ES</a>&nbsp;'
             '<a class="button" href="{}">Validation enseignants EDE</a>&nbsp;'
-            '<a class="button" href="{}">Convocation aux examens EDE</a>&nbsp;'
+            '<a class="button" href="{}">Convocation aux examens EDE/EDS</a>&nbsp;'
             '<a class="button" href="{}">Impression du résumé du dossier EDE</a>',
             reverse('candidate-confirmation', args=[obj.pk]),
             reverse('candidate-validation', args=[obj.pk]),

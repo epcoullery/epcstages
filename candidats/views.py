@@ -114,7 +114,7 @@ class ValidationView(CandidateConfirmationView):
 class ConvocationView(CandidateConfirmationView):
     success_message = "Le message de convocation a été envoyé pour le candidat {person}"
     candidate_date_field = 'convocation_date'
-    title = "Convocation aux examens d'admission EDE"
+    title = "Convocation aux examens d'admission EDE/EDS"
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
@@ -140,15 +140,20 @@ class ConvocationView(CandidateConfirmationView):
         }[candidate.diploma]
         docs_required = dipl_docs + common_docs
 
-        missing_documents = {'documents': ', '.join([
-            Candidate._meta.get_field(doc).verbose_name for doc in docs_required
-            if not getattr(candidate, doc)
-        ])}
+        missing_documents = {
+            'candidate': candidate,
+            'documents': ', '.join([
+                Candidate._meta.get_field(doc).verbose_name for doc in docs_required
+                if not getattr(candidate, doc)
+            ]),
+        }
 
         msg_context = {
             'candidate': candidate,
             'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
-            'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE,
+            'filiere': "Éducation de l’enfance" if candidate.section == 'EDE' else "Éducation sociale",
+            'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE if candidate.section == 'EDE' else settings.DATE_LIEU_EXAMEN_EDS,
+            'duree_examen': '2h30' if candidate.section == 'EDE' else '3h00',
             'date_entretien': candidate.interview.date_formatted,
             'salle_entretien': candidate.interview.room,
             'sender_name': " ".join([self.request.user.first_name, self.request.user.last_name]),
