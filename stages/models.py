@@ -494,6 +494,8 @@ class CorpContact(models.Model):
     archived = models.BooleanField(default=False, verbose_name='Archivé')
     sections = models.ManyToManyField(Section, blank=True)
 
+    permis_sejour = models.CharField("Permis de séjour", max_length=15, blank=True)
+    date_validite = models.DateField("Date de validité", blank=True, null=True)
     avs = models.CharField('No AVS', max_length=20, blank=True)
     bank = models.CharField('Banque (nom et ville)', max_length=200, blank=True)
     clearing = models.CharField('No clearing', max_length=5, blank=True)
