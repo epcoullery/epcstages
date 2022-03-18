@@ -365,28 +365,25 @@ class CompensationForm:
             otp = self.OTP_EDE_PS_OTP
 
         self.story.append(Spacer(0, 0.5 * cm))
-        if mandat == self.EXPERT_MANDAT:
-            data = [
-                ['Indemnités', 'Fr.'],
-                ['Frais de déplacement', 'Fr.'],
-                ['Repas', 'Fr.'],
-                ['TOTAL', 'Fr.'],
+        data = [
+            ['Indemnités', 'Fr.'],
+            ['Frais de déplacement', 'Fr.'],
+            ['Repas', 'Fr.'],
+            ['TOTAL', 'Fr.'],
+        ]
+        t = Table(
+            data, colWidths=[4.5 * cm, 3 * cm], hAlign=TA_CENTER,
+            spaceBefore=0.5 * cm, spaceAfter=0.2 * cm
+        )
+        t.setStyle(TableStyle(
+            [
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('LINEBELOW', (1, 2), (2, 2), 0.5, colors.black),
+                ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
+                ('FONTSIZE', (0, 0), (-1, -1), 7),
             ]
-            t = Table(
-                data, colWidths=[4.5 * cm, 3 * cm], hAlign=TA_CENTER,
-                spaceBefore=0.5 * cm, spaceAfter=0.2 * cm
-            )
-            t.setStyle(TableStyle(
-                [
-                    ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
-                    ('LINEBELOW', (1, 2), (2, 2), 0.5, colors.black),
-                    ('LINEBELOW', (1, 3), (2, 3), 0.5, colors.black),
-                    ('FONTSIZE', (0, 0), (-1, -1), 7),
-                ]
-            ))
-            self.story.append(t)
-        else:
-            self.story.append(Spacer(0, 2 * cm))
+        ))
+        self.story.append(t)
 
         self.story.append(Spacer(0, 1.5 * cm))
         self.story.append(Paragraph(
