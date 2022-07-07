@@ -7,7 +7,7 @@ def school_year(date, as_tuple=False):
       * as_tuple = False: "2013 — 2014"
       * as_tuple = True: [2013, 2014]
     """
-    if date.month < 8:
+    if date.month < 7:
         start_year = date.year - 1
     else:
         start_year = date.year

@@ -67,7 +67,7 @@ class StudentInline(admin.StackedInline):
 
 
 class KlassAdmin(admin.ModelAdmin):
-    list_display = ('name', 'section')
+    list_display = ('name', 'section', 'level')
     ordering = ('name',)
     list_filter = ('section', 'level',)
     fields = (
