@@ -103,7 +103,7 @@ FILE_UPLOAD_HANDLERS = ["django.core.files.uploadhandler.TemporaryFileUploadHand
 
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
-ALLOWED_HOSTS = ['localhost', 'stages.pierre-coullery.ch']
+ALLOWED_HOSTS = ['localhost', 'cpne-2s-stages.s2.rpn.ch']
 
 # candidats admin shows confirmation_date readonly field twice.
 SILENCED_SYSTEM_CHECKS = ['admin.E012']
@@ -121,7 +121,7 @@ SUMMERNOTE_CONFIG = {
     }
 }
 
-FABRIC_HOST = 'gestion.pierre-coullery.ch'
+FABRIC_HOST = 'cpne-2s-stages.s2.rpn.ch'
 FABRIC_USERNAME = ''
 
 INSTRUCTOR_IMPORT_MAPPING = {
