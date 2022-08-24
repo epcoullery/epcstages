@@ -29,9 +29,7 @@ style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=6, al
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
 LOGO_EPC_LONG = find('img/header.gif')
-LOGO_CIFOM = find('img/logo_CIFOM.png')
-LOGO_CPLN = find('img/logo_CPLN.jpg')
-LOGO_CPMB = find('img/logo_CPMB.png')
+LOGO_CPNE = find('img/logo_CPNE.jpg')
 
 
 class HorLine(Flowable):
@@ -55,10 +53,10 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         super().__init__(
             filelike,
             pagesize=A4,
-            lefMargin=2.5 * cm, bottomMargin=1 * cm, topMargin=1 * cm, rightMargin=2.5 * cm
+            lefMargin=2.5 * cm, bottomMargin=1 * cm, topMargin=0 * cm, rightMargin=2.5 * cm
         )
         self.page_frame = Frame(
-            self.leftMargin, self.bottomMargin, self.width - 2.5, self.height - 3 * cm,
+            self.leftMargin, self.bottomMargin, self.width - 2.5, self.height - 2.15 * cm,
             id='first_table', showBoundary=0, leftPadding=0 * cm
         )
         self.story = []
@@ -80,18 +78,12 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
         footer.drawOn(canvas, doc.leftMargin, h)
         canvas.restoreState()
 
-    def header_cifom(self, canvas, doc):
+    def header_cpne(self, canvas, doc):
         canvas.saveState()
         top = doc.height - 1.5 * cm
         logo_height = 1.5 * cm
         canvas.drawImage(
-            LOGO_CIFOM, doc.leftMargin, top, 1.7 * cm, logo_height, preserveAspectRatio=True
-        )
-        canvas.drawImage(
-            LOGO_CPLN, doc.leftMargin + 2.4 * cm, top, 1.5 * cm, logo_height, preserveAspectRatio=True
-        )
-        canvas.drawImage(
-            LOGO_CPMB, doc.leftMargin + 4.6 * cm, top, 3.6 * cm, logo_height, preserveAspectRatio=True
+            LOGO_CPNE, doc.leftMargin, top, 7.5 * cm, logo_height, preserveAspectRatio=True
         )
         canvas.restoreState()
 
@@ -301,7 +293,7 @@ class CompensationForm:
         self.story.append(Spacer(0, 0.2 * cm))
         quest_url = 'https://edus2.rpn.ch/DocumentsRHPersonnelEcolesPro/Formulaire%20imp%C3%B4t%20%C3%A0%20la%20source%202021.pdf'
         data = [
-            [self.formating('CENTRE/ECOLE :', style=style_normal), 'École Santé-social Pierre-Coullery', '', ''],
+            [self.formating('PÔLE :', style=style_normal), 'École Santé-social Pierre-Coullery', '', ''],
             [Paragraph('<u>COORDONNÉES PERSONNELLES </u>:', style=style_bold_italic), '', '', ''],
             [self.formating('Nom : '), person.last_name or self.points, self.formating('N° de téléphone :'), person.tel or ''],
             [self.formating('Prénom :'), person.first_name or self.points, self.formating('N° AVS :'), person.avs or ''],
@@ -312,7 +304,8 @@ class CompensationForm:
             [
                 self.formating('Date de naissance :'),
                 django_format(person.birth_date, 'j F Y') if person.birth_date else '',
-                self.formating('État civil :'), self.formating('Depuis le :'),
+                self.formating(f'État civil : {person.etat_civil or ""}'),
+                self.formating(f'Depuis le : %s' % django_format(person.etat_depuis, 'j F Y') if person.etat_depuis else ''),
             ],
             [
                 self.formating('Nationalité :'), person.nation or '',
@@ -328,8 +321,8 @@ class CompensationForm:
                        style=style_bold_italic), '', '', ''],
 
             [Paragraph('<u>COORDONNÉES DE PAIEMENT</u> :', style=style_bold_italic), '', '', ''],
-            [Paragraph('N° de ccp ou compte bancaire (IBAN) :', style_normal), person.iban or '', '', ''],
-            [Paragraph('Si banque, nom et adresse de celle-ci :', style_normal), person.bank or '', '', ''],
+            [Paragraph('N° de ccp ou compte bancaire (IBAN) :', style_normal), '', person.iban or ''],
+            [Paragraph('Si banque, nom et adresse de celle-ci :', style_normal), '', person.bank or ''],
         ]
 
         t = Table(data, colWidths=[3.5 * cm, 4 * cm, 3 * cm, 5.5 * cm], hAlign=TA_LEFT)
@@ -347,6 +340,8 @@ class CompensationForm:
             ('SPAN', (0, 11), (-1, 11)),  # infos permis
             ('SPAN', (0, 12), (-1, 12)),  # coord paiement
             ('TOPPADDING', (0, 12), (-1, 12), 14),  # coord paiement
+            ('SPAN', (0, 13), (1, 13)),  # ccp/IBAN
+            ('SPAN', (0, 14), (1, 14)),  # banque
         ]))
         self.story.append(t)
         self.story.append(Spacer(0, 0.5 * cm))
@@ -426,7 +421,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         super().__init__(out)
         self.addPageTemplates([
             PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header),
-            PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_cifom),
+            PageTemplate(id='ISOPage', frames=[self.page_frame], onPage=self.header_cpne),
         ])
 
     def exam_data(self):
@@ -527,7 +522,7 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
     def __init__(self, out, *args, **kwargs):
         super().__init__(out, *args, **kwargs)
         self.addPageTemplates([
-            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_cifom)
+            PageTemplate(id='FirstPage', frames=[self.page_frame], onPage=self.header_cpne)
         ])
 
     def produce(self):

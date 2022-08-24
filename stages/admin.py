@@ -245,6 +245,7 @@ class CorpContactAdmin(admin.ModelAdmin):
     fields = (('civility', 'last_name', 'first_name'),
               ('street', 'pcode', 'city'),
               ('birth_date', 'nation'),
+              ('etat_civil', 'etat_depuis'),
               ('permis_sejour', 'date_validite'),
               ('corporation',),
               ('sections', 'is_main', 'always_cc', 'archived'),
