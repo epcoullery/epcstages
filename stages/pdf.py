@@ -14,22 +14,24 @@ from reportlab.platypus import (
     SimpleDocTemplate, Spacer, Table, TableStyle, Preformatted
 )
 
-style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT)
-style_normal_center = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_CENTER)
-style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=8, spaceBefore=0.3 * cm, alignment=TA_LEFT)
-style_bold_italic = PS(name='CORPS', fontName='Helvetica-BoldOblique', fontSize=8, spaceBefore=0.3 * cm, alignment=TA_LEFT)
-style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=12, alignment=TA_LEFT, spaceBefore=1 * cm)
-style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_LEFT, leftIndent=10 * cm)
-style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=8, alignment=TA_RIGHT)
-style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=9, alignment=TA_CENTER)
-style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=7, alignment=TA_CENTER)
-style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=12, alignment=TA_LEFT)
-style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=6, alignment=TA_LEFT)
+font_size_base = 10
+style_normal = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base, alignment=TA_LEFT)
+style_normal_center = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base, alignment=TA_CENTER)
+style_bold = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=font_size_base, spaceBefore=0.3 * cm, alignment=TA_LEFT)
+style_bold_italic = PS(name='CORPS', fontName='Helvetica-BoldOblique', fontSize=font_size_base, spaceBefore=0.3 * cm, alignment=TA_LEFT)
+style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=font_size_base + 4, alignment=TA_LEFT, spaceBefore=1 * cm)
+style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base, alignment=TA_LEFT, leftIndent=9 * cm)
+style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base, alignment=TA_RIGHT)
+style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=font_size_base, alignment=TA_CENTER)
+style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base - 1, alignment=TA_CENTER)
+style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=font_size_base + 4, alignment=TA_LEFT)
+style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=font_size_base - 2, alignment=TA_LEFT)
 
 LOGO_EPC = find('img/logo_EPC.png')
 LOGO_ESNE = find('img/logo_ESNE.png')
 LOGO_EPC_LONG = find('img/header.gif')
 LOGO_CPNE = find('img/logo_CPNE.jpg')
+LOGO_CPNE_ADR = find('img/logo_CPNE_avec_adr.png')
 
 
 class HorLine(Flowable):
@@ -65,17 +67,16 @@ class EpcBaseDocTemplate(SimpleDocTemplate):
     def header(self, canvas, doc):
         canvas.saveState()
         canvas.drawImage(
-            LOGO_EPC, doc.leftMargin, doc.height - 1.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
-        )
-        canvas.drawImage(
-            LOGO_ESNE, doc.width - 2.5 * cm, doc.height - 1.2 * cm, 5 * cm, 3.3 * cm, preserveAspectRatio=True
+            LOGO_CPNE_ADR, doc.leftMargin, doc.height - 3.5 * cm, 7 * cm, 3 * cm, preserveAspectRatio=True
         )
 
         # Footer
-        canvas.line(doc.leftMargin, 1 * cm, doc.width + doc.leftMargin, 1 * cm)
-        footer = Paragraph(settings.PDF_FOOTER_TEXT, style_footer)
-        w, h = footer.wrap(doc.width, doc.bottomMargin)
-        footer.drawOn(canvas, doc.leftMargin, h)
+        canvas.setFont('Helvetica', 9)
+        canvas.drawString(doc.leftMargin, doc.bottomMargin, "032 886 33 00")
+        canvas.drawCentredString(doc.leftMargin + doc.width / 2, doc.bottomMargin, "cpne-2s@rpn.ch")
+        canvas.setFont('Helvetica-Bold', 9)
+        canvas.drawRightString(doc.width + doc.leftMargin, doc.bottomMargin, "www.cpne.ch")
+
         canvas.restoreState()
 
     def header_cpne(self, canvas, doc):
@@ -283,8 +284,8 @@ class CompensationForm:
     MENTOR_MANDAT = 'MENTOR'
     EXPERT_ACCOUNT = '30 490 002'
     MENTOR_ACCOUNT = "30 490 002"
-    OTP_EDE_PS_OTP = "CIFO01.03.02.07.02.01"
-    OTP_EDE_PE_OTP = "CIFO01.03.02.07.01.01"
+    OTP_EDE_PE_OTP = "CPNE01.08.01.07.01.01"
+    OTP_EDE_PS_OTP = "CPNE01.08.01.07.02.01"
 
     def add_private_data(self, person):
         self.story.append(Spacer(0, 0.5 * cm))
@@ -293,7 +294,7 @@ class CompensationForm:
         self.story.append(Spacer(0, 0.2 * cm))
         quest_url = 'https://edus2.rpn.ch/DocumentsRHPersonnelEcolesPro/Formulaire%20imp%C3%B4t%20%C3%A0%20la%20source%202021.pdf'
         data = [
-            [self.formating('PÔLE :', style=style_normal), 'École Santé-social Pierre-Coullery', '', ''],
+            [self.formating('PÔLE :', style=style_normal), 'Santé et Social', '', ''],
             [Paragraph('<u>COORDONNÉES PERSONNELLES </u>:', style=style_bold_italic), '', '', ''],
             [self.formating('Nom : '), person.last_name or self.points, self.formating('N° de téléphone :'), person.tel or ''],
             [self.formating('Prénom :'), person.first_name or self.points, self.formating('N° AVS :'), person.avs or ''],
@@ -393,7 +394,7 @@ class CompensationForm:
 
 
 class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
-    reference = 'ASH/val'
+    reference = 'BAH/val'
     title = 'Travail de diplôme'
     resp_filiere, resp_genre = settings.RESP_FILIERE_EDE
     part1_text = """
@@ -401,14 +402,14 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l’un-e de nos
         étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
         En annexe, nous avons l’avantage de vous remettre le travail de {student_civility_full_name},
-        ainsi que la grille d’évaluation commune aux deux membres du jury.<br/><br/>
+        accompagné des documents usuels à l’évaluation de ce dernier.<br/><br/>
         La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
     """
     part2_text = """
         <br/>
         L’autre membre du jury sera {internal_expert_civility} {internal_expert_full_name}, {internal_expert_role} dans notre école.<br/>
         <br/>
-        Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d’experts aux examens»
+        Par ailleurs, nous nous permettons de vous faire parvenir en annexe le formulaire «Indemnisation d’experts»
         que vous voudrez bien compléter au niveau des «données privées / coordonnées de paiement» et nous retourner dans les meilleurs délais.
         <br/><br/>
         Restant à votre disposition pour tout complément d’information et en vous remerciant de
@@ -439,16 +440,14 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         header_text = """
             <br/><br/><br/>
             La Chaux-de-Fonds, le {current_date}<br/>
-            N/réf.: {ref}<br/>
-            <br/><br/><br/>
-            <strong>{title}</strong>
+            Réf : {ref}<br/>
             <br/><br/><br/>
         """
         self.story.append(Paragraph(header_text.format(
             current_date=django_format(date.today(), 'j F Y'),
             ref=self.reference,
             title=self.title,
-        ), style_normal))
+        ), style_adress))
 
         self.story.append(Paragraph(self.part1_text.format(
             title_lower=self.title.lower(),
@@ -457,10 +456,13 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             student_civility_full_name=self.exam.student.civility_full_name,
         ), style_normal))
 
-        date_text = "<br/>{0} à l'Ecole Santé-social Pierre-Coullery, salle {1}<br/><br/>"
+        date_text = (
+            "<br/>{date} en {salle}<br/>"
+            "CPNE Pôle Santé et Social, rue Sophie-Mairet 29-31 - 2300 La Chaux-de-Fonds<br/><br/>"
+        )
         self.story.append(Paragraph(date_text.format(
-            django_format(exam_data['date_exam'], 'l j F Y à H\hi'),
-            exam_data['room'],
+            date=django_format(exam_data['date_exam'], 'l j F Y à H\hi'),
+            salle=exam_data['room'],
         ), style_bold_center))
 
         self.story.append(Paragraph(self.part2_text.format(
@@ -471,16 +473,12 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         ), style_normal))
 
         footer_text = """
-            {lela} responsable de filière:<br/>
-            <br/><br/>
-            {resp_filiere}
-            <br/><br/><br/>
-            Annexes: ment.
+            <br/>Brahim Hemma<br/>
+            Directeur adjoint CPNE-2S
         """
-        self.story.append(Paragraph(footer_text.format(
-            lela='Le' if self.resp_genre == 'M' else 'La',
-            resp_filiere=self.resp_filiere,
-        ), style_normal))
+        self.story.append(Paragraph(footer_text, style_adress))
+        self.story.append(Spacer(0, 1.5 * cm))
+        self.story.append(Paragraph("Annexes: ment.", style_normal))
 
         # ISO page
         self.story.append(NextPageTemplate('ISOPage'))
@@ -509,8 +507,8 @@ class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
     resp_filiere, resp_genre = settings.RESP_FILIERE_EDS
     part1_text = """
         {expert_civility},<br/><br/>
-        Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l'un-e de nos
-        étudiant-e-s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
+        Vous avez accepté de fonctionner comme expert{expert_accord} pour un {title_lower} de l'un·e de nos
+        étudiant·e·s. Nous vous remercions très chaleureusement de votre disponibilité.<br/><br/>
         En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
         ainsi que diverses informations sur le cadre de cet examen et la grille d'évaluation
         commune aux deux membres du jury.<br/><br/>
