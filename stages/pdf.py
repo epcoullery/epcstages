@@ -23,7 +23,7 @@ style_title = PS(name='CORPS', fontName='Helvetica-Bold', fontSize=font_size_bas
 style_adress = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base, alignment=TA_LEFT, leftIndent=9 * cm)
 style_normal_right = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base, alignment=TA_RIGHT)
 style_bold_center = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=font_size_base, alignment=TA_CENTER)
-style_footer = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base - 1, alignment=TA_CENTER)
+style_smaller = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base - 2, alignment=TA_LEFT)
 style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=font_size_base + 4, alignment=TA_LEFT)
 style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=font_size_base - 2, alignment=TA_LEFT)
 
@@ -284,8 +284,9 @@ class CompensationForm:
     MENTOR_MANDAT = 'MENTOR'
     EXPERT_ACCOUNT = '30 490 002'
     MENTOR_ACCOUNT = "30 490 002"
-    OTP_EDE_PE_OTP = "CPNE01.08.01.07.01.01"
-    OTP_EDE_PS_OTP = "CPNE01.08.01.07.02.01"
+    OTP_EDE_S_PS = "CPNE01.08.01.07.01.01"
+    OTP_EDE_S_SS = "CPNE01.08.01.07.02.01"
+    OTP_EDS = "CPNE01.08.01.07.03.02"
 
     def add_private_data(self, person):
         self.story.append(Spacer(0, 0.5 * cm))
@@ -298,15 +299,22 @@ class CompensationForm:
             [Paragraph('<u>COORDONNÉES PERSONNELLES </u>:', style=style_bold_italic), '', '', ''],
             [self.formating('Nom : '), person.last_name or self.points, self.formating('N° de téléphone :'), person.tel or ''],
             [self.formating('Prénom :'), person.first_name or self.points, self.formating('N° AVS :'), person.avs or ''],
-            ['', '', self.formating('(joindre copie de la carte AVS ou carte d’assurance-maladie)', maxLineLength=None), ''],
+            ['', '',
+                self.formating(
+                    '(joindre copie de la carte AVS ou carte d’assurance-maladie)',
+                    style=style_smaller, maxLineLength=None
+                ), ''
+            ],
             [self.formating('Adresse complète :'), person.street, '', ''],
             ['', person.pcode_city if person.pcode else '', '', ''],
             ['', '', '', ''],
             [
                 self.formating('Date de naissance :'),
                 django_format(person.birth_date, 'j F Y') if person.birth_date else '',
-                self.formating(f'État civil : {person.etat_civil or ""}'),
-                self.formating(f'Depuis le : %s' % django_format(person.etat_depuis, 'j F Y') if person.etat_depuis else ''),
+                (
+                    f'État civil : {person.etat_civil or ""}  Depuis le : %s' % (
+                        django_format(person.etat_depuis, 'j F Y') if person.etat_depuis else '')
+                ),
             ],
             [
                 self.formating('Nationalité :'), person.nation or '',
@@ -337,6 +345,7 @@ class CompensationForm:
             ('SPAN', (0, 1), (-1, 1)),  # coord perso
             ('SPAN', (2, 4), (-1, 4)),  # info avs
             ('SPAN', (2, 6), (-1, 6)),
+            ('SPAN', (2, 8), (-1, 8)),  # état-civil
             ('VALIGN', (0, 9), (-1, 9), 'TOP'),  # avs / employeur
             ('SPAN', (0, 11), (-1, 11)),  # infos permis
             ('SPAN', (0, 12), (-1, 12)),  # coord paiement
@@ -355,10 +364,12 @@ class CompensationForm:
         elif mandat == self.MENTOR_MANDAT:
             account = self.MENTOR_ACCOUNT
 
-        if student.klass.is_Ede_pe():
-            otp = self.OTP_EDE_PE_OTP
-        elif student.klass.is_Ede_ps():
-            otp = self.OTP_EDE_PS_OTP
+        if 'EDE-S-PS' in student.klass.name:
+            otp = self.OTP_EDE_S_PS
+        elif 'EDE-S-SS' in student.klass.name:
+            otp = self.OTP_EDE_S_SS
+        elif 'EDS-S' in student.klass.name:
+            otp = self.OTP_EDS
 
         self.story.append(Spacer(0, 0.5 * cm))
         data = [
@@ -395,7 +406,7 @@ class CompensationForm:
 
 class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
     reference = 'BAH/val'
-    title = 'Travail de diplôme'
+    doc_title = 'Travail de diplôme'
     resp_filiere, resp_genre = settings.RESP_FILIERE_EDE
     part1_text = """
         {expert_civility},<br/><br/>
@@ -446,11 +457,11 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
         self.story.append(Paragraph(header_text.format(
             current_date=django_format(date.today(), 'j F Y'),
             ref=self.reference,
-            title=self.title,
+            title=self.doc_title,
         ), style_adress))
 
         self.story.append(Paragraph(self.part1_text.format(
-            title_lower=self.title.lower(),
+            title_lower=self.doc_title.lower(),
             expert_civility=exam_data['expert'].civility,
             expert_accord=exam_data['expert'].adjective_ending,
             student_civility_full_name=self.exam.student.civility_full_name,
@@ -503,7 +514,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
 
 class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
     reference = 'BAH/ner'
-    title = 'Travail final'
+    doc_title = 'Travail final'
     resp_filiere, resp_genre = settings.RESP_FILIERE_EDS
     part1_text = """
         {expert_civility},<br/><br/>
