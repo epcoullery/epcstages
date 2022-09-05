@@ -312,7 +312,7 @@ class CompensationForm:
                 self.formating('Date de naissance :'),
                 django_format(person.birth_date, 'j F Y') if person.birth_date else '',
                 (
-                    f'État civil : {person.etat_civil or ""}  Depuis le : %s' % (
+                    f'État civil : {person.etat_civil or "            "}  Depuis le : %s' % (
                         django_format(person.etat_depuis, 'j F Y') if person.etat_depuis else '')
                 ),
             ],
@@ -523,7 +523,7 @@ class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
         En annexe, nous avons l'avantage de vous remettre le travail de {student_civility_full_name},
         ainsi que diverses informations sur le cadre de cet examen et la grille d'évaluation
         commune aux deux membres du jury.<br/><br/>
-        La soutenance de ce travail de diplôme se déroulera le:<br/><br/>
+        La soutenance de ce {title_lower} se déroulera le:<br/><br/>
     """
 
 
