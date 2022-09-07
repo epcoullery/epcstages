@@ -284,8 +284,8 @@ class CompensationForm:
     MENTOR_MANDAT = 'MENTOR'
     EXPERT_ACCOUNT = '30 490 002'
     MENTOR_ACCOUNT = "30 490 002"
-    OTP_EDE_S_PS = "CPNE01.08.01.07.01.01"
-    OTP_EDE_S_SS = "CPNE01.08.01.07.02.01"
+    OTP_EDE_S_PS = "CPNE01.08.01.07.02.01"
+    OTP_EDE_S_SS = "CPNE01.08.01.07.01.01"
     OTP_EDS = "CPNE01.08.01.07.03.02"
 
     def add_private_data(self, person):
