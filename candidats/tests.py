@@ -244,7 +244,7 @@ tél. 032 886 33 00"""
 
 Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière Éducation de l’enfance, dipl. ES.
 
-Vous êtes attendu à l’École Santé-social Pierre-Coullery, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
+Vous êtes attendu au CPNE - Pôle Santé et Social, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
 
  - le mercredi 7 mars 2018, à 13h30, salle A405 pour l’examen écrit (analyse de texte d’une durée de 2h30 env.). Le numéro de la classe sera indiqué sur un panneau à l’entrée du bâtiment ;
 

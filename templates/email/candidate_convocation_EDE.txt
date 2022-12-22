@@ -2,7 +2,7 @@
 
 Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière {{ filiere }}, dipl. ES.
 
-Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} à l’École Santé-social Pierre-Coullery, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
+Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} au CPNE - Pôle Santé et Social, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
 
  - le {{ date_lieu_examen }} pour l’examen écrit (analyse de texte d’une durée de {{ duree_examen }} env.). Le numéro de la classe sera indiqué sur un panneau à l’entrée du bâtiment ;
 

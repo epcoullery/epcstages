@@ -27,8 +27,6 @@ style_smaller = PS(name='CORPS', fontName='Helvetica', fontSize=font_size_base -
 style_bold_title = PS(name="CORPS", fontName="Helvetica-Bold", fontSize=font_size_base + 4, alignment=TA_LEFT)
 style_smallx = PS(name='CORPS', fontName="Helvetica-BoldOblique", fontSize=font_size_base - 2, alignment=TA_LEFT)
 
-LOGO_EPC = find('img/logo_EPC.png')
-LOGO_ESNE = find('img/logo_ESNE.png')
 LOGO_EPC_LONG = find('img/header.gif')
 LOGO_CPNE = find('img/logo_CPNE.jpg')
 LOGO_CPNE_ADR = find('img/logo_CPNE_avec_adr.png')

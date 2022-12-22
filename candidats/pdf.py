@@ -5,7 +5,7 @@ from reportlab.platypus import PageTemplate, Paragraph, Spacer, Table, TableStyl
 
 from django.utils.dateformat import format as django_format
 
-from stages.pdf import EpcBaseDocTemplate, LOGO_EPC, LOGO_ESNE, style_normal, style_bold
+from stages.pdf import EpcBaseDocTemplate, LOGO_CPNE_ADR, style_normal, style_bold
 from .models import (
     AES_ACCORDS_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
     OPTION_CHOICES, RESIDENCE_PERMITS_CHOICES,
@@ -23,20 +23,18 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         ])
 
     def header(self, canvas, doc):
-        section = "Filière EDE"
+        section = "Filière ES"
         title = "Dossier d’inscription"
 
         canvas.saveState()
         canvas.drawImage(
-            LOGO_EPC, doc.leftMargin, doc.height - 1.5 * cm, 5 * cm, 3 * cm, preserveAspectRatio=True
+            LOGO_CPNE_ADR, doc.leftMargin, doc.height - 2.2 * cm, 7 * cm, 3 * cm, preserveAspectRatio=True
         )
-        canvas.drawImage(
-            LOGO_ESNE, doc.width - 2.5 * cm, doc.height - 1.2 * cm, 5 * cm, 3.3 * cm, preserveAspectRatio=True
-        )
-        canvas.line(doc.leftMargin, doc.height - 2 * cm, doc.width + doc.leftMargin, doc.height - 2 * cm)
-        canvas.drawString(doc.leftMargin, doc.height - 2.5 * cm, section)
-        canvas.drawRightString(doc.width + doc.leftMargin, doc.height - 2.5 * cm, title)
-        canvas.line(doc.leftMargin, doc.height - 2.7 * cm, doc.width + doc.leftMargin, doc.height - 2.7 * cm)
+        section_start = doc.height - 2.2 * cm
+        canvas.line(doc.leftMargin, section_start, doc.width + doc.leftMargin, section_start)
+        canvas.drawString(doc.leftMargin, section_start - 0.5 * cm, section)
+        canvas.drawRightString(doc.width + doc.leftMargin, section_start - 0.5 * cm, title)
+        canvas.line(doc.leftMargin, section_start - 0.7 * cm, doc.width + doc.leftMargin, section_start - 0.7 * cm)
         canvas.restoreState()
 
     def produce(self, candidate):
@@ -63,7 +61,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             ['Prénom:', candidate.first_name, 'Canton:', candidate.district],
             ['N° de tél.:', candidate.mobile, '',''],
         ]
-        t = Table(data, colWidths=[4 * cm, 5 * cm, 4 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[3.8 * cm, 4.6 * cm, 3.8 * cm, 3.8 * cm], hAlign=TA_LEFT)
         t.setStyle(ts)
         self.story.append(t)
 
@@ -72,7 +70,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         data = [
             [candidate.get_section_display(), candidate.get_option_display()]
         ]
-        t = Table(data, colWidths=[6 * cm, 11 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[5 * cm, 11 * cm], hAlign=TA_LEFT)
         t.setStyle(ts)
         self.story.append(t)
 
@@ -115,7 +113,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             data.append(["Contrat de travail", candidate.get_ok('contract')])
             data.append(["Promesse d'engagement", candidate.get_ok('promise')])
             data.append(["Taux d'activité", candidate.activity_rate])
-        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[12 * cm, 4 * cm], hAlign=TA_LEFT)
         t.setStyle(ts)
         self.story.append(t)
 
@@ -131,7 +129,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         data.append(['Validation des accords AES', aes_accords[candidate.aes_accords]])
         data.append(['Autorisation de séjour (pour les personnes étrangères)', residence_permits[candidate.residence_permits]])
 
-        t = Table(data, colWidths=[13 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[12 * cm, 4 * cm], hAlign=TA_LEFT)
         t.setStyle(ts)
         self.story.append(t)
 
