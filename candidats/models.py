@@ -98,8 +98,7 @@ class Candidate(models.Model):
     contract = models.BooleanField("Contrat valide", default=False)
     comment = models.TextField('Remarques', blank=True)
 
-    work_certificate = models.BooleanField("Bilan act. prof./dernier stage", default=False)
-    marks_certificate = models.BooleanField("Bull. de notes", default=False)
+    work_certificate = models.BooleanField("Préavis formatif", default=False)
     deposite_date = models.DateField('Date dépôt dossier')
 
     examination_teacher = models.ForeignKey(
@@ -111,8 +110,7 @@ class Candidate(models.Model):
     file_result = models.PositiveSmallIntegerField('Points dossier', blank=True, null=True)
 
     inscr_other_school = models.CharField("Inscr. autre école", max_length=30, blank=True)
-    certif_of_800_childhood = models.BooleanField("Attest. 800h. enfance", default=False)
-    certif_of_800_general = models.BooleanField("Attest. 800h. général", default=False)
+    certif_of_400_general = models.BooleanField("Attest. 400h. général", default=False)
     diploma = models.PositiveSmallIntegerField('Titre sec. II', choices=DIPLOMA_CHOICES, default=0)
     diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)

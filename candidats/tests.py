@@ -65,7 +65,6 @@ class CandidateTests(TestCase):
             residence_permits = '',
             corporation = '',
             _save = 'Enregistrer',
-            marks_certificate = 'on',
             avs = '75609994444567',
             activity_rate = '',
             last_name = 'G.',
@@ -76,7 +75,7 @@ class CandidateTests(TestCase):
             handicap = 'on',
             work_certificate = 'on',
             comment = 'Le casier judiciaire a été envoyé par e-mail le 30.01.2018',
-            certif_of_800_general = 'on',
+            certif_of_400_general = 'on',
             instructor = '',
             validation_sfpo = '',
             email = 'caterina.g@example.org',
@@ -88,7 +87,6 @@ class CandidateTests(TestCase):
             reflexive_text = 'on',
             diploma = '4',
             has_photo = 'on',
-            certif_of_800_childhood = 'on',
             district = 'Ne',
             option = 'PS',
             interview_result = '',
@@ -257,7 +255,7 @@ En cas d’empêchement de dernière minute, nous vous remercions d’annoncer v
 Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie, etc.), nous vous rappelons que vous pouvez bénéficier d’un temps supplémentaire d’une heure au maximum pour l’examen d’admission. Si vous n’avez pas déjà joint à votre dossier de candidature un document officiel (rapport d’orthophonie par exemple), vous devez impérativement nous le faire parvenir au moins 5 jours ouvrables avant la date du premier examen.
 
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
- - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
+ - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport
 
 Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cpne.ch/formations/educateur-trice-de-lenfance/.
 
@@ -274,14 +272,14 @@ tél. 032 886 33 00
         # Add missing documents and resend message
         for field_name in [
                 'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'reflexive_text',
-                'has_photo', 'marks_certificate']:
+                'has_photo']:
             setattr(henri, field_name, True)
         henri.save()
         response = self.client.get(reverse('candidate-convocation', args=[henri.pk]))
         self.assertEqual(response.context['form'].initial['message'], expected_message.replace(
             """
 De plus, afin que nous puissions enregistrer définitivement votre inscription, nous vous remercions par avance de nous faire parvenir, dans les meilleurs délais, le ou les documents suivants:
- - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport, Bull. de notes
+ - Formulaire d’inscription, Attest. de paiement, Casier judic., CV, Texte réflexif, Photo passeport
 
 Tous les documents nécessaires à compléter votre dossier se trouvent sur notre site internet à l’adresse https://www.cpne.ch/formations/educateur-trice-de-lenfance/.
 

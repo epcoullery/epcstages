@@ -92,29 +92,21 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
 
         elif candidate.diploma == 2:  # CFC autre domaine
             data.append([
-                "Attestation de 800h. dans un seul lieu d'accueil de l'enfance",
-                candidate.get_ok('certif_of_800_childhood')
-            ])
-            data.append([
                 "Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')
             ])
 
         elif candidate.diploma == 3:  # Matur, Ecole cult. générale
             data.extend([
-                ["Certif. de travail/stage de 800h. dans n'importe quel domaine",
-                 candidate.get_ok('certif_of_800_general')],
-                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance",
-                 candidate.get_ok('certif_of_800_childhood')],
+                ["Certif. de travail/stage de 400h. dans n'importe quel domaine",
+                 candidate.get_ok('certif_of_400_general')],
                 ["Bilan de l'activité professionnelle",
                  candidate.get_ok('work_certificate')],
             ])
 
         elif candidate.diploma == 4:  # Portfolio
             data.extend([
-                ["Certif. de travail/stage de 800h. dans n'importe quel domaine",
-                 candidate.get_ok('certif_of_800_general')],
-                ["Attestation de 800h. dans un seul lieu d'accueil de l'enfance",
-                 candidate.get_ok('certif_of_800_childhood')],
+                ["Certif. de travail/stage de 400h. dans n'importe quel domaine",
+                 candidate.get_ok('certif_of_400_general')],
                 ["Bilan de l'activité professionnelle",
                  candidate.get_ok('work_certificate')],
             ])
@@ -132,7 +124,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         data = []
         docs_required = [
             'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'has_photo',
-            'reflexive_text', 'marks_certificate', 'handicap',
+            'reflexive_text', 'handicap',
         ]
         for doc in docs_required:
             data.append([candidate._meta.get_field(doc).verbose_name, candidate.get_ok(doc)])

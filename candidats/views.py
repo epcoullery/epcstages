@@ -129,14 +129,14 @@ class ConvocationView(CandidateConfirmationView):
         # Define required documents depending on candidate diploma
         common_docs = [
             'registration_form', 'certificate_of_payement', 'police_record', 'cv', 'reflexive_text',
-            'has_photo', 'marks_certificate',
+            'has_photo',
         ]
         dipl_docs = {
             0: [],
             1: ['work_certificate'],  # CFC ASE
-            2: ['certif_of_800_childhood', 'work_certificate'],
-            3: ['certif_of_800_general', 'certif_of_800_childhood', 'work_certificate'],
-            4: ['certif_of_800_general', 'certif_of_800_childhood', 'work_certificate'],
+            2: ['work_certificate'],
+            3: ['certif_of_400_general', 'work_certificate'],
+            4: ['certif_of_400_general', 'work_certificate'],
         }[candidate.diploma]
         docs_required = dipl_docs + common_docs
 
