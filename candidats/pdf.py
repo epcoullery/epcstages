@@ -5,7 +5,7 @@ from reportlab.platypus import PageTemplate, Paragraph, Spacer, Table, TableStyl
 
 from django.utils.dateformat import format as django_format
 
-from stages.pdf import EpcBaseDocTemplate, LOGO_CPNE_ADR, style_normal, style_bold
+from stages.pdf import EpcBaseDocTemplate, LOGO_CPNE_ADR, style_normal, style_bold, style_smaller
 from .models import (
     AES_ACCORDS_CHOICES, DIPLOMA_CHOICES, DIPLOMA_STATUS_CHOICES,
     OPTION_CHOICES, RESIDENCE_PERMITS_CHOICES,
@@ -113,7 +113,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             data.append(["Contrat de travail", candidate.get_ok('contract')])
             data.append(["Promesse d'engagement", candidate.get_ok('promise')])
             data.append(["Taux d'activité", candidate.activity_rate])
-        t = Table(data, colWidths=[12 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[11 * cm, 5 * cm], hAlign=TA_LEFT)
         t.setStyle(ts)
         self.story.append(t)
 
@@ -127,9 +127,13 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         for doc in docs_required:
             data.append([candidate._meta.get_field(doc).verbose_name, candidate.get_ok(doc)])
         data.append(['Validation des accords AES', aes_accords[candidate.aes_accords]])
-        data.append(['Autorisation de séjour (pour les personnes étrangères)', residence_permits[candidate.residence_permits]])
+        data.append(
+            ['Autorisation de séjour (pour les personnes étrangères)',
+            residence_permits[candidate.residence_permits]]
+        )
+        data.append(['Inscription autre école', Paragraph(candidate.inscr_other_school, style_smaller)])
 
-        t = Table(data, colWidths=[12 * cm, 4 * cm], hAlign=TA_LEFT)
+        t = Table(data, colWidths=[11 * cm, 5 * cm], hAlign=TA_LEFT)
         t.setStyle(ts)
         self.story.append(t)
 

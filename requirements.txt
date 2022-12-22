@@ -1,4 +1,4 @@
-Django>=3.2<4.1
+Django~=4.1
 tabimport==0.5.1
 xlrd<2  # Required by tabimport
 openpyxl==3.0.5
