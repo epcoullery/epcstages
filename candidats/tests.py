@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from io import BytesIO
 from unittest import mock
 
 from django.contrib.auth.models import User
@@ -9,6 +10,7 @@ from django.urls import reverse
 from stages.views.export import openxml_contenttype
 from stages.models import Section, Teacher
 from .models import Candidate, Interview
+from .pdf import InscriptionSummaryPDF
 
 
 class CandidateTests(TestCase):
@@ -369,6 +371,12 @@ tél. 032 886 33 00
         )
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertGreater(int(response['Content-Length']), 1000)
+        # Test PDF pour chaque type de diplôme
+        buff = BytesIO()
+        for dipl_value in (0, 1, 2, 3, 4):
+            pdf = InscriptionSummaryPDF(buff)
+            cand.diploma = dipl_value
+            pdf.produce(cand)
 
     def test_export_candidates(self):
         ede = Section.objects.create(name='EDE')

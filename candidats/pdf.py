@@ -102,11 +102,11 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
             ])
 
         elif candidate.diploma == 4:  # Portfolio
+            work_label = candidate._meta.get_field('work_certificate').verbose_name
             data.extend([
                 ["Certif. de travail/stage de 400h. dans n'importe quel domaine",
                  candidate.get_ok('certif_of_400_general')],
-                ["Bilan de l'activité professionnelle",
-                 candidate.get_ok('work_certificate')],
+                [work_label, candidate.get_ok('work_certificate')],
             ])
 
         if candidate.option != 'PS':
