@@ -82,6 +82,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
              'statut: {0}'.format(candidate.get_diploma_status_display())]
         ]
 
+        work_label = candidate._meta.get_field('work_certificate').verbose_name
         if candidate.diploma == 1:  # CFC ASE
             data.append([
                 'Evaluation du dernier stage ASE et/ou dernier rapport de formation',
@@ -90,19 +91,17 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
 
         elif candidate.diploma == 2:  # CFC autre domaine
             data.append([
-                "Bilan de l'activité professionnelle", candidate.get_ok('work_certificate')
+                work_label, candidate.get_ok('work_certificate')
             ])
 
         elif candidate.diploma == 3:  # Matur, Ecole cult. générale
             data.extend([
                 ["Certif. de travail/stage de 400h. dans n'importe quel domaine",
                  candidate.get_ok('certif_of_400_general')],
-                ["Bilan de l'activité professionnelle",
-                 candidate.get_ok('work_certificate')],
+                [work_label, candidate.get_ok('work_certificate')],
             ])
 
         elif candidate.diploma == 4:  # Portfolio
-            work_label = candidate._meta.get_field('work_certificate').verbose_name
             data.extend([
                 ["Certif. de travail/stage de 400h. dans n'importe quel domaine",
                  candidate.get_ok('certif_of_400_general')],
