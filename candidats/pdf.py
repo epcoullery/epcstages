@@ -85,8 +85,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
         work_label = candidate._meta.get_field('work_certificate').verbose_name
         if candidate.diploma == 1:  # CFC ASE
             data.append([
-                'Evaluation du dernier stage ASE et/ou dernier rapport de formation',
-                candidate.get_ok('work_certificate'),
+                work_label, candidate.get_ok('work_certificate'),
             ])
 
         elif candidate.diploma == 2:  # CFC autre domaine
