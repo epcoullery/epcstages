@@ -25,6 +25,7 @@ OPTION_CHOICES = (
     ('HAN', 'Handicap'),
     ('PE-5400h', 'Parcours Emploi 5400h.'),
     ('PE-3600h', 'Parcours Emploi 3600h.'),
+    ('PS-3600h', 'Parcours stage 3600h.'),
     ('PS', 'Parcours stage 5400h.'),
 )
 

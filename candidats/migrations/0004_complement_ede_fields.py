@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='candidate',
             name='option',
-            field=models.CharField(blank=True, choices=[('GEN', 'Généraliste'), ('ENF', 'Enfance'), ('PAG', 'Personnes âgées'), ('HAN', 'Handicap'), ('PE-5400h', 'Parcours Emploi 5400h.'), ('PE-3600h', 'Parcours Emploi 3600h.'), ('PS', 'Parcours stage 5400h.')], max_length=20, verbose_name='Option'),
+            field=models.CharField(blank=True, choices=[('GEN', 'Généraliste'), ('ENF', 'Enfance'), ('PAG', 'Personnes âgées'), ('HAN', 'Handicap'), ('PE-5400h', 'Parcours Emploi 5400h.'), ('PE-3600h', 'Parcours Emploi 3600h.'), ('PS-3600h', 'Parcours stage 3600h.'), ('PS', 'Parcours stage 5400h.')], max_length=20, verbose_name='Option'),
         ),
         migrations.AlterField(
             model_name='candidate',

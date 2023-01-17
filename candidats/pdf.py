@@ -107,7 +107,7 @@ class InscriptionSummaryPDF(EpcBaseDocTemplate):
                 [work_label, candidate.get_ok('work_certificate')],
             ])
 
-        if candidate.option != 'PS':
+        if not candidate.option.startswith('PS'):
             data.append(["Contrat de travail", candidate.get_ok('contract')])
             data.append(["Promesse d'engagement", candidate.get_ok('promise')])
             data.append(["Taux d'activité", candidate.activity_rate])
