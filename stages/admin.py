@@ -239,7 +239,7 @@ class StudentAdmin(admin.ModelAdmin):
 
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
-    list_filter = (('archived', ArchivedListFilter),)
+    list_filter = (('archived', ArchivedListFilter), 'sections')
     ordering = ('last_name', 'first_name')
     search_fields = ('last_name', 'first_name', 'role')
     fields = (('civility', 'last_name', 'first_name'),
