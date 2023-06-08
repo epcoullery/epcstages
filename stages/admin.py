@@ -253,6 +253,7 @@ class CorpContactAdmin(admin.ModelAdmin):
               ('iban', 'bank', 'clearing' ),
               ('qualification', 'fields_of_interest'),
              )
+    actions = ['export_contacts']
     formfield_overrides = {
         models.ManyToManyField: {'widget': forms.CheckboxSelectMultiple},
     }
@@ -265,6 +266,35 @@ class CorpContactAdmin(admin.ModelAdmin):
     def get_search_results(self, request, qs, term):
         qs, distinct = super().get_search_results(request, qs, term)
         return qs.exclude(archived=True), distinct
+
+    def export_contacts(self, request, queryset):
+        """
+        Export all CorpContact in Excel file.
+        """
+        field_names = (
+            'ext_id', 'civility', 'last_name', 'first_name', 'birth_date',
+            'street', 'pcode', 'city', 'etat_civil', 'etat_depuis', 'nation',
+            'tel', 'email', 'corporation', 'is_main', 'always_cc', 'role',
+            'permis_sejour', 'date_validite', 'avs', 'bank', 'clearing', 'iban',
+            'qualification', 'fields_of_interest',
+        )
+        fields = [CorpContact._meta.get_field(fname) for fname in field_names]
+        export_fields = {
+            getattr(f, 'verbose_name', f.name):
+            ('corporation__name' if f.name == 'corporation' else f.name) for f in fields
+        }
+
+        export = OpenXMLExport('Exportation')
+        export.write_line(export_fields.keys(), bold=True)
+        for corp in queryset.values_list(*export_fields.values()):
+            values = []
+            for value, field_name in zip(corp, export_fields.values()):
+                if field_name in ['is_main', 'always_cc']:
+                    value = 'Oui' if value else ''
+                values.append(value)
+            export.write_line(values)
+        return export.get_http_response('contacts_export')
+    export_contacts.short_description = 'Exportation Excel'
 
 
 class ContactInline(admin.StackedInline):
