@@ -541,26 +541,27 @@ class PrintCompensationForm(PDFBaseView):
     def pdf_class(self):
         return {
             'mentor': pdf.MentorCompensationPdfForm,
+            'supervisor': pdf.SupervisorCompensationPdfForm,
             'ep': pdf.EntretienProfCompensationPdfForm,
             'sout': pdf.SoutenanceCompensationPdfForm,
         }.get(self.typ)
 
     def filename(self, obj):
-        student = obj if self.typ == 'mentor' else obj.student
+        student = obj if self.typ in ('mentor', 'supervisor') else obj.student
         return slugify(
             '{0}_{1}'.format(student.last_name, student.first_name)
         ) + f'_Indemn_{self.typ}.pdf'
 
     def get_object(self):
-        model = Student if self.typ == 'mentor' else Examination
+        model = Student if self.typ in ('mentor', 'supervisor') else Examination
         return model.objects.get(pk=self.kwargs['pk'])
 
     def get(self, request, *args, **kwargs):
         self.typ = self.kwargs['typ']
-        if self.typ == 'mentor':
+        if self.typ in ('mentor', 'supervisor'):
             student = self.get_object()
             if not student.mentor:
-                messages.error(request, "Aucun mentor n’est attribué à cet étudiant")
+                messages.error(request, "Aucun mentor/superviseur n’est attribué à cet étudiant")
                 return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
         else:
             exam = self.get_object()

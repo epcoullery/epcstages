@@ -44,6 +44,8 @@ urlpatterns = [
 
     path('student/<int:pk>/examination/mentor/', views.PrintCompensationForm.as_view(), {'typ': 'mentor'},
         name='print-mentor-compens-form'),
+    path('student/<int:pk>/examination/supervisor/', views.PrintCompensationForm.as_view(), {'typ': 'supervisor'},
+        name='print-supervisor-compens-form'),
     path('exam/<int:pk>/indemn/<slug:typ>/', views.PrintCompensationForm.as_view(),
         name='print-compens-form'),
 

@@ -163,7 +163,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'instructor2', 'supervisor', 'mentor')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'mentor_indemn')
+    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'mentor_indemn', 'superv_indemn')
     fieldsets = [
         (None, {
             'fields': (
@@ -179,7 +179,7 @@ class StudentAdmin(admin.ModelAdmin):
         ("Procédure de qualification", {
             'classes': ['collapse'],
             'fields': (
-                        ('supervisor',  'supervision_attest_received'),
+                        ('supervisor',  'supervision_attest_received', 'superv_indemn'),
                         ('subject', 'title'),
                         ('training_referent', 'referent'),
                         ('mentor', 'mentor_indemn'),
@@ -197,6 +197,15 @@ class StudentAdmin(admin.ModelAdmin):
             reverse('print-mentor-compens-form', args=[obj.pk]),
         )
     mentor_indemn.short_description = 'Indemnité'
+
+    def superv_indemn(self, obj):
+        if obj is None or not obj.supervisor:
+            return '-'
+        return format_html(
+            '<a class="button" href="{}">Indemnité au superviseur</a>',
+            reverse('print-supervisor-compens-form', args=[obj.pk]),
+        )
+    superv_indemn.short_description = 'Indemnité'
 
     def get_inlines(self, request, obj=None):
         if obj is None:
