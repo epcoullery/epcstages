@@ -48,6 +48,7 @@ urlpatterns = [
         name='print-supervisor-compens-form'),
     path('exam/<int:pk>/indemn/<slug:typ>/', views.PrintCompensationForm.as_view(),
         name='print-compens-form'),
+    path('expert/<int:pk>/info/', views.PrintExpertInfoForm.as_view(), name='print-supervisor-info'),
 
     # Qualification EDE
     path('student_ede/<int:pk>/send_convocation/', views.StudentConvocationExaminationView.as_view(),

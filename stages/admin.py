@@ -163,7 +163,9 @@ class StudentAdmin(admin.ModelAdmin):
     list_filter = (('archived', ArchivedListFilter), ('klass', KlassRelatedListFilter))
     search_fields = ('last_name', 'first_name', 'pcode', 'city', 'klass__name')
     autocomplete_fields = ('corporation', 'instructor', 'instructor2', 'supervisor', 'mentor')
-    readonly_fields = ('report_sem1_sent', 'report_sem2_sent', 'mentor_indemn', 'superv_indemn')
+    readonly_fields = (
+        'report_sem1_sent', 'report_sem2_sent', 'mentor_indemn', 'superv_indemn',
+    )
     fieldsets = [
         (None, {
             'fields': (
@@ -202,8 +204,10 @@ class StudentAdmin(admin.ModelAdmin):
         if obj is None or not obj.supervisor:
             return '-'
         return format_html(
-            '<a class="button" href="{}">Indemnité au superviseur</a>',
+            '<a class="button" href="{}">Indemnité au superviseur</a>&nbsp;'
+            '<a class="button" href="{}">Fiche info</a>',
             reverse('print-supervisor-compens-form', args=[obj.pk]),
+            reverse('print-supervisor-info', args=[obj.supervisor.pk]),
         )
     superv_indemn.short_description = 'Indemnité'
 

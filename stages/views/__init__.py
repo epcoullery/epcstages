@@ -571,6 +571,18 @@ class PrintCompensationForm(PDFBaseView):
         return super().get(request, *args, **kwargs)
 
 
+class PrintExpertInfoForm(PDFBaseView):
+    pdf_class = pdf.ExpertInfoForm
+
+    def get_object(self):
+        return CorpContact.objects.get(pk=self.kwargs['pk'])
+
+    def filename(self, obj):
+        return slugify(
+            '{0}_{1}'.format(obj.last_name, obj.first_name)
+        ) + f'_Info.pdf'
+
+
 class PrintExpertEDSCompensationForm(PrintExpertEDECompensationForm):
     """
     Imprime le PDF à envoyer à l'expert EDS en accompagnement du

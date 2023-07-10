@@ -557,6 +557,16 @@ class CompensationPDFForm(CompensationForm, EpcBaseDocTemplate):
         self.build(self.story)
 
 
+class ExpertInfoForm(CompensationPDFForm):
+    def __init__(self, out, contact, **kwargs):
+        self.contact = contact
+        super().__init__(out, **kwargs)
+
+    def produce(self):
+        self.add_private_data(self.contact)
+        self.build(self.story)
+
+
 class MentorCompensationPdfForm(CompensationPDFForm):
     mandat_type = CompensationPDFForm.MENTOR_MANDAT
     mandat_template = "Mentoring de {student_civility} {student_fullname}, classe {klass}"
