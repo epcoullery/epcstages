@@ -560,8 +560,11 @@ class PrintCompensationForm(PDFBaseView):
         self.typ = self.kwargs['typ']
         if self.typ in ('mentor', 'supervisor'):
             student = self.get_object()
-            if not student.mentor:
-                messages.error(request, "Aucun mentor/superviseur n’est attribué à cet étudiant")
+            if self.typ == 'mentor' and not student.mentor:
+                messages.error(request, "Aucun mentor n’est attribué à cet étudiant")
+                return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
+            elif self.typ == 'supervisor' and not student.supervisor:
+                messages.error(request, "Aucun superviseur n’est attribué à cet étudiant")
                 return redirect(reverse("admin:stages_student_change", args=(student.pk,)))
         else:
             exam = self.get_object()
