@@ -63,7 +63,7 @@ class CandidateAdmin(admin.ModelAdmin):
     form = CandidateForm
     list_display = ('last_name', 'first_name', 'section', 'confirm_mail', 'validation_mail', 'convocation_mail',
                     'convoc_confirm_receipt_OK')
-    list_filter = ('section', 'option')
+    list_filter = ('section', 'option', 'session')
     search_fields = ('last_name', 'city')
     readonly_fields = (
         'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions'
@@ -75,7 +75,7 @@ class CandidateAdmin(admin.ModelAdmin):
                        ('street', 'pcode', 'city', 'district'),
                        ('mobile', 'email'),
                        ('birth_date', 'avs', 'handicap'),
-                       ('section', 'option'),
+                       ('section', 'option', 'session'),
                        ('corporation', 'instructor'),
                        ('deposite_date', 'confirmation_date', 'canceled_file'),
                        'comment',

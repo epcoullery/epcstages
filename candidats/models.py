@@ -16,6 +16,7 @@ SECTION_CHOICES = (
     ('ASSC', 'Assist. en soin et santé communautaire CFC'),
     ('EDE', "Education de l’enfance, dipl. ES"),
     ('EDS', 'Education sociale, dipl. ES'),
+    ('MSP', "Maitrise socioprofessionnelle, dipl. ES"),
 )
 
 OPTION_CHOICES = (
@@ -23,10 +24,16 @@ OPTION_CHOICES = (
     ('ENF', 'Enfance'),
     ('PAG', 'Personnes âgées'),
     ('HAN', 'Handicap'),
-    ('PE-5400h', 'Parcours Emploi 5400h.'),
-    ('PE-3600h', 'Parcours Emploi 3600h.'),
-    ('PS-3600h', 'Parcours stage 3600h.'),
-    ('PS', 'Parcours stage 5400h.'),
+    ('PE-5400h', 'Voie duale 5400h.'),
+    ('PE-3600h', 'Voie duale 3600h.'),
+    ('PS-3600h', 'Voie stages intégrés 3600h.'),
+    ('PS', 'Voie stages intégrés 5400h.'),
+)
+
+SESSION_CHOICES = (
+    (2024, "Année 2024"),
+    (2025, "Année 2025"),
+    (2026, "Année 2026"),
 )
 
 DIPLOMA_CHOICES = (
@@ -75,6 +82,8 @@ class Candidate(models.Model):
 
     section = models.CharField('Filière', max_length=10, choices=SECTION_CHOICES)
     option = models.CharField('Option', max_length=20, choices=OPTION_CHOICES, blank=True)
+    # Maybe remove null/blank when field is completely populated
+    session = models.PositiveSmallIntegerField(choices=SESSION_CHOICES, blank=True, null=True)
     exemption_ecg = models.BooleanField(default=False)
     validation_sfpo = models.DateField('Confirmation SFPO', blank=True, null=True)
     integration_second_year = models.BooleanField('Intégration', default=False)
