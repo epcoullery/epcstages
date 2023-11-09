@@ -11,8 +11,8 @@ from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 
 from ..models import (
-    Availability, CorpContact, Corporation, Course, Section, Student, Teacher,
-    Training,
+    Availability, CorpContact, Corporation, Course, Klass, Section, Student,
+    Teacher, Training,
 )
 from ..utils import school_year_start
 
@@ -427,7 +427,7 @@ def ortra_export(request):
     return export.get_http_response('ortra_export')
 
 
-def export_qualification(request, section='ede'):
+def export_qualification(request):
     headers = [
         'Classe', 'Etudiant-e',
         'Référent pratique', 'Titre TD', 'Résumé TD', 'Ens. référent',
@@ -437,16 +437,18 @@ def export_qualification(request, section='ede'):
         'Date', 'Salle', 'Note',
     ]
 
-    export_name = 'Export_qualif_%s' % section.upper()
+    export_name = f'Export_qualif{date.today().strftime("%Y_%m_%d")}'
     export = OpenXMLExport(export_name)
     export.write_line(headers, bold=True)
 
     # Data
     empty_values = [''] * 7
-    for student in Student.objects.filter(klass__name__startswith='3%s' % section.upper(), archived=False
-            ).select_related('klass', 'referent', 'training_referent', 'mentor',
-            ).prefetch_related('examination_set'
-            ).order_by('klass__name', 'last_name'):
+    es_classes = Klass.objects.filter(section__name__in=['EDS', 'EDE', 'MSP'], name__startswith='3')
+    students = Student.objects.filter(
+        klass__in=es_classes, archived=False
+    ).select_related('klass', 'referent', 'training_referent', 'mentor',
+    ).prefetch_related('examination_set').order_by('klass__name', 'last_name')
+    for student in students:
         stud_values = [
             student.klass.name,
             student.full_name,

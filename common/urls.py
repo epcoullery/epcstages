@@ -62,8 +62,7 @@ urlpatterns = [
     path('student_eds/<int:pk>/examination/expert/', views.PrintExpertEDSCompensationForm.as_view(),
         name='print-expert-letter-eds'),
 
-    path('student/export_qualif/<slug:section>/', views.export.export_qualification,
-        name='export-qualif'),
+    path('student/export_qualif/', views.export.export_qualification, name='export-qualif'),
 
     path('imputations/export/', views.export.imputations_export, name='imputations_export'),
     path('export_sap/', views.export.export_sap, name='export_sap'),

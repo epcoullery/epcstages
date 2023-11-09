@@ -107,8 +107,8 @@ class StagesTests(TestCase):
         response = self.client.get(reverse('general-export'))
         self.assertEqual(response.status_code, 200)
 
-    def test_export_qualif_ede(self):
-        response = self.client.get(reverse('export-qualif', args=['ede']))
+    def test_export_qualif(self):
+        response = self.client.get(reverse('export-qualif'))
         self.assertEqual(response.status_code, 200)
 
     def test_export_sap(self):
