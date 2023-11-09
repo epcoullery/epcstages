@@ -66,6 +66,12 @@ class StudentInline(admin.StackedInline):
     extra = 0
 
 
+@admin.register(Section)
+class SectionAdmin(admin.ModelAdmin):
+    list_display = ['name', 'has_stages']
+
+
+@admin.register(Klass)
 class KlassAdmin(admin.ModelAdmin):
     list_display = ('name', 'section', 'level')
     ordering = ('name',)
@@ -85,6 +91,7 @@ class LogBookInline(admin.TabularInline):
     extra = 0
 
 
+@admin.register(Teacher)
 class TeacherAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'abrev', 'email', 'contract', 'rate', 'total_logbook', 'archived')
     list_filter = (('archived', ArchivedListFilter), 'contract')
@@ -157,6 +164,7 @@ class ExaminationInline(admin.StackedInline):
     examination_actions.short_description = 'Actions pour la procédure'
 
 
+@admin.register(Student)
 class StudentAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'pcode', 'city', 'klass', 'archived')
     ordering = ('last_name', 'first_name')
@@ -250,6 +258,7 @@ class StudentAdmin(admin.ModelAdmin):
     archive.short_description = "Marquer les étudiants sélectionnés comme archivés"
 
 
+@admin.register(CorpContact)
 class CorpContactAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'corporation', 'role')
     list_filter = (('archived', ArchivedListFilter), 'sections')
@@ -321,6 +330,7 @@ class ContactInline(admin.StackedInline):
     }
 
 
+@admin.register(Corporation)
 class CorporationAdmin(admin.ModelAdmin):
     list_display = ('name', 'short_name', 'pcode', 'city', 'district', 'ext_id')
     list_editable = ('short_name',)  # Temporarily?
@@ -425,12 +435,14 @@ class AvailabilityInline(admin.StackedInline):
         return ffield
 
 
+@admin.register(Period)
 class PeriodAdmin(admin.ModelAdmin):
     list_display = ('title', 'dates', 'section', 'level')
     list_filter = ('section', 'level')
     inlines = [AvailabilityInline]
 
 
+@admin.register(Availability)
 class AvailabilityAdmin(admin.ModelAdmin):
     list_display = ('corporation', 'period', 'domain', 'contact')
     list_filter = ('period',)
@@ -445,6 +457,7 @@ class AvailabilityAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+@admin.register(Training)
 class TrainingAdmin(admin.ModelAdmin):
     search_fields = ('student__first_name', 'student__last_name', 'availability__corporation__name')
     raw_id_fields = ('availability',)
@@ -455,6 +468,7 @@ class TrainingAdmin(admin.ModelAdmin):
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
 
+@admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('teacher', 'public', 'subject', 'period', 'imputation')
     list_filter = ('imputation', )
@@ -472,20 +486,10 @@ class GroupAdmin(AuthGroupAdmin):
         ])
 
 
-admin.site.register(Section)
 admin.site.register(Level)
-admin.site.register(Klass, KlassAdmin)
 admin.site.register(Option)
-admin.site.register(Student, StudentAdmin)
 admin.site.register(StudentFile)
-admin.site.register(Teacher, TeacherAdmin)
-admin.site.register(Course, CourseAdmin)
-admin.site.register(Corporation, CorporationAdmin)
-admin.site.register(CorpContact, CorpContactAdmin)
 admin.site.register(Domain)
-admin.site.register(Period, PeriodAdmin)
-admin.site.register(Availability, AvailabilityAdmin)
-admin.site.register(Training, TrainingAdmin)
 admin.site.register(LogBookReason)
 admin.site.register(LogBook)
 admin.site.register(ExamEDESession)
