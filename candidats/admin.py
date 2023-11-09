@@ -65,6 +65,7 @@ class CandidateAdmin(admin.ModelAdmin):
                     'convoc_confirm_receipt_OK')
     list_filter = ('section', 'option', 'session')
     search_fields = ('last_name', 'city')
+    autocomplete_fields = ['corporation', 'instructor']
     readonly_fields = (
         'total_result', 'confirmation_date', 'convocation_date', 'candidate_actions'
     )
