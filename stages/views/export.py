@@ -429,7 +429,7 @@ def ortra_export(request):
 
 def export_qualification(request):
     headers = [
-        'Classe', 'Etudiant-e',
+        'Classe', 'Etudiant-e', 'Entrée en formation',
         'Référent pratique', 'Titre TD', 'Résumé TD', 'Ens. référent',
         'Mentor',
         'Session', 'Type', 'Exp_int.',
@@ -452,6 +452,7 @@ def export_qualification(request):
         stud_values = [
             student.klass.name,
             student.full_name,
+            student.start_educ,
             student.training_referent.full_name if student.training_referent else '',
             student.title,
             student.subject,

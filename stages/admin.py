@@ -180,7 +180,7 @@ class StudentAdmin(admin.ModelAdmin):
                 ('last_name', 'first_name', 'ext_id'), ('street', 'pcode', 'city', 'district'),
                 ('email', 'tel', 'mobile'), ('gender', 'avs', 'birth_date'),
                 ('archived', 'dispense_ecg', 'dispense_eps', 'soutien_dys'),
-                ('klass', 'option_ase'),
+                ('klass', 'option_ase', 'start_educ'),
                 ('report_sem1', 'report_sem1_sent'),
                 ('report_sem2', 'report_sem2_sent'),
                 ('corporation', 'instructor', 'instructor2')

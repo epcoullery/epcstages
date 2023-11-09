@@ -303,6 +303,7 @@ class Student(models.Model):
         null=True, blank=True, on_delete=models.SET_NULL)
     expert = models.ForeignKey('CorpContact', related_name='rel_expert', verbose_name='Expert externe',
         null=True, blank=True, on_delete=models.SET_NULL)
+    start_educ = models.DateField('Entrée en formation', null=True, blank=True)
     klass = models.ForeignKey(Klass, verbose_name='Classe', blank=True, null=True,
         on_delete=models.PROTECT)
     report_sem1 = models.FileField('Bulletin 1er sem.', null=True, blank=True, upload_to='bulletins')
