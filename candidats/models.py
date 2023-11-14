@@ -16,7 +16,7 @@ SECTION_CHOICES = (
     ('ASSC', 'Assist. en soin et santé communautaire CFC'),
     ('EDE', "Education de l’enfance, dipl. ES"),
     ('EDS', 'Education sociale, dipl. ES'),
-    ('MSP', "Maitrise socioprofessionnelle, dipl. ES"),
+    ('MSP', "Maîtrise socioprofessionnelle, dipl. ES"),
 )
 
 OPTION_CHOICES = (

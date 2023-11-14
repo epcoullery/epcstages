@@ -36,7 +36,7 @@ class ConfirmationView(CandidateConfirmationView):
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
-        if candidate.section not in {'ASA', 'ASE', 'ASSC', 'EDE', 'EDS'}:
+        if candidate.section not in {'ASA', 'ASE', 'ASSC', 'EDE', 'EDS', 'MSP'}:
             messages.error(request, "Ce formulaire n'est disponible que pour les candidats FE ou ES")
         elif candidate.confirmation_date:
             messages.error(request, 'Une confirmation a déjà été envoyée!')
@@ -51,7 +51,7 @@ class ConfirmationView(CandidateConfirmationView):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
 
         to = [candidate.email]
-        if candidate.section == 'EDE':
+        if candidate.section in {'EDE', 'MSP'}:
             src_email = 'email/candidate_confirm_EDE.txt'
         elif candidate.section == 'EDS':
             src_email = 'email/candidate_confirm_EDS.txt'

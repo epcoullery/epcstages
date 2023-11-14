@@ -443,7 +443,7 @@ def export_qualification(request):
 
     # Data
     empty_values = [''] * 7
-    es_classes = Klass.objects.filter(section__name__in=['EDS', 'EDE', 'MSP'], name__startswith='3')
+    es_classes = Klass.objects.filter(section__name__in=['EDS', 'EDE', 'MSP'], level__name='3')
     students = Student.objects.filter(
         klass__in=es_classes, archived=False
     ).select_related('klass', 'referent', 'training_referent', 'mentor',
