@@ -50,7 +50,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='candidate',
             name='diploma',
-            field=models.PositiveSmallIntegerField(choices=[(0, 'Aucun'), (1, "CFC d'ASE"), (2, 'CFC autre domaine'), (3, 'Matu acad./spéc. ou dipl. ECG'), (4, 'Portfolio')], default=0, verbose_name='Titre sec. II'),
+            field=models.PositiveSmallIntegerField(choices=[(0, 'Aucun'), (1, "CFC d'ASE"), (2, 'CFC autre domaine'), (3, 'Matu acad./spéc. ou dipl. ECG'), (4, 'Portfolio'), (5, 'Tertiaire'), (6, 'Autre')], default=0, verbose_name='Titre préalable'),
         ),
         migrations.AddField(
             model_name='candidate',

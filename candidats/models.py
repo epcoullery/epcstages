@@ -42,6 +42,8 @@ DIPLOMA_CHOICES = (
     (2, "CFC autre domaine"),
     (3, "Matu acad./spéc. ou dipl. ECG"),
     (4, "Portfolio"),
+    (5, "Tertiaire"),
+    (6, "Autre"),
 )
 
 DIPLOMA_STATUS_CHOICES = (
@@ -121,7 +123,7 @@ class Candidate(models.Model):
 
     inscr_other_school = models.CharField("Inscr. autre école", max_length=30, blank=True)
     certif_of_400_general = models.BooleanField("Attest. 400h. général", default=False)
-    diploma = models.PositiveSmallIntegerField('Titre sec. II', choices=DIPLOMA_CHOICES, default=0)
+    diploma = models.PositiveSmallIntegerField('Titre préalable', choices=DIPLOMA_CHOICES, default=0)
     diploma_detail = models.CharField('Détail titre', max_length=30, blank=True, default='')
     diploma_status = models.PositiveSmallIntegerField("Statut titre", choices=DIPLOMA_STATUS_CHOICES, default=0)
     activity_rate = models.CharField("Taux d'activité", max_length=50, blank=True,  default='')
