@@ -2,7 +2,7 @@
 
 Par ce courriel, nous vous confirmons la bonne réception de vos documents de candidature à la formation {{ candidate.section_option }} et vous remercions de l’intérêt que vous portez à notre institution.
 
-Votre dossier sera traité début octobre et des nouvelles vous seront communiquées par courriel.
+Votre dossier sera traité dans les jours à venir et des nouvelles vous seront communiquées par courriel durant la 2ème quinzaine du mois de février.
 
 
 Dans l’intervalle, nous vous adressons, {{ candidate.civility }}, nos salutations les plus cordiales.
