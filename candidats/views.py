@@ -137,6 +137,8 @@ class ConvocationView(CandidateConfirmationView):
             2: ['work_certificate'],
             3: ['certif_of_400_general', 'work_certificate'],
             4: ['certif_of_400_general', 'work_certificate'],
+            5: ['certif_of_400_general', 'work_certificate'],
+            6: ['certif_of_400_general', 'work_certificate'],
         }[candidate.diploma]
         docs_required = dipl_docs + common_docs
 
