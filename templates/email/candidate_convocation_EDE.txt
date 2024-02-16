@@ -1,6 +1,6 @@
 {{ candidate_name }},
 
-Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la filière {{ filiere }}, dipl. ES.
+Nous vous adressons par la présente votre convocation personnelle à la procédure d’admission de la {{ filiere }}, dipl. ES.
 
 Vous êtes attendu{% if candidate.gender == "F" %}e{% endif %} au CPNE - Pôle Santé et Social, rue Sophie-Mairet 29-31, à La Chaux-de-Fonds aux dates suivantes:
 
@@ -15,7 +15,7 @@ Si vous rencontrez des difficultés d’apprentissage (dyslexie, dysorthographie
 {{ rappel }}
 Nous vous remercions de nous confirmer par retour de courriel que vous avez bien reçu ce message et dans l’attente du plaisir de vous rencontrer prochainement, nous vous prions d’agréer, {{ candidate.civility }}, nos salutations les meilleures.
 
-Secrétariat de la filière {{ filiere }}, dipl. ES
+Secrétariat de la {{ filiere }}, dipl. ES
 {{ sender_name }}
 {{ sender_email }}
 tél. 032 886 33 00

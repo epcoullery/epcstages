@@ -114,7 +114,7 @@ class ValidationView(CandidateConfirmationView):
 class ConvocationView(CandidateConfirmationView):
     success_message = "Le message de convocation a été envoyé pour le candidat {person}"
     candidate_date_field = 'convocation_date'
-    title = "Convocation aux examens d'admission EDE/EDS"
+    title = "Convocation aux examens d'admission EDE/EDS/MSP"
 
     def get(self, request, *args, **kwargs):
         candidate = Candidate.objects.get(pk=self.kwargs['pk'])
@@ -148,10 +148,15 @@ class ConvocationView(CandidateConfirmationView):
             ]),
         }
 
+        fil_map = {
+            'EDE': "filière Éducation de l’enfance",
+            'EDS': "filière Éducation sociale",
+            'MSP': "formation Maîtrise socioprofessionnelle",
+        }
         msg_context = {
             'candidate': candidate,
             'candidate_name': " ".join([candidate.civility, candidate.first_name, candidate.last_name]),
-            'filiere': "Éducation de l’enfance" if candidate.section == 'EDE' else "Éducation sociale",
+            'filiere': fil_map.get(candidate.section),
             'date_lieu_examen': settings.DATE_LIEU_EXAMEN_EDE if candidate.section == 'EDE' else settings.DATE_LIEU_EXAMEN_EDS,
             'duree_examen': '2h30' if candidate.section == 'EDE' else '3h00',
             'date_entretien': candidate.interview.date_formatted,
