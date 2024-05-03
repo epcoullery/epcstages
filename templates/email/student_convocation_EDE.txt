@@ -3,7 +3,7 @@
 {{ recipient3 }},
 
 
-Nous vous informons que la soutenance du travail de diplôme de {{ student.civility_full_name }} aura lieu dans les locaux du CPNE - Pôle Santé et Social, 2300 La Chaux-de-Fonds en date du:
+Nous vous informons que la soutenance du travail de diplôme de {{ student.civility_full_name }} aura lieu dans les locaux du CPNE - Pôle Santé et Social, rue Sophie-Mairet 29-31, 2300 La Chaux-de-Fonds en date du:
 
  - {{ date_examen }} en salle {{ salle }}
 
