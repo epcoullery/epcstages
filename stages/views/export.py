@@ -434,7 +434,7 @@ def export_qualification(request):
         'Mentor',
         'Session', 'Type', 'Exp_int.',
         'Expert ext. Civilité', 'Expert ext. Nom', 'Expert ext. Adresse', 'Expert ext. Localité',
-        'Date', 'Salle', 'Note',
+        'Date', 'Salle', 'Note', 'Note (2)', 'Convoc. env.', 'Récept. confirm',
     ]
 
     export_name = f'Export_qualif{date.today().strftime("%Y_%m_%d")}'
@@ -442,7 +442,6 @@ def export_qualification(request):
     export.write_line(headers, bold=True)
 
     # Data
-    empty_values = [''] * 7
     es_classes = Klass.objects.filter(section__name__in=['EDS', 'EDE', 'MSP'], level__name='3')
     students = Student.objects.filter(
         klass__in=es_classes, archived=False
@@ -472,11 +471,14 @@ def export_qualification(request):
                 exam.date_exam,
                 exam.room,
                 exam.mark,
+                exam.mark_acq,
+                exam.date_soutenance_mailed,
+                exam.date_confirm_received,
             ]
             if lines_exported == 0:
                 export.write_line(stud_values + exam_values)
             else:
-                export.write_line(empty_values + exam_values)
+                export.write_line((len(stud_values) * ['']) + exam_values)
             lines_exported += 1
         if lines_exported == 0:
             export.write_line(stud_values)

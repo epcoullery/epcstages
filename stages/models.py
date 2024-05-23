@@ -420,6 +420,9 @@ class Examination(models.Model):
     class Meta:
         verbose_name = "Examen"
 
+    def __str__(self):
+        return f"{self.get_type_exam_display()} pour {self.student}"
+
     def missing_examination_data(self):
         missing = []
         if not self.date_exam:
