@@ -439,7 +439,10 @@ def export_qualification(request):
 
     export_name = f'Export_qualif{date.today().strftime("%Y_%m_%d")}'
     export = OpenXMLExport(export_name)
-    export.write_line(headers, bold=True)
+    export.write_line(
+        headers, bold=True,
+        col_widths=[12, 26, 12, 18, 25, 25, 18, 18, 12, 15, 20, 10, 20, 25, 15, 12, 8, 5, 10, 12, 12]
+    )
 
     # Data
     es_classes = Klass.objects.filter(section__name__in=['EDS', 'EDE', 'MSP'], level__name='3')
@@ -447,11 +450,17 @@ def export_qualification(request):
         klass__in=es_classes, archived=False
     ).select_related('klass', 'referent', 'training_referent', 'mentor',
     ).prefetch_related('examination_set').order_by('klass__name', 'last_name')
+
+    def format_date(val):
+        if not val:
+            return val
+        return val.strftime('%d.%m.%Y')
+
     for student in students:
         stud_values = [
             student.klass.name,
             student.full_name,
-            student.start_educ,
+            format_date(student.start_educ),
             student.training_referent.full_name if student.training_referent else '',
             student.title,
             student.subject,
@@ -468,12 +477,12 @@ def export_qualification(request):
                 exam.external_expert.full_name if exam.external_expert else '',
                 exam.external_expert.street if exam.external_expert else '',
                 exam.external_expert.pcode_city if exam.external_expert else '',
-                exam.date_exam,
+                format_date(exam.date_exam),
                 exam.room,
                 exam.mark,
-                exam.mark_acq,
-                exam.date_soutenance_mailed,
-                exam.date_confirm_received,
+                exam.get_mark_acq_display(),
+                format_date(exam.date_soutenance_mailed),
+                format_date(exam.date_confirm_received),
             ]
             if lines_exported == 0:
                 export.write_line(stud_values + exam_values)
