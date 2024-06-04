@@ -484,10 +484,12 @@ def export_qualification(request):
                 format_date(exam.date_soutenance_mailed),
                 format_date(exam.date_confirm_received),
             ]
-            if lines_exported == 0:
-                export.write_line(stud_values + exam_values)
-            else:
-                export.write_line((len(stud_values) * ['']) + exam_values)
+            export.write_line(stud_values + exam_values)
+            # Variante qui n'exporte qu'une seule fois les données étudiants:
+            # if lines_exported == 0:
+            #     export.write_line(stud_values + exam_values)
+            # else:
+            #     export.write_line((len(stud_values) * ['']) + exam_values)
             lines_exported += 1
         if lines_exported == 0:
             export.write_line(stud_values)
