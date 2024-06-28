@@ -98,6 +98,9 @@ INSTALLED_APPS = (
     'candidats',
 )
 
+# Institution admin may have multiple contacts with many fields
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
+
 FILE_UPLOAD_HANDLERS = ["django.core.files.uploadhandler.TemporaryFileUploadHandler"]
 
 STORAGES = {
