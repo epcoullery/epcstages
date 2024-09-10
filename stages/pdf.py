@@ -511,7 +511,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
 
 
 class ExpertEdsLetterPdf(ExpertEdeLetterPdf):
-    reference = 'BAH/ner'
+    reference = 'BAH/mjr'
     doc_title = 'Travail final'
     resp_filiere, resp_genre = settings.RESP_FILIERE_EDS
     part1_text = """
