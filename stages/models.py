@@ -446,6 +446,13 @@ class StudentFile(models.Model):
 
 
 class Corporation(models.Model):
+    YEAR_CHOICES = (
+        (2024, "2024"),
+        (2025, "2025"),
+        (2026, "2026"),
+        (2027, "2027"),
+        (2028, "2028"),
+    )
     ext_id = models.IntegerField(null=True, blank=True, verbose_name='ID externe')
     name = models.CharField(max_length=100, verbose_name='Nom')
     short_name = models.CharField(max_length=40, blank=True, verbose_name='Nom court')
@@ -460,6 +467,9 @@ class Corporation(models.Model):
     tel = models.CharField(max_length=20, blank=True, verbose_name='Téléphone')
     email = models.EmailField(blank=True, verbose_name='Courriel')
     web = models.URLField(blank=True, verbose_name='Site Web')
+    accred = models.BooleanField("Accréditation", default=False)
+    accred_from = models.PositiveSmallIntegerField("Depuis", choices=YEAR_CHOICES, blank=True, null=True)
+    remarks = models.TextField("Remarques", blank=True)
     archived = models.BooleanField(default=False, verbose_name='Archivé')
 
     class Meta:

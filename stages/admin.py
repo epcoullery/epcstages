@@ -332,7 +332,7 @@ class ContactInline(admin.StackedInline):
 
 @admin.register(Corporation)
 class CorporationAdmin(admin.ModelAdmin):
-    list_display = ('name', 'short_name', 'pcode', 'city', 'district', 'ext_id')
+    list_display = ('name', 'short_name', 'pcode', 'city', 'district', 'accred_from', 'ext_id')
     list_editable = ('short_name',)  # Temporarily?
     list_filter = (('archived', ArchivedListFilter),)
     search_fields = ('name', 'street', 'pcode', 'city')
@@ -345,6 +345,8 @@ class CorporationAdmin(admin.ModelAdmin):
         ('pcode', 'city', 'district'),
         ('tel', 'email'),
         'web',
+        ('accred', 'accred_from'),
+        'remarks',
         'archived',
     )
     inlines = [ContactInline]
@@ -358,19 +360,25 @@ class CorporationAdmin(admin.ModelAdmin):
         """
         Export all Corporations in Excel file.
         """
-        export_fields = OrderedDict([
-            (getattr(f, 'verbose_name', f.name), f.name)
-            for f in Corporation._meta.get_fields() if f.name in (
-                'name', 'short_name', 'sector', 'typ', 'street', 'pcode',
-                'city', 'district', 'tel', 'email', 'web', 'ext_id', 'archived'
-            )
-        ])
+        fields = [
+            ('name', 40), ('short_name', 19), ('sector', 11), ('typ', 10),
+            ('street', 25), ('pcode', 6), ('city', 18), ('district', 8),
+            ('tel', 14), ('email', 24), ('web', 25), ('accred', 6), ('accred_from', 8),
+            ('remarks', 30), ('ext_id', 8), ('archived', 6),
+        ]
+        export_fields = {
+            getattr(f, 'verbose_name', f.name): f.name
+            for f in Corporation._meta.get_fields() if f.name in dict(fields)
+        }
         export = OpenXMLExport('Exportation')
-        export.write_line(export_fields.keys(), bold=True)
+        export.write_line(
+            export_fields.keys(), bold=True,
+            col_widths=[dict(fields)[f] for f in export_fields.values()]
+        )
         for corp in queryset.values_list(*export_fields.values()):
             values = []
             for value, field_name in zip(corp, export_fields.values()):
-                if field_name == 'archived':
+                if field_name in ('archived', 'accred'):
                     value = 'Oui' if value else ''
                 values.append(value)
             export.write_line(values)
