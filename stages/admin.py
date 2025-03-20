@@ -3,6 +3,7 @@ from copy import deepcopy
 
 from django import forms
 from django.contrib import admin
+from django.contrib.admin.models import LogEntry
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth.admin import GroupAdmin as AuthGroupAdmin
 from django.contrib.auth.models import Group
@@ -492,6 +493,38 @@ class GroupAdmin(AuthGroupAdmin):
             (reverse('admin:auth_user_change', args=(user.pk,)), user.username)
             for user in grp.user_set.all().order_by('username')
         ])
+
+
+@admin.register(LogEntry)
+class LogEntryAdmin(admin.ModelAdmin):
+    """Log Entry admin interface."""
+
+    date_hierarchy = "action_time"
+    fields = (
+        "action_time",
+        "user",
+        "content_type",
+        "object_id",
+        "object_repr",
+        "action_flag",
+        "change_message",
+    )
+    list_display = (
+        "action_time",
+        "user", #"user_link",
+        #"action_message",
+        "content_type",
+        "object_repr",
+    )
+    list_filter = (
+        "action_flag",
+        ("content_type", admin.RelatedOnlyFieldListFilter),
+        ("user", admin.RelatedOnlyFieldListFilter),
+    )
+    search_fields = (
+        "object_repr",
+        "change_message",
+    )
 
 
 admin.site.register(Level)
