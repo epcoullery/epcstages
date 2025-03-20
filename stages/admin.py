@@ -512,7 +512,7 @@ class LogEntryAdmin(admin.ModelAdmin):
     list_display = (
         "action_time",
         "user", #"user_link",
-        #"action_message",
+        "action_message",
         "content_type",
         "object_repr",
     )
@@ -525,6 +525,18 @@ class LogEntryAdmin(admin.ModelAdmin):
         "object_repr",
         "change_message",
     )
+
+    @admin.display(description="action")
+    def action_message(self, obj):
+        """
+        Returns the action message.
+        Note: this handles deletions which don't return a change message.
+        """
+        change_message = obj.get_change_message()
+        # If there is no change message then use the action flag label
+        if not change_message:
+            change_message = f"{obj.get_action_flag_display()}."
+        return change_message
 
 
 admin.site.register(Level)
