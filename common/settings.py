@@ -25,7 +25,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 TIME_ZONE = 'Europe/Zurich'
 
-LANGUAGE_CODE = 'fr'
+LANGUAGE_CODE = 'fr-ch'
 
 USE_I18N = True
 

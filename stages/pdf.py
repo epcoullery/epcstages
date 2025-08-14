@@ -470,7 +470,7 @@ class ExpertEdeLetterPdf(CompensationForm, EpcBaseDocTemplate):
             "CPNE Pôle Santé et Social, rue Sophie-Mairet 29-31 - 2300 La Chaux-de-Fonds<br/><br/>"
         )
         self.story.append(Paragraph(date_text.format(
-            date=django_format(exam_data['date_exam'], 'l j F Y à H\hi'),
+            date=django_format(exam_data['date_exam'], r'l j F Y à H\hi'),
             salle=exam_data['room'],
         ), style_bold_center))
 
