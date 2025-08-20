@@ -234,64 +234,6 @@ def imputations_export(request):
     return export.get_http_response('Imputations_export')
 
 
-def export_sap(request):
-    EXPORT_SAP_HEADERS = [
-        'PERNR', 'PERNOM', 'DEGDA', 'ENDDA', 'ZNOM', 'ZUND',
-        'ZACT', 'ZBRA', 'ZOTP', 'ZCCO', 'ZORD', 'ZTAUX',
-    ]
-    MAPPING_OTP = {
-        'ASAFE': 'CIFO01.03.02.03.01.02 - ASA EE',
-        'ASEFE': 'CIFO01.03.02.04.01.02 - CFC ASE EE',
-        'ASSCFE': 'CIFO01.03.02.04.02.02 - CFC ASSC EE',
-        'EDEpe': f'{settings.OTP_EDE} - EDE-S-SS',
-        'EDEps': f'{settings.OTP_EDE} - EDE-S-PS',
-        'EDS': f'{settings.OTP_EDS} - EDS EE',
-        'CAS_FPP': 'CIFO01.03.02.01.03 - Mandats divers (CAS FPP)',
-        'MPTS' : 'CIFO01.04.03.06.02.01 - MPTS ASE',
-        'MPS': 'CIFO01.04.03.06.03.01 - MPS Santé',
-    }
-
-    ratios = _ratio_Ede_Ase_Assc()
-
-    export = OpenXMLExport('Imputations')
-    export.write_line(EXPORT_SAP_HEADERS, bold=True)  # Headers
-    start_date = '20.08.2018'
-    end_date = '19.08.2019'
-    indice = 'charge globale'
-    type_act = 'Ens. prof.'
-    branche = 'Ens. prof.'
-    centre_cout = ''
-    stat = ''
-
-    for teacher in Teacher.objects.filter(archived=False):
-        activities, imputations = teacher.calc_imputations(ratios)
-        for key in imputations:
-            if imputations[key] > 0:
-                values = [
-                    teacher.ext_id, teacher.full_name, start_date, end_date, imputations[key], indice, type_act,
-                    branche, MAPPING_OTP[key], centre_cout, stat,
-                    round(imputations[key] / settings.GLOBAL_CHARGE_PERCENT, 2),
-                ]
-                export.write_line(values)
-
-        # Previous report
-        values = [
-            teacher.ext_id, teacher.full_name, start_date, end_date, teacher.previous_report, indice, type_act,
-            branche, 'Report précédent', centre_cout, stat,
-            round(teacher.previous_report / settings.GLOBAL_CHARGE_PERCENT, 2),
-        ]
-        export.write_line(values)
-
-        # Next report
-        values = [
-            teacher.ext_id, teacher.full_name, start_date, end_date, teacher.next_report, indice, type_act,
-            branche, 'Report suivant', centre_cout, stat,
-            round(teacher.next_report / settings.GLOBAL_CHARGE_PERCENT, 2),
-        ]
-        export.write_line(values)
-    return export.get_http_response('Export_SAP')
-
-
 GENERAL_EXPORT_FIELDS = [
     ('Num_Ele', 'ext_id'),
     ('Nom_Ele', 'last_name'),

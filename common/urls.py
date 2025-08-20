@@ -65,7 +65,6 @@ urlpatterns = [
     path('student/export_qualif/', views.export.export_qualification, name='export-qualif'),
 
     path('imputations/export/', views.export.imputations_export, name='imputations_export'),
-    path('export_sap/', views.export.export_sap, name='export_sap'),
     path('print/update_form/', views.PrintUpdateForm.as_view(), name='print_update_form'),
     path('print/charge_sheet/', views.PrintChargeSheet.as_view(), name='print-charge-sheet'),
     path('general_export/', views.export.general_export, name='general-export'),
