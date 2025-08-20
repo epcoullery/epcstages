@@ -282,9 +282,6 @@ class CompensationForm:
     MENTOR_MANDAT = 'MENTOR'
     EXPERT_ACCOUNT = '30 490 002'
     MENTOR_ACCOUNT = "30 490 002"
-    OTP_EDE_S_PS = "CPNE01.08.01.07.02.01"
-    OTP_EDE_S_SS = "CPNE01.08.01.07.01.01"
-    OTP_EDS = "CPNE01.08.01.07.03.02"
 
     def add_private_data(self, person):
         self.story.append(Spacer(0, 0.5 * cm))
@@ -362,12 +359,12 @@ class CompensationForm:
         elif mandat == self.MENTOR_MANDAT:
             account = self.MENTOR_ACCOUNT
 
-        if 'EDE-S-PS' in student.klass.name:
-            otp = self.OTP_EDE_S_PS
-        elif 'EDE-S-SS' in student.klass.name:
-            otp = self.OTP_EDE_S_SS
+        if 'EDE' in student.klass.name:
+            otp = settings.OTP_EDE
+        elif 'MSP' in student.klass.name:
+            otp = settings.OTP_MSP
         elif 'EDS-S' in student.klass.name:
-            otp = self.OTP_EDS
+            otp = settings.OTP_EDS
 
         self.story.append(Spacer(0, 0.5 * cm))
         data = [

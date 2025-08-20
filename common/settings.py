@@ -154,4 +154,8 @@ DATE_LIEU_EXAMEN_EDE = "mercredi 7 mars 2018, à 13h30, salle A405"
 DATE_LIEU_EXAMEN_EDS = "mercredi 7 mars 2018, à 13h30, salle A405"
 RESP_FILIERE_EDS = ("Brahim Ali Hemma", 'M')
 
+OTP_EDE = "CPNE01.08.01.07.05.01"
+OTP_EDS = "CPNE01.08.01.07.07.01"
+OTP_MSP = "CPNE01.08.01.07.09.01"
+
 from .local_settings import *
