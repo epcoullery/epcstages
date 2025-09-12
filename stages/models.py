@@ -385,6 +385,9 @@ class Student(models.Model):
     def is_eds(self):
         return self.klass and self.klass.section.name == 'EDS'
 
+    def is_msp(self):
+        return self.klass and self.klass.section.name == 'MSP'
+
 
 class Examination(models.Model):
     ACQ_MARK_CHOICES = (

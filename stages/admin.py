@@ -227,7 +227,7 @@ class StudentAdmin(admin.ModelAdmin):
         # SupervisionBillInline is only adequate for EDE students
         if not obj.klass or obj.klass.section.name != 'EDE':
             inlines = [inl for inl in inlines if inl != SupervisionBillInline]
-        if not obj.is_ede() and not obj.is_eds():
+        if not obj.is_ede() and not obj.is_eds() and not obs.is_msp():
             inlines = [inl for inl in inlines if inl != ExaminationInline]
         if request.method == 'POST':
             # Special case where inlines would be different before and after POST
@@ -238,7 +238,7 @@ class StudentAdmin(admin.ModelAdmin):
         return inlines
 
     def get_fieldsets(self, request, obj=None):
-        if not obj or (not obj.is_ede() and not obj.is_eds()):
+        if not obj or (not obj.is_ede() and not obj.is_eds() and not obj.is_msp()):
             # Hide group "Procédure de qualification"
             fieldsets = deepcopy(self.fieldsets)
             fieldsets[1][1]['classes'] = ['hidden']
