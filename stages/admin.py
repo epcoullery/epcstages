@@ -227,7 +227,7 @@ class StudentAdmin(admin.ModelAdmin):
         # SupervisionBillInline is only adequate for EDE students
         if not obj.klass or obj.klass.section.name != 'EDE':
             inlines = [inl for inl in inlines if inl != SupervisionBillInline]
-        if not obj.is_ede() and not obj.is_eds() and not obs.is_msp():
+        if not obj.is_ede() and not obj.is_eds() and not obj.is_msp():
             inlines = [inl for inl in inlines if inl != ExaminationInline]
         if request.method == 'POST':
             # Special case where inlines would be different before and after POST
