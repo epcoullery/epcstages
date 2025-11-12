@@ -578,7 +578,7 @@ class MentorCompensationPdfForm(CompensationPDFForm):
 
 
 class SupervisorCompensationPdfForm(MentorCompensationPdfForm):
-    mandat_template = "Supevision de {student_civility} {student_fullname}, classe {klass}"
+    mandat_template = "Supervision de {student_civility} {student_fullname}, classe {klass}"
 
     def __init__(self, out, student):
         super().__init__(out, student)
